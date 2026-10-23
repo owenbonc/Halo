@@ -15,7 +15,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Doing
 
-- Checking caller audio transcription; the initial synthetic audio test timed out without input transcription.
+- Caller audio transcription remains unverified: the local speech generator produced a WAV with zero audio frames, so the synthetic-input test timed out. This does not establish a Gemini transcription failure.
 - Physical microphone, speaker playback and HTTPS stage-phone testing are not yet verified. This is not a completed spike or finished slice.
 
 ## Next

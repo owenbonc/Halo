@@ -37,6 +37,12 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - At 375px on all three pages: no tap target under 48px, no text under 20px, no sideways scroll at 200% text.
   - `scripts/verify.sh` prints READY.
 
+- **Phone frame, floating dock and call history:**
+  - On a laptop the app draws inside an iPhone frame (after bulk's demo); on a phone it is full screen.
+  - Sam's status and the one action that matters (Ask Sam or Call 159), plus "Read it to me", float at the bottom of Grandma's screen.
+  - `/grandma` lists earlier calls under the latest card, and each opens at `/grandma/calls/[id]`.
+  - Inside warning cards, pills and panels are deeper tints of the band, not white.
+
 ## Doing
 
 ## Next
@@ -46,7 +52,7 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 ## Needs from others
 
-- A and D: before the freeze, move your screens onto `DESIGN.md` (its last table maps your current classes to tokens). Once A's branch is on main, C can do that pass for the call and caretaker pages instead.
+- A and D: your pages now render inside the laptop phone frame too. Use `var(--safe-top)` / `var(--safe-bottom)` and `appScroller()` (see `DESIGN.md`, The phone). Before the freeze, move your screens onto `DESIGN.md` (its last table maps your current classes to tokens). Once A's branch is on main, C can do that pass for the call and caretaker pages instead.
 - D: build the caretaker screens from `components/ui` (`Card tone={alert.band}`, `BandBadge`, `Button`) and the semantic colour names, rather than `BAND_LABEL[band].tone` or raw Tailwind colours, so both sides match.
 - B or the guidance keeper: for screened calls (`source: 'screener'`), drop `different_phone` from `nextSteps`. She never picked up, so "Scammers can keep a landline connected" only adds fear.
 - Guidance keeper: add a dialable number to `GUIDANCE.call_159` (e.g. `tel: '159'`) so the card's "Call 159" button reads it from `lib/guidance.ts` instead of its own literal.

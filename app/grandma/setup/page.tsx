@@ -1,6 +1,6 @@
 'use client';
-import Link from 'next/link';
 import { type ReactNode, useEffect, useId, useState } from 'react';
+import { TopBar } from '@/components/grandma/TopBar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
 import { Check, CircleCheck, Cross } from '@/components/ui/icons';
@@ -45,22 +45,14 @@ export default function SetupPage() {
 
   return (
     <section className="space-y-10 pb-24">
-      <header className="material sticky top-0 z-10 -mx-4 flex items-center justify-between gap-4 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <Link
-          href="/grandma"
-          className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink"
-        >
-          Your calls
-        </Link>
-      </header>
+      <TopBar title="Settings" link={{ href: '/grandma', label: 'Your calls' }} />
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p
         role="status"
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 bottom-[max(1rem,var(--safe-bottom))] z-10 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}

@@ -3,7 +3,7 @@ import type { Band } from '@/lib/types';
 import { BAND_TONE } from './band';
 
 const TONE = {
-  neutral: 'border-line bg-surface text-ink-2',
+  neutral: 'border-inset-line bg-inset text-ink-2',
   accent: 'border-accent-ink/30 bg-accent-soft text-accent-ink',
 };
 
@@ -17,7 +17,7 @@ export function Pill({
   const colours =
     tone === 'neutral' || tone === 'accent'
       ? TONE[tone]
-      : `border-current bg-surface ${BAND_TONE[tone].text}`;
+      : `border-current bg-inset ${BAND_TONE[tone].text}`;
   return (
     <span
       {...props}
@@ -26,12 +26,12 @@ export function Pill({
   );
 }
 
-// A white panel that groups one chunk inside a card or on the page.
+// A panel that groups one chunk: white on a plain card, a deeper tint inside a warning card.
 export function Panel({ className = '', ...props }: ComponentProps<'div'>) {
   return (
     <div
       {...props}
-      className={`space-y-3 rounded-card border border-line bg-surface p-4 ${className}`}
+      className={`space-y-3 rounded-card border border-inset-line bg-inset p-4 ${className}`}
     />
   );
 }

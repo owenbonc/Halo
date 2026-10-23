@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
-import { CallCard, when } from '@/components/grandma/CallCard';
+import { CallCard, CallRow } from '@/components/grandma/CallCard';
+import { CallDock } from '@/components/grandma/CallDock';
+import { TopBar } from '@/components/grandma/TopBar';
 import { VoiceNote } from '@/components/grandma/VoiceNote';
-import { BandBadge, Card } from '@/components/ui/band';
+import { Card } from '@/components/ui/band';
 import { Pill } from '@/components/ui/Pill';
 import { BAND_LABEL } from '@/lib/labels';
 import type { CallView, Settings } from '@/lib/types';
@@ -21,19 +23,11 @@ export default function GrandmaPage() {
         c.alert?.status !== 'acknowledged' &&
         Date.now() - Date.parse(c.createdAt) < 60 * 60_000,
     ) ?? latest;
+  const earlier = calls.data?.filter((c) => c !== featured) ?? [];
 
   return (
     <section className="space-y-10">
-      {/* Stays on screen as material; the card scrolls under it. */}
-      <header className="material sticky top-0 z-10 -mx-4 flex items-center justify-between gap-4 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
-        <h1 className="text-3xl font-bold">Your calls</h1>
-        <Link
-          href="/grandma/setup"
-          className="inline-flex min-h-12 items-center rounded-full px-5 font-semibold glass text-ink"
-        >
-          Settings
-        </Link>
-      </header>
+      <TopBar title="Your calls" link={{ href: '/grandma/setup', label: 'Settings' }} />
       <p className="sr-only" aria-live="polite">
         {latest ? `Newest call: ${BAND_LABEL[latest.analysis.band].title}` : ''}
       </p>
@@ -44,23 +38,7 @@ export default function GrandmaPage() {
       )}
       {!calls.data && !calls.error && <p role="status">Checking for calls…</p>}
       {featured ? (
-        <>
-          <CallCard
-            key={featured.id}
-            call={featured}
-            contact={contact}
-            paused={settings.data?.paused ?? false}
-          />
-          {latest && latest !== featured && (
-            <Card className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <Pill>Newer call</Pill>
-                <Pill className="tabular-nums">{when(latest.createdAt)}</Pill>
-              </div>
-              <BandBadge band={latest.analysis.band} className="text-xl" />
-            </Card>
-          )}
-        </>
+        <CallCard key={featured.id} call={featured} />
       ) : (
         calls.data && (
           <Card className="space-y-2">
@@ -71,13 +49,42 @@ export default function GrandmaPage() {
           </Card>
         )
       )}
+
+      {earlier.length > 0 && (
+        <section className="space-y-4" aria-labelledby="earlier-calls">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="earlier-calls" className="text-2xl font-bold">
+              Earlier calls
+            </h2>
+            <Pill className="tabular-nums">{earlier.length}</Pill>
+          </div>
+          <ul className="space-y-3">
+            {earlier.map((call) => (
+              <CallRow
+                key={call.id}
+                call={call}
+                newer={!!featured && call.createdAt > featured.createdAt}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+
       <VoiceNote />
       <Link
         href="/?switch"
-        className="inline-flex min-h-12 items-center rounded-full px-5 font-semibold glass text-ink-2"
+        className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink-2"
       >
         Switch role
       </Link>
+
+      {featured && (
+        <>
+          {/* Room to scroll the last item clear of the floating dock. */}
+          <div aria-hidden="true" className={featured.analysis.band === 'none' ? 'h-16' : 'h-64'} />
+          <CallDock call={featured} contact={contact} paused={settings.data?.paused ?? false} />
+        </>
+      )}
     </section>
   );
 }

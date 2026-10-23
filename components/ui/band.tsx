@@ -4,9 +4,17 @@ import type { Band } from '@/lib/types';
 import { CircleCheck, OctagonAlert, TriangleAlert } from './icons';
 
 export const BAND_TONE: Record<Band, { card: string; text: string; Icon: typeof CircleCheck }> = {
-  strong: { card: 'border-danger bg-danger-soft', text: 'text-danger', Icon: OctagonAlert },
-  some: { card: 'border-caution bg-caution-soft', text: 'text-caution', Icon: TriangleAlert },
-  none: { card: 'border-clear bg-clear-soft', text: 'text-clear', Icon: CircleCheck },
+  strong: {
+    card: 'tone-strong border-danger bg-danger-soft',
+    text: 'text-danger',
+    Icon: OctagonAlert,
+  },
+  some: {
+    card: 'tone-some border-caution bg-caution-soft',
+    text: 'text-caution',
+    Icon: TriangleAlert,
+  },
+  none: { card: 'tone-none border-clear bg-clear-soft', text: 'text-clear', Icon: CircleCheck },
 };
 
 // Colour is never the only signal: every band carries its icon and its words.
@@ -26,7 +34,9 @@ export function BandBadge({
       <span className="min-w-0 break-words">
         {caveat.length > 0 ? `${headline}.` : headline}
         {caveat.length > 0 && (
-          <span className="mt-1 block text-[0.7em] font-semibold">{caveat.join('. ')}</span>
+          <span className="mt-1 block text-[max(0.7em,1.25rem)] font-semibold">
+            {caveat.join('. ')}
+          </span>
         )}
       </span>
     </span>

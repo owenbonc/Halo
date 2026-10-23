@@ -1,24 +1,11 @@
 'use client';
-import { useEffect, useId, useState } from 'react';
-import { Button, buttonClass } from '@/components/ui/Button';
+import Link from 'next/link';
+import { useId } from 'react';
 import { BandBadge, Card } from '@/components/ui/band';
-import { Check, Phone, Speaker, TriangleAlert } from '@/components/ui/icons';
 import { Panel, Pill } from '@/components/ui/Pill';
 import { GUIDANCE } from '@/lib/guidance';
-import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
-import type { AlertRecord, CallView } from '@/lib/types';
-
-const ALERT_LINE: Record<AlertRecord['status'], (contact: string) => string> = {
-  sent: (c) => `${c} has been told and asked to call you.`,
-  acknowledged: (c) => `${c} is calling you.`,
-  escalated: (c) => `${c} hasn't replied. Call 159.`,
-};
-
-const ALERT_STYLE: Record<AlertRecord['status'], { box: string; Icon: typeof Check }> = {
-  sent: { box: 'bg-surface', Icon: Check },
-  acknowledged: { box: 'bg-accent text-on-accent text-2xl', Icon: Phone },
-  escalated: { box: 'bg-surface text-danger', Icon: TriangleAlert },
-};
+import { FAMILY_LABEL } from '@/lib/labels';
+import type { CallView } from '@/lib/types';
 
 export function when(iso: string) {
   const date = new Date(iso);
@@ -32,76 +19,26 @@ export function when(iso: string) {
     : `${date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} at ${time}`;
 }
 
-function reassurance(call: CallView) {
+export function reassurance(call: CallView) {
   if (call.source === 'voice_note')
     return 'You told us about this call. You did the right thing by checking.';
   if (call.analysis.band === 'none') return 'We answered this call for you.';
   return 'We answered this call for you. You did the right thing by not answering it yourself.';
 }
 
-// Each part becomes its own sentence so the voice pauses between them.
-const sentences = (parts: (string | false | null)[]) =>
-  parts
-    .filter((p): p is string => Boolean(p))
-    .map((p) => (/[.!?]$/.test(p) ? p : `${p}.`))
-    .join(' ');
-
-function useReadAloud() {
-  const [speaking, setSpeaking] = useState(false);
-  useEffect(() => () => speechSynthesis.cancel(), []);
-  const read = (text: string) => {
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-GB';
-    utterance.rate = 0.9;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    speechSynthesis.speak(utterance);
-    setSpeaking(true);
-  };
-  const stop = () => {
-    speechSynthesis.cancel();
-    setSpeaking(false);
-  };
-  return { speaking, read, stop };
-}
-
-export function CallCard({
-  call,
-  contact,
-  paused,
-}: {
-  call: CallView;
-  contact: string;
-  paused: boolean;
-}) {
+// The facts of one call. Sam's status, the action and read-aloud float in CallDock so they never scroll away.
+export function CallCard({ call }: { call: CallView }) {
   const { analysis } = call;
   const warning = analysis.band !== 'none';
   const steps = analysis.nextSteps.map((id) => GUIDANCE[id]);
-  const status = call.alert && ALERT_LINE[call.alert.status](contact);
-  const voice = useReadAloud();
   const titleId = useId();
-  // 159 is the one action she can take herself; once Sam is calling, it would only compete.
-  const call159 =
-    analysis.band === 'strong' && (call.alert ? call.alert.status !== 'acknowledged' : paused);
-
-  const script = sentences([
-    BAND_LABEL[analysis.band].title,
-    warning && FAMILY_LABEL[analysis.family],
-    warning && analysis.summary,
-    reassurance(call),
-    status,
-    steps.length > 0 && 'What to do now',
-    ...steps.map((s) => `${s.title}. ${s.body}`),
-    analysis.cues.length > 0 && `The caller said: ${analysis.cues.join(', ')}`,
-  ]);
 
   // Entrances move but never fade: if a browser stops drawing frames, the card must still be readable.
   return (
     <Card
       tone={analysis.band}
       aria-labelledby={titleId}
-      className="space-y-5 transition duration-500 ease-out starting:translate-y-3 motion-reduce:transition-none"
+      className="space-y-5 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
     >
       <div className="flex flex-wrap gap-2">
         <Pill>{call.callerLabel}</Pill>
@@ -116,35 +53,6 @@ export function CallCard({
       </div>
       <p>{reassurance(call)}</p>
 
-      <div aria-live="polite" className="space-y-3">
-        {call.alert && status ? (
-          <AlertLine key={call.alert.status} status={call.alert.status} text={status} />
-        ) : (
-          warning &&
-          (paused ? (
-            <p className="text-ink-2">
-              Messages to {contact} are paused. You can turn them back on in Settings.
-            </p>
-          ) : (
-            <AskButton callId={call.id} contact={contact} />
-          ))
-        )}
-        {call159 && (
-          <a href="tel:159" className={buttonClass('primary')}>
-            <Phone />
-            Call 159
-          </a>
-        )}
-      </div>
-
-      <Button
-        variant="secondary"
-        onClick={() => (voice.speaking ? voice.stop() : voice.read(script))}
-      >
-        <Speaker />
-        {voice.speaking ? 'Stop reading' : 'Read it to me'}
-      </Button>
-
       {steps.length > 0 && (
         <Panel>
           <h3 className="font-bold">What to do now</h3>
@@ -153,7 +61,7 @@ export function CallCard({
               <li key={step.title} className="flex gap-3">
                 <span
                   aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft font-bold text-accent-ink tabular-nums"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-inset-2 font-bold text-ink tabular-nums"
                 >
                   {i + 1}
                 </span>
@@ -171,7 +79,7 @@ export function CallCard({
           <h3 className="font-bold">What the caller said that worried us</h3>
           <ul className="space-y-2">
             {analysis.cues.map((cue) => (
-              <li key={cue} className="break-words rounded-chip bg-surface-2 px-4 py-2">
+              <li key={cue} className="break-words rounded-chip bg-inset-2 px-4 py-2">
                 “{cue}”
               </li>
             ))}
@@ -182,42 +90,25 @@ export function CallCard({
   );
 }
 
-function AlertLine({ status, text }: { status: AlertRecord['status']; text: string }) {
-  const { box, Icon } = ALERT_STYLE[status];
+// One row of the call history: band, scam type and when. Opens that call's full card.
+export function CallRow({ call, newer }: { call: CallView; newer: boolean }) {
+  const { analysis } = call;
   return (
-    <p
-      className={`flex items-start gap-3 rounded-chip p-4 font-semibold transition duration-500 ease-out starting:scale-[0.97] motion-reduce:transition-none ${box}`}
-    >
-      <Icon className="mt-1 size-[1.1em]" />
-      {text}
-    </p>
-  );
-}
-
-function AskButton({ callId, contact }: { callId: string; contact: string }) {
-  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
-  const ask = async () => {
-    setState('sending');
-    const res = await fetch('/api/alerts', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ callId }),
-    }).catch(() => null);
-    setState(res?.ok ? 'sent' : 'failed');
-  };
-  // The poll replaces this with the alert's real status within two seconds.
-  if (state === 'sent') return <AlertLine status="sent" text={ALERT_LINE.sent(contact)} />;
-  return (
-    <div className="space-y-2">
-      <Button onClick={ask} disabled={state === 'sending'}>
-        <Phone />
-        {state === 'sending' ? `Telling ${contact}…` : `Ask ${contact} to call me`}
-      </Button>
-      {state === 'failed' && (
-        <p role="alert" className="font-semibold text-danger">
-          That didn't send. Try again, or call {contact} or 159 yourself.
-        </p>
-      )}
-    </div>
+    <li>
+      <Link
+        href={`/grandma/calls/${call.id}`}
+        className="glass flex flex-col gap-3 rounded-card px-4 py-4 transition-[transform,background-color] duration-100 ease-out active:scale-[0.98]"
+      >
+        <BandBadge band={analysis.band} className="text-xl" />
+        <span className="flex flex-wrap gap-2">
+          {newer && <Pill tone="accent">Newer</Pill>}
+          {analysis.band !== 'none' && (
+            <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>
+          )}
+          <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
+          {call.source === 'voice_note' && <Pill>Your voice note</Pill>}
+        </span>
+      </Link>
+    </li>
   );
 }

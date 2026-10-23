@@ -9,6 +9,13 @@
   }
 }
 
+/* Laptop demo: a wide window with a precise pointer draws the app inside a phone (components/ui/DeviceFrame). */
+@custom-variant frame {
+  @media (min-width: 500px) and (pointer: fine) {
+    @slot;
+  }
+}
+
 /*
  * The shared look, as a token graph: reference palette (OKLCH) -> semantic roles -> components.
  * Components use only the semantic --color-* names, so a redesign edits this file, not the screens.
@@ -35,10 +42,19 @@
 
   /* Band hues, spread for colour-blind separation (red 28, ochre 68, teal-green 165). */
   --tomato-50: oklch(94.5% 0.026 28);
+  --tomato-100: oklch(90.7% 0.035 28);
+  --tomato-150: oklch(87.8% 0.042 28);
+  --tomato-200: oklch(83% 0.054 28);
   --tomato-700: oklch(47% 0.144 28);
   --ochre-50: oklch(95.5% 0.034 85);
+  --ochre-100: oklch(91.9% 0.038 82);
+  --ochre-150: oklch(89.1% 0.041 80);
+  --ochre-200: oklch(85% 0.05 75);
   --ochre-700: oklch(50% 0.082 68);
   --fern-50: oklch(95% 0.028 165);
+  --fern-100: oklch(91.3% 0.032 165);
+  --fern-150: oklch(88.6% 0.035 165);
+  --fern-200: oklch(84% 0.045 165);
   --fern-700: oklch(49% 0.077 165);
 
   --elevation-float: 0 8px 24px -8px rgb(30 26 21 / 0.18), 0 2px 6px -2px rgb(30 26 21 / 0.08);
@@ -61,6 +77,22 @@
   /* Material: translucent paper for bars that stay on screen while content scrolls under them. */
   --material: color-mix(in oklab, var(--sand-50) 78%, transparent);
   --material-fallback: color-mix(in oklab, var(--sand-50) 96%, transparent);
+
+  /* Safe areas: the browser's on a phone; the iPhone 16 Pro's inside the laptop frame. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* The phone frame: iPhone 16 Pro screen, hardware and the desk it sits on. */
+  --frame-w: 402px;
+  --frame-h: 874px;
+  --frame-radius: 55px;
+  --frame-bezel: 11px;
+  --device: #0d0d0f;
+  --device-rim: #5d5a63;
+  --device-rim-highlight: #8d8a94;
+  --desk: oklch(23% 0.03 300);
+  --desk-glow: oklch(33% 0.06 300);
+  --elevation-device: 0 40px 80px -24px rgb(0 0 0 / 0.55), 0 16px 32px -16px rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
@@ -93,6 +125,12 @@
   --color-clear: var(--fern-700);
   --color-clear-soft: var(--fern-50);
 
+  /* Insets: pills, panels and quotes inside a card. White on plain cards; a deeper tint of the band inside a
+     warning card (set by .tone-*), so layers stay tonal instead of punching white holes in the colour. */
+  --color-inset: var(--inset, var(--sand-0));
+  --color-inset-2: var(--inset-2, var(--sand-100));
+  --color-inset-line: var(--inset-line, var(--sand-200));
+
   /* Shadows belong to floating layers only; cards on the page use a 1px line border. */
   --shadow-float: var(--elevation-float);
 }
@@ -103,6 +141,24 @@
   --radius-sheet: 24px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tone-strong {
+  --inset: var(--tomato-100);
+  --inset-2: var(--tomato-150);
+  --inset-line: var(--tomato-200);
+}
+
+.tone-some {
+  --inset: var(--ochre-100);
+  --inset-2: var(--ochre-150);
+  --inset-line: var(--ochre-200);
+}
+
+.tone-none {
+  --inset: var(--fern-100);
+  --inset-2: var(--fern-150);
+  --inset-line: var(--fern-200);
 }
 
 @layer base {
@@ -276,5 +332,104 @@
     &:active:not(:disabled) {
       background-color: oklch(from var(--lavender-300) calc(l - 0.06) c h);
     }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Device: full screen on a phone, a phone frame on the laptop          */
+/* ------------------------------------------------------------------ */
+
+.device-screen {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--sand-50);
+}
+
+@variant frame {
+  .device-stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(ellipse 60% 70% at 50% 45%, var(--desk-glow), transparent 70%)
+      var(--desk);
+  }
+
+  /* Centred by its own box and scaled to fit the window with 24px margins. */
+  .device-phone {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--frame-w);
+    height: var(--frame-h);
+    border-radius: var(--frame-radius);
+    --frame-scale: min(
+      1,
+      tan(atan2(calc(100dvh - 48px), calc(var(--frame-h) + 2 * var(--frame-bezel)))),
+      tan(atan2(calc(100vw - 48px), calc(var(--frame-w) + 2 * var(--frame-bezel))))
+    );
+    transform: translate(-50%, -50%) scale(var(--frame-scale));
+    box-shadow:
+      0 0 0 var(--frame-bezel) var(--device),
+      0 0 0 calc(var(--frame-bezel) + 1.5px) var(--device-rim),
+      0 0 0 calc(var(--frame-bezel) + 2px) var(--device-rim-highlight),
+      var(--elevation-device);
+  }
+
+  /* Side buttons on the rim: action and volume on the left, side button on the right. */
+  .device-phone::before,
+  .device-phone::after {
+    content: "";
+    position: absolute;
+    width: 3px;
+    pointer-events: none;
+  }
+
+  .device-phone::before {
+    top: 112px;
+    height: 182px;
+    left: calc(-1 * var(--frame-bezel) - 4.5px);
+    border-radius: 2px 0 0 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--device-rim) 0 30px,
+      transparent 30px 62px,
+      var(--device-rim) 62px 120px,
+      transparent 120px 128px,
+      var(--device-rim) 128px 182px
+    );
+  }
+
+  .device-phone::after {
+    top: 196px;
+    height: 92px;
+    right: calc(-1 * var(--frame-bezel) - 4.5px);
+    border-radius: 0 2px 2px 0;
+    background: var(--device-rim);
+  }
+
+  /* The screen is the containing block for fixed layers, so floating bars and toasts stay inside the phone. */
+  .device-screen {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    contain: layout paint;
+    isolation: isolate;
+    --safe-top: 62px;
+    --safe-bottom: 34px;
+  }
+
+  .device-scroll {
+    position: absolute;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .device-scroll::-webkit-scrollbar {
+    display: none;
   }
 }

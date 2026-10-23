@@ -35,9 +35,23 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 ## Shape and depth
 
 - Radii: `rounded-chip` 12px (status boxes, inputs, quoted phrases), `rounded-card` 18px (cards, panels, options), `rounded-sheet` 24px; buttons and links that act like buttons are full pills (`rounded-full`).
-- **Pills** carry single facts (caller, time, scam type, status, the listening timer). **Boxes** group every chunk: cards on the page, white panels inside a warning card. Panels inside a tinted card are a deliberate choice of the design owner, not an accident.
+- **Pills** carry single facts (caller, time, scam type, status, the listening timer). **Boxes** group every chunk: cards on the page, panels inside a card. Panels inside a card are a deliberate choice of the design owner, not an accident.
+- **Insets are tonal.** Pills, panels and quotes use `bg-inset` / `bg-inset-2` / `border-inset-line`: white on a plain card, and inside a warning card a deeper tint of that band (the card's `tone-*` class sets them). Never put white inside a tinted card.
 - Cards and panels: a 1px `line` border, no shadow. Warning cards: a 1px band-ink edge on the band tint.
 - `shadow-float` only on things that float (glass controls, toasts).
+
+## The phone (from bulk)
+
+- On a laptop (a window at least 500px wide with a mouse), the app draws inside an iPhone 16 Pro frame on an aubergine desk, with a live status bar and home indicator (`components/ui/DeviceFrame.tsx`). On a phone it fills the screen.
+- Pad against `var(--safe-top)` and `var(--safe-bottom)`, never `env(safe-area-inset-*)` directly: inside the frame they are the phone's 62px and 34px.
+- Scroll with `appScroller()` from `DeviceFrame`, never `window.scrollTo`: inside the frame the app scrolls in the phone's screen. `position: fixed` stays inside the phone.
+
+## Floating, not scrolling
+
+- What Grandma must always reach floats at the bottom, in thumb reach, like bulk's controls: the **Sam dock** (`CallDock`: Sam's status, the one action that matters, Ask Sam or Call 159) and a **"Read it to me"** glass pill. The facts of the call scroll under them.
+- The dock is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender).
+- Top bars (`TopBar`) are sticky `material` with a glass pill link on the right.
+- Leave room at the end of the page for floating layers so the last item can scroll clear of them.
 
 ## Glass (from bulk)
 

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
+import { appScroller } from '@/components/ui/DeviceFrame';
 import { Mic } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { startRecording } from '@/lib/recorder';
@@ -50,7 +51,7 @@ export function VoiceNote() {
     const res = await fetch('/api/voice-note', { method: 'POST', body: form }).catch(() => null);
     if (res?.ok) {
       setState({ kind: 'idle', message: 'Done. Your new card is at the top.' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      appScroller().scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     const error = await res

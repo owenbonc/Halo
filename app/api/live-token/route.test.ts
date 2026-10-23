@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { insertOne } = vi.hoisted(() => ({ insertOne: vi.fn() }));
+vi.mock('./guard', () => ({ accessStatus: () => 200, reserveCallBudget: async () => null }));
 vi.mock('@/lib/db', () => ({ collections: async () => ({ callSessions: { insertOne } }) }));
 
 import { POST } from './route';
@@ -28,6 +29,7 @@ describe('live token endpoint', () => {
     expect(body).toEqual({
       token: 'auth_tokens/synthetic',
       model: 'gemini-3.8-live',
+      recordedFixture: false,
       callSessionId: expect.any(String),
     });
     expect(insertOne).toHaveBeenCalledWith({
@@ -42,7 +44,7 @@ describe('live token endpoint', () => {
       inputAudioTranscription: {},
       outputAudioTranscription: {},
       generationConfig: {
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
     });
     expect(wire.bidiGenerateContentSetup.systemInstruction.parts[0].text).toContain('untrusted');
@@ -87,5 +89,5 @@ describe('live token endpoint', () => {
 it('limits new-session and connection lifetimes', () => {
   const body = tokenRequest(0);
   expect(body.newSessionExpireTime).toBe('1970-01-01T00:01:00.000Z');
-  expect(body.expireTime).toBe('1970-01-01T00:05:00.000Z');
+  expect(body.expireTime).toBe('1970-01-01T00:02:00.000Z');
 });

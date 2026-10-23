@@ -7,14 +7,14 @@ const TokenResponse = z.object({ name: z.string().startsWith('auth_tokens/') });
 export function tokenRequest(now = Date.now()) {
   return {
     uses: 1,
-    expireTime: new Date(now + 5 * 60_000).toISOString(),
+    expireTime: new Date(now + 2 * 60_000).toISOString(),
     newSessionExpireTime: new Date(now + 60_000).toISOString(),
     // This is the wire shape emitted by Google's SDK; omitted fieldMask locks the setup.
     bidiGenerateContentSetup: {
       model: `models/${LIVE_MODEL}`,
       generationConfig: {
         responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
       systemInstruction: { parts: [{ text: SCREENER_INSTRUCTIONS }], role: 'user' },
       inputAudioTranscription: {},

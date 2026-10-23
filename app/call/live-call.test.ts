@@ -24,6 +24,17 @@ class Socket {
 const track = { stop: vi.fn() };
 const node = { connect: vi.fn(), disconnect: vi.fn() };
 const context = {
+  createGain: vi.fn(() => ({
+    gain: {
+      value: 0.85,
+      cancelScheduledValues: vi.fn(),
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+      setTargetAtTime: vi.fn(),
+    },
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  })),
   currentTime: 0,
   sampleRate: 48000,
   destination: {},
@@ -106,4 +117,29 @@ it('requests hang-up on network closure and cleans up on disposal', async () => 
   call.dispose();
   expect(track.stop).toHaveBeenCalled();
   expect(context.close).toHaveBeenCalled();
+});
+it('does not start capture if disconnected while the worklet is loading', async () => {
+  let loaded: () => void = () => {};
+  context.audioWorklet.addModule.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        loaded = resolve;
+      }),
+  );
+  const call = new LiveCall(
+    context as unknown as AudioContext,
+    stream as unknown as MediaStream,
+    ended,
+  );
+  const starting = call.start('auth_tokens/test', 'test-model');
+  Socket.current.message({ setupComplete: {} });
+  await vi.advanceTimersByTimeAsync(0);
+  Socket.current.onclose?.();
+  const finishing = expect(call.finish()).rejects.toThrow('No caller speech');
+  const rejected = expect(starting).rejects.toThrow('Call cancelled');
+  loaded();
+  await rejected;
+  expect(context.createMediaStreamSource).not.toHaveBeenCalled();
+  await vi.advanceTimersByTimeAsync(2000);
+  await finishing;
 });

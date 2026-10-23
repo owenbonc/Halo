@@ -1,5 +1,5 @@
-import { SCREENER_OPENING } from '@/lib/screener-prompt';
 import { TranscriptResponse } from './protocol';
+import { CallError, callRequest } from './request';
 
 export class RecordedCall {
   private recorder: MediaRecorder;
@@ -7,7 +7,7 @@ export class RecordedCall {
   private recording: Promise<Blob>;
   private finished?: Promise<string>;
   private started = false;
-  private cancelGreeting?: () => void;
+  private abort = new AbortController();
 
   constructor(
     private stream: MediaStream,
@@ -20,55 +20,46 @@ export class RecordedCall {
       };
       this.recorder.onstop = () => resolve(new Blob(this.chunks, { type: this.recorder.mimeType }));
       this.recorder.onerror = () => {
-        reject(new Error('Recording failed. Please try again.'));
+        reject(new CallError('Recording failed. Please try again.'));
         this.ended();
       };
     });
     void this.recording.catch(() => {});
   }
-  async start() {
-    if ('speechSynthesis' in window)
-      await new Promise<void>((resolve) => {
-        const greeting = new SpeechSynthesisUtterance(SCREENER_OPENING);
-        const timeout = setTimeout(resolve, 12_000);
-        const done = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-        this.cancelGreeting = done;
-        greeting.onend = done;
-        greeting.onerror = done;
-        speechSynthesis.speak(greeting);
-      });
-    if (!this.stream.active) throw new Error('Call cancelled.');
+  start() {
+    if (!this.stream.active) throw new CallError('Call cancelled.');
     this.recorder.start();
     this.started = true;
   }
   finish(): Promise<string> {
     this.finished ??= (async () => {
-      if (!this.started) throw new Error('No message was recorded.');
-      this.recorder.stop();
+      if (!this.started) throw new CallError('No message was recorded.');
+      if (this.recorder.state !== 'inactive') this.recorder.stop();
       this.stream.getTracks().forEach((t) => {
         t.stop();
       });
       const audio = await this.recording;
-      if (!audio.size) throw new Error('No audio was recorded. Please try again.');
+      if (!audio.size) throw new CallError('No audio was recorded. Please try again.');
       const form = new FormData();
       form.append('audio', audio, 'caller-message');
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: form,
-        signal: AbortSignal.timeout(30_000),
-      });
+      const response = await callRequest(
+        '/api/transcribe',
+        {
+          method: 'POST',
+          body: form,
+        },
+        30_000,
+        this.abort.signal,
+      );
       if (!response.ok)
-        throw new Error('The recording could not be transcribed. Please try again.');
-      const { transcript } = TranscriptResponse.parse(await response.json());
+        throw new CallError('The recording could not be transcribed. Please try again.');
+      const { transcript } = TranscriptResponse.parse(response.data);
       return `Caller: ${transcript}`;
     })();
     return this.finished;
   }
   dispose() {
-    this.cancelGreeting?.();
+    this.abort.abort();
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     if (this.recorder.state !== 'inactive') this.recorder.stop();
     this.stream.getTracks().forEach((t) => {

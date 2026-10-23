@@ -5,8 +5,14 @@ export const LiveTokenResponse = z.union([
     token: z.string().startsWith('auth_tokens/'),
     model: z.string().min(1),
     callSessionId: z.string().uuid(),
+    recordedFixture: z.boolean(),
   }),
-  z.object({ token: z.null(), model: z.null(), callSessionId: z.string().uuid() }),
+  z.object({
+    token: z.null(),
+    model: z.null(),
+    callSessionId: z.string().uuid(),
+    recordedFixture: z.boolean(),
+  }),
 ]);
 export const TranscriptResponse = z.object({ transcript: z.string().trim().min(1).max(19_000) });
 export const LiveMessage = z.object({
@@ -23,7 +29,9 @@ export const LiveMessage = z.object({
         .object({
           parts: z.array(
             z.object({
-              inlineData: z.object({ data: z.string(), mimeType: z.string() }).optional(),
+              inlineData: z
+                .object({ data: z.string().max(1_000_000), mimeType: z.string().max(100) })
+                .optional(),
             }),
           ),
         })
@@ -63,6 +71,7 @@ export function pcm16(samples: Float32Array) {
 }
 
 export function decodePcm(data: string) {
+  if (data.length > 1_000_000) throw new Error('Audio chunk too large');
   const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
   if (!bytes.length || bytes.length % 2) throw new Error('Invalid audio');
   const view = new DataView(bytes.buffer);

@@ -56,6 +56,8 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - Caretaker: **Alerts**, **History**, **Profile** at standard iPhone sizes, with "I'm calling her now" floating above a small glass tab bar.
   - The phone frame now shows whenever a mouse drives the window, at any width.
 
+- **Pause enforced on the server (keeper fix, Owen):** `POST /api/alerts` now refuses with 409 while Grandma has paused messages, so no one can alert Sam behind her choice. Tested against the running server: 409 and no alert while paused, 201 once unpaused.
+
 ## Doing
 
 ## Next
@@ -73,7 +75,6 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 - Guidance keeper: add a dialable number to `GUIDANCE.call_159` (e.g. `tel: '159'`) so the card's "Call 159" button reads it from `lib/guidance.ts` instead of its own literal.
 
 - B: the stub's green summary repeats the card title ("No common warning signs found."). Argon's summary should say what the call was about instead.
-- Skeleton keeper: `POST /api/alerts` creates an alert even while `paused` is true. Grandma's view hides the button, but the route should refuse too.
 
 - Skeleton keeper: `speak()` in `lib/recorder.ts` (used by `/call`) sets no `lang`, so it may pick a US voice. Grandma's card now uses its own en-GB read-aloud with a Stop button.
 - Spec question for the team: "Caretaker" reads as "building janitor" in UK English. "Family or carer" would be clearer, but the spec names the button, so it is unchanged.

@@ -9,9 +9,9 @@
   }
 }
 
-/* Laptop demo: a wide window with a precise pointer draws the app inside a phone (components/ui/DeviceFrame). */
+/* Laptop demo: any window driven by a mouse draws the app inside a phone, scaled to fit (components/ui/DeviceFrame). */
 @custom-variant frame {
-  @media (min-width: 500px) and (pointer: fine) {
+  @media (pointer: fine) {
     @slot;
   }
 }

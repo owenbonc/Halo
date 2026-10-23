@@ -5,8 +5,8 @@ import { type ReactNode, Suspense, useLayoutEffect, useSyncExternalStore } from 
 const SCROLL_ROOT = 'data-scroll-root';
 
 /*
- * The app shell (after bulk's demo). On a phone it is the page, full screen. On a laptop (a wide window with a
- * precise pointer, the `frame` variant in globals.css) it draws an iPhone 16 Pro: a 402×874 screen, black
+ * The app shell (after bulk's demo). On a phone it is the page, full screen. With a mouse (the `frame` variant in
+ * globals.css), at any window width, it draws an iPhone 16 Pro: a 402×874 screen, black
  * bezel and titanium rim on a dark desk, scaled to fit, with a fake status bar and home indicator. The screen
  * is the containing block for fixed layers, so toasts stay inside the phone.
  */

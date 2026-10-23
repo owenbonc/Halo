@@ -27,7 +27,7 @@ export const NONE_SUMMARY = 'No common warning signs found. This is not a guaran
 export const UNCLEAR_SUMMARY = "I couldn't make out enough of the call to check it.";
 export const DEGRADED_SUMMARY =
   "The full check didn't finish, so this is based on simple word checks only.";
-const FALLBACK_SUMMARY = 'This call matches a common scam pattern.';
+export const FALLBACK_SUMMARY = 'This call matches a common scam pattern.';
 
 const QUIET: Signals = {
   claimsAuthority: false,
@@ -45,19 +45,19 @@ const CONCERNS = Object.keys(QUIET).filter((key) => key !== 'unclear') as (keyof
 // The deterministic floor: the model can add warning signs but never remove these.
 const WORD_RULES: Record<Exclude<keyof Signals, 'unclear'>, RegExp> = {
   claimsAuthority:
-    /\b(police|detective|constable|sergeant|inspector|officer|fraud (team|department|squad)|security team|from (your|the|my|her) bank|microsoft|bt|hmrc)\b/i,
+    /\b(police|detective|constable|sergeant|inspector|officer|fraud (team|department|squad)|security team|from (your|the|my|her) bank|microsoft|amazon|bt|hmrc)\b/i,
   secrecy:
     /\b(don't|do not|not to|mustn't|must not) (tell|discuss|mention)\b|\bkeep (this|it) (quiet|secret|between us)\b|\bongoing investigation\b|\bmay be involved\b|\bstaff (at|in) (your|her|the) (bank|branch) (are|is) involved\b/i,
   urgency: /\b(right now|straight away|immediately|today|within the hour|act now)\b/i,
   moneyMovement:
-    /\b(withdraw|safe account|(move|transfer) (your|her|the) money|buy gold|gold bars|jewell?er'?s?|courier (will|is going to|would|to) (collect|pick|come)|hand (it )?over)\b/i,
+    /\b(withdraw|safe account|(move|transfer) (your|her|the) money|send (the |your |her )?money|buy gold|gold bars|gift cards?|vouchers?|itunes|google play|bitcoin|crypto(currency)?|bank transfer|jewell?er'?s?|courier (will|is going to|would|to) (collect|pick|come)|hand (it )?over)\b/i,
   remoteAccess:
     /\b(anydesk|teamviewer|remote access|share (your|her) screen|(install|download) (an |this |the )?(app|software|program))\b/i,
   asksForDetails:
-    /\b(pin|card details|card number|one[- ]time (code|passcode)|security code|verification code|password)\b/i,
+    /\b(pin|card details|card number|one[- ]time (code|passcode)|security code|verification code|password|read (me )?the codes?)\b/i,
   givesNumber: /\b(ring|call) (me|him|us|them) (back )?on\b|\b(ring|call)\b.{0,40}\d/i,
   instructsScreener:
-    /\bignore (all |your |the |previous )*(rules|instructions)\b|\b(tell|say|mark)\b.{0,30}\b(is|it's|as) (safe|genuine|legit|legitimate)\b|\byou are now\b/i,
+    /\bignore (all |your |the |previous )*(rules|instructions)\b|\b(tell|say|mark)\b.{0,30}\b(is|it's|as) (safe|genuine|legit|legitimate)\b|\byou are now\b|\b(note|message) (to|for) the (ai|assistant|screener)\b/i,
 };
 // Single words like "police" or "today" make poor quotes; these signals still count, they just aren't quoted.
 const QUOTABLE = new Set<keyof Signals>([
@@ -67,13 +67,18 @@ const QUOTABLE = new Set<keyof Signals>([
   'asksForDetails',
 ]);
 
-const URL =
-  /\b(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.(?:com|co\.uk|org\.uk|gov\.uk|uk|org|net|io)\b\S*/gi;
-const DIGITS = /\d[\d\s().-]*/g;
-const NUMBER_WORDS =
-  /\b(?:(?:zero|oh|nought|one|two|three|four|five|six|seven|eight|nine|ten|double|triple|hundred|thousand)\b[\s,.-]*){3,}/gi;
+// Spoken numbers: two or more of these tokens in a row, so "one of the two" is not a number.
+const NUMBER_TOKEN =
+  'zero|oh|nought|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|double|triple';
+const URL = /\b(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b\S*/giu;
+const SPOKEN_DOMAIN = /(?:\b[\w-]+\s+)?(?:\bdot\s+(?:com|co|uk|org|net|info|help|app)\b\s*)+/gi;
+const DIGITS = /\p{Nd}[\p{Nd}\s().-]*/gu;
+const NUMBER_WORDS = new RegExp(
+  `\\b(?:${NUMBER_TOKEN})\\b(?:(?:[\\s,.-]+|\\s+and\\s+)(?:${NUMBER_TOKEN})\\b)+`,
+  'gi',
+);
 const CLAIMS_SAFE =
-  /\b(is|are|seems?|looks?|appears?|sounds?)( to be)? (safe|genuine|legitimate|real|fine|ok|okay)\b|\bnot a scam\b/i;
+  /\bsafe\b(?! account\b)|\b(?:genuine|legit|legitimate|real|trusted|trustworthy|fine|ok|okay)\b|\bnothing to worry\b|\bnot a scam\b/i;
 
 const straightQuotes = (text: string) => text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
 const norm = (text: string) => straightQuotes(text).toLowerCase().replace(/\s+/g, ' ').trim();
@@ -128,6 +133,7 @@ export function bandFor(signals: Signals, family: ScamFamily, corroborated: bool
 export function scrub(text: string): string {
   return text
     .replace(URL, ' ')
+    .replace(SPOKEN_DOMAIN, ' ')
     .replace(DIGITS, ' ')
     .replace(NUMBER_WORDS, ' ')
     .replace(/\s+/g, ' ')
@@ -136,7 +142,10 @@ export function scrub(text: string): string {
 }
 
 const carriesNumberOrLink = (text: string) =>
-  text.search(URL) !== -1 || /\d/.test(text) || text.search(NUMBER_WORDS) !== -1;
+  text.search(URL) !== -1 ||
+  text.search(SPOKEN_DOMAIN) !== -1 ||
+  /\p{Nd}/u.test(text) ||
+  text.search(NUMBER_WORDS) !== -1;
 
 // Only phrases the caller really said, and none that carry a number or a link.
 export function quotedCues(candidates: string[], transcript: string): string[] {

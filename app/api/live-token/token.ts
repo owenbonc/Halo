@@ -1,0 +1,38 @@
+import { z } from 'zod';
+import { SCREENER_INSTRUCTIONS } from '@/lib/screener-prompt';
+
+export const LIVE_MODEL = 'gemini-3.8-live';
+const TokenResponse = z.object({ name: z.string().startsWith('auth_tokens/') });
+
+export function tokenRequest(now = Date.now()) {
+  return {
+    uses: 1,
+    expireTime: new Date(now + 5 * 60_000).toISOString(),
+    newSessionExpireTime: new Date(now + 60_000).toISOString(),
+    // This is the wire shape emitted by Google's SDK; omitted fieldMask locks the setup.
+    bidiGenerateContentSetup: {
+      model: `models/${LIVE_MODEL}`,
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+      },
+      systemInstruction: { parts: [{ text: SCREENER_INSTRUCTIONS }], role: 'user' },
+      inputAudioTranscription: {},
+      outputAudioTranscription: {},
+    },
+  };
+}
+
+export async function mintLiveToken() {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('Live service unavailable');
+  const response = await fetch('https://generativelanguage.googleapis.com/v1alpha/auth_tokens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(tokenRequest()),
+    signal: AbortSignal.timeout(10_000),
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error('Live service unavailable');
+  return TokenResponse.parse(await response.json()).name;
+}

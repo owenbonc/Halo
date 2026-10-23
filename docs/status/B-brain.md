@@ -11,9 +11,10 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - `findPatterns`: one `$rankFusion` query fusing Atlas Vector Search (Automated Embedding, `voyage-4`) and Atlas Search; `pnpm seed:patterns` loads the patterns, builds both indexes and runs a smoke query. Not yet run against Atlas (no cluster yet).
 - `analyse`: retrieve (Atlas) → judge (Argon, structured JSON, transcript fenced as untrusted data) → decide (fixed rules). Falls back to word rules if Argon or Atlas fails. Not yet run live (no keys).
 - 15 synthetic test cases (`data/test-cases.json`) with an offline sweep (never green, never a number when Argon is down) and a three-run live eval (`RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts`), not yet run (no keys).
+- `transcribe`: Gemini Flash, inline audio, browser MIME parameters stripped. Not yet run live (no keys).
 
 ## Doing
-- `transcribe` with Gemini Flash.
+- `DEMO_FALLBACK=1` (needs a live run to record results).
 
 ## Next
 - Live: probes, `pnpm seed:patterns`, Argon smoke test, live eval, `transcribe` check, record `data/demo-fallback.json`. All waiting on GEMINI_API_KEY and an Atlas cluster.

@@ -7,9 +7,10 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - Added `@google/genai` to package.json (A needs it too).
 - Branch `slice/b-brain` created.
 - Scam pattern library: 30 synthetic UK patterns in `data/patterns/` (courier, police, bank, remote access, investment), schema-checked by `lib/patterns.test.ts`.
+- Rules (`lib/rules.ts`): fixed band rules, a word-rule floor the model can't lower, number/URL scrubbing, verbatim-cue check; behaviour tests in `lib/rules.test.ts`.
 
 ## Doing
-- Rules (`lib/rules.ts`).
+- Atlas hybrid search (`findPatterns`, `pnpm seed:patterns`).
 
 ## Next
 - Argon/audio/Atlas probes: waiting on GEMINI_API_KEY and an Atlas cluster (M10, MongoDB 8.x).

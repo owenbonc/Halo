@@ -13,7 +13,12 @@ export type Tab = {
 };
 
 const SIZE = {
-  lg: { tab: 'min-h-16 gap-0.5 text-lg font-bold', icon: 'size-7', badge: 'min-w-6 text-sm' },
+  // Grows with Grandma's text size up to 20px, then stops, so three labels always fit on one line.
+  lg: {
+    tab: 'min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold',
+    icon: 'size-[min(1.75rem,30px)]',
+    badge: 'min-w-6 text-sm',
+  },
   md: {
     tab: 'min-h-12 gap-0 text-[0.6875rem] font-semibold',
     icon: 'size-6',

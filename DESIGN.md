@@ -6,7 +6,7 @@ How Hang Up & Check looks. Owner: slice C (Owen), who decides design for every s
 
 - Use only the semantic colour names below and the components in `components/ui/`. No raw Tailwind colours (`stone-*`, `red-*`, `green-*`, `amber-*`, `white`, `black`), no hex in components.
 - Red, amber and green mean warning bands only, always with their icon and words (`BandBadge`). The one exception: an "End call" button may use `bg-danger text-surface`, because red hang-up is the phone convention.
-- Body text at least 20px (`text-xl`, the default), tap targets at least 48px, contrast at least WCAG AA. No percentages, never the word "safe".
+- Grandma's app: body text at least 20px (`text-xl`, the default), tap targets at least 48px. The caretaker's app is a standard iPhone app (see Two densities). Contrast at least WCAG AA everywhere. No percentages, never the word "safe".
 - Phone numbers only from `lib/guidance.ts`.
 
 ## Colour
@@ -25,6 +25,12 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 | `accent-soft` | Selected-option tint |
 | `accent-ink` | Accent-coloured text, links and icons; focus ring and caret |
 | `danger`, `caution`, `clear` (+ `-soft`) | Strong, some and no warning signs: ink for text and the card edge, soft for the card fill |
+
+## Two densities
+
+- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large or Largest text in Profile; it scales the root font size (100% / 112.5% / 125%) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
+- **Caretaker** (`/caretaker/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
+- Sizes are always rem, never px, so Grandma's text size reaches everything.
 
 ## Type
 
@@ -46,9 +52,16 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 - Pad against `var(--safe-top)` and `var(--safe-bottom)`, never `env(safe-area-inset-*)` directly: inside the frame they are the phone's 62px and 34px.
 - Scroll with `appScroller()` from `DeviceFrame`, never `window.scrollTo`: inside the frame the app scrolls in the phone's screen. `position: fixed` stays inside the phone.
 
+## Tabs
+
+- Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
+- Grandma: **New** (`/grandma`, calls she hasn't dealt with), **Past calls** (`/grandma/past`, every warning call with filters), **Profile** (`/grandma/profile`, her person, consent, text size, switch role). A call opens at `/grandma/calls/[id]`.
+- A call leaves New only when she taps "I've dealt with this" (remembered on her phone). Green calls show in New for 5 minutes so she sees the call was screened, then clear themselves and are never kept in Past calls.
+- Caretaker: **Alerts**, **History**, **Profile** (read-only: Grandma controls consent).
+
 ## Floating, not scrolling
 
-- What Grandma must always reach floats at the bottom, in thumb reach, like bulk's controls: the **Sam dock** (`CallDock`: Sam's status, the one action that matters, Ask Sam or Call 159) and a **"Read it to me"** glass pill. The facts of the call scroll under them.
+- What must always be reachable floats above the tab bar, in thumb reach, like bulk's controls. Grandma: the **Sam dock** (`CallDock`: Sam's status, the one action that matters, Ask Sam or Call 159, and "Read it to me" beside it). Caretaker: "I'm calling her now". The rest scrolls under them. Position floating layers with `ABOVE_TAB_BAR`.
 - The dock is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender).
 - Top bars (`TopBar`) are sticky `material` with a glass pill link on the right.
 - Leave room at the end of the page for floating layers so the last item can scroll clear of them.

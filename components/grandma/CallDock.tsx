@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Button, buttonClass } from '@/components/ui/Button';
 import { Check, Phone, Speaker, TriangleAlert } from '@/components/ui/icons';
+import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import { GUIDANCE } from '@/lib/guidance';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { CallView } from '@/lib/types';
@@ -54,7 +55,7 @@ const SAM_STYLE: Record<SamState, { box: string; Icon: typeof Check }> = {
 };
 
 /*
- * Floats over the bottom of Grandma's screen, in thumb reach, like bulk's "your party" card: what Sam knows,
+ * Floats above the tab bar, in thumb reach, like bulk's "your party" card: what Sam knows,
  * the one action that matters (ask Sam, or call 159), and read-aloud. Inside the phone frame on the laptop.
  */
 export function CallDock({
@@ -99,10 +100,24 @@ export function CallDock({
   };
 
   const { box, Icon } = SAM_STYLE[sam];
+  // Side by side when both fit, stacked at bigger text sizes; labels never wrap inside a button.
+  const pair = 'w-auto! grow basis-auto whitespace-nowrap px-4! text-lg!';
+  const read = (className = '') => (
+    <Button
+      variant="secondary"
+      className={className}
+      onClick={() => (voice.speaking ? voice.stop() : voice.read(script))}
+    >
+      <Speaker />
+      {voice.speaking ? 'Stop reading' : 'Read it to me'}
+    </Button>
+  );
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md px-4 pb-[max(1rem,var(--safe-bottom))]">
-      <div className="pointer-events-auto space-y-3 transition-transform duration-300 ease-out starting:translate-y-4 motion-reduce:transition-none">
-        {warning && (
+    <div
+      className={`pointer-events-none fixed inset-x-0 z-20 mx-auto max-w-md px-4 ${ABOVE_TAB_BAR.lg}`}
+    >
+      <div className="pointer-events-auto transition-transform duration-300 ease-out starting:translate-y-4 motion-reduce:transition-none">
+        {warning ? (
           <section
             aria-live="polite"
             aria-label={`${contact} and next steps`}
@@ -126,24 +141,25 @@ export function CallDock({
                 That didn't send. Try again, or call {contact} or 159 yourself.
               </p>
             )}
-            {call159 && (
-              <a
-                href="tel:159"
-                className={`${buttonClass(askSam || sam === 'escalated' || sam === 'paused' ? 'primary' : 'secondary')}`}
-              >
-                <Phone />
-                Call 159
-              </a>
+            {/* Call 159 and read-aloud share a row so the floating stack stays short. */}
+            {call159 ? (
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="tel:159"
+                  className={`${buttonClass(askSam || sam === 'escalated' || sam === 'paused' ? 'primary' : 'secondary')} ${pair}`}
+                >
+                  <Phone />
+                  Call 159
+                </a>
+                {read(pair)}
+              </div>
+            ) : (
+              read()
             )}
           </section>
+        ) : (
+          read()
         )}
-        <Button
-          variant="secondary"
-          onClick={() => (voice.speaking ? voice.stop() : voice.read(script))}
-        >
-          <Speaker />
-          {voice.speaking ? 'Stop reading' : 'Read it to me'}
-        </Button>
       </div>
     </div>
   );

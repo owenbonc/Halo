@@ -1,15 +1,19 @@
 'use client';
+import Link from 'next/link';
 import { type ReactNode, useEffect, useId, useState } from 'react';
+import { setTextSize, TEXT_SIZES, type TextSize, useTextSize } from '@/components/grandma/prefs';
 import { TopBar } from '@/components/grandma/TopBar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
 import { Check, CircleCheck, Cross } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
+import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import type { Settings } from '@/lib/types';
 
 type Save = 'idle' | 'saving' | 'saved' | 'failed';
 
-export default function SetupPage() {
+export default function ProfilePage() {
+  const textSize = useTextSize();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [save, setSave] = useState<Save>('idle');
@@ -44,15 +48,15 @@ export default function SetupPage() {
   const contact = settings.contact.name;
 
   return (
-    <section className="space-y-10 pb-24">
-      <TopBar title="Settings" link={{ href: '/grandma', label: 'Your calls' }} />
+    <section className="space-y-10">
+      <TopBar title="Profile" />
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p
         role="status"
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 bottom-[max(1rem,var(--safe-bottom))] z-10 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 ${ABOVE_TAB_BAR.lg} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}
@@ -111,6 +115,30 @@ export default function SetupPage() {
           ]}
         />
       </Card>
+
+      <fieldset className="min-w-0 space-y-3">
+        <legend className="mb-3 text-2xl font-bold">Text size</legend>
+        {(Object.keys(TEXT_SIZES) as TextSize[]).map((size) => (
+          <Choice
+            key={size}
+            type="radio"
+            name="text-size"
+            checked={textSize === size}
+            onChange={() => setTextSize(size)}
+            title={TEXT_SIZES[size].label}
+            hint={TEXT_SIZES[size].hint}
+          />
+        ))}
+      </fieldset>
+
+      <Link
+        href="/?switch"
+        className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink-2"
+      >
+        Switch role
+      </Link>
+      {/* Room to scroll clear of the tab bar. */}
+      <div aria-hidden="true" className="h-24" />
     </section>
   );
 }

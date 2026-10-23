@@ -1,11 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { useId } from 'react';
+import { Button } from '@/components/ui/Button';
 import { BandBadge, Card } from '@/components/ui/band';
+import { Check } from '@/components/ui/icons';
 import { Panel, Pill } from '@/components/ui/Pill';
 import { GUIDANCE } from '@/lib/guidance';
 import { FAMILY_LABEL } from '@/lib/labels';
 import type { CallView } from '@/lib/types';
+import { markDone } from './prefs';
 
 export function when(iso: string) {
   const date = new Date(iso);
@@ -27,7 +30,7 @@ export function reassurance(call: CallView) {
 }
 
 // The facts of one call. Sam's status, the action and read-aloud float in CallDock so they never scroll away.
-export function CallCard({ call }: { call: CallView }) {
+export function CallCard({ call, done }: { call: CallView; done: boolean }) {
   const { analysis } = call;
   const warning = analysis.band !== 'none';
   const steps = analysis.nextSteps.map((id) => GUIDANCE[id]);
@@ -86,12 +89,24 @@ export function CallCard({ call }: { call: CallView }) {
           </ul>
         </Panel>
       )}
+
+      {done ? (
+        <Pill tone="accent">
+          <Check />
+          You've dealt with this
+        </Pill>
+      ) : (
+        <Button variant="secondary" onClick={() => markDone(call.id)}>
+          <Check />
+          I've dealt with this
+        </Button>
+      )}
     </Card>
   );
 }
 
-// One row of the call history: band, scam type and when. Opens that call's full card.
-export function CallRow({ call, newer }: { call: CallView; newer: boolean }) {
+// One row of a call list: band, scam type and when. Opens that call's full card.
+export function CallRow({ call, isNew }: { call: CallView; isNew: boolean }) {
   const { analysis } = call;
   return (
     <li>
@@ -101,7 +116,7 @@ export function CallRow({ call, newer }: { call: CallView; newer: boolean }) {
       >
         <BandBadge band={analysis.band} className="text-xl" />
         <span className="flex flex-wrap gap-2">
-          {newer && <Pill tone="accent">Newer</Pill>}
+          {isNew && <Pill tone="accent">New</Pill>}
           {analysis.band !== 'none' && (
             <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>
           )}

@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { CallCard } from '@/components/grandma/CallCard';
+import { CallCard, when } from '@/components/grandma/CallCard';
 import { VoiceNote } from '@/components/grandma/VoiceNote';
-import { Card } from '@/components/ui/band';
+import { BandBadge, Card } from '@/components/ui/band';
 import { BAND_LABEL } from '@/lib/labels';
 import type { CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
@@ -12,6 +12,14 @@ export default function GrandmaPage() {
   const settings = usePoll<Settings>('/api/settings', 10_000);
   const contact = settings.data?.contact.name ?? 'your person';
   const latest = calls.data?.[0];
+  // A warning stays on top until Sam has called back, so a later harmless call can't hide it.
+  const featured =
+    calls.data?.find(
+      (c) =>
+        c.analysis.band !== 'none' &&
+        c.alert?.status !== 'acknowledged' &&
+        Date.now() - Date.parse(c.createdAt) < 60 * 60_000,
+    ) ?? latest;
 
   return (
     <section className="space-y-10">
@@ -32,13 +40,22 @@ export default function GrandmaPage() {
           We can't get your latest calls right now. We'll keep trying.
         </p>
       )}
-      {latest ? (
-        <CallCard
-          key={latest.id}
-          call={latest}
-          contact={contact}
-          paused={settings.data?.paused ?? false}
-        />
+      {!calls.data && !calls.error && <p role="status">Checking for calls…</p>}
+      {featured ? (
+        <>
+          <CallCard
+            key={featured.id}
+            call={featured}
+            contact={contact}
+            paused={settings.data?.paused ?? false}
+          />
+          {latest && latest !== featured && (
+            <Card className="space-y-2">
+              <p className="text-ink-soft">Newer call · {when(latest.createdAt)}</p>
+              <BandBadge band={latest.analysis.band} className="text-xl" />
+            </Card>
+          )}
+        </>
       ) : (
         calls.data && (
           <Card className="space-y-2">

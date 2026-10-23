@@ -22,7 +22,7 @@ export default function RolePicker() {
   return (
     <section className="space-y-10 pt-6">
       <header className="space-y-3">
-        <p className="text-lg font-semibold text-accent">Hang Up &amp; Check</p>
+        <p className="font-semibold text-accent">Hang Up &amp; Check</p>
         <h1 className="text-4xl font-bold leading-tight">Who are you?</h1>
         <p className="text-ink-soft">This phone will remember your answer.</p>
       </header>
@@ -35,7 +35,7 @@ export default function RolePicker() {
             className={`${buttonClass('secondary')} min-h-24 flex-col items-start gap-1 rounded-2xl text-left shadow-card`}
           >
             <span className="text-3xl font-bold">{label}</span>
-            <span className="text-lg font-normal text-ink-soft">{hint}</span>
+            <span className="font-normal text-ink-soft">{hint}</span>
           </Link>
         ))}
       </div>

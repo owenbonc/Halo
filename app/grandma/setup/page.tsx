@@ -69,7 +69,7 @@ export default function SetupPage() {
 
       <ContactSection settings={settings} onChange={update} />
 
-      <fieldset className="space-y-3">
+      <fieldset className="min-w-0 space-y-3">
         <legend className="mb-3 text-2xl font-bold">When should {contact} be told?</legend>
         <Choice
           type="radio"
@@ -105,7 +105,7 @@ export default function SetupPage() {
           items={[
             'That a call worried us, and the kind of scam it looked like',
             'A request to call you',
-            ...(settings.alertMode === 'auto_strong' ? ['One line about the call'] : []),
+            ...(settings.alertMode === 'auto_strong' ? ['A one-line summary of the call'] : []),
           ]}
         />
         <List
@@ -230,7 +230,7 @@ function Choice({
         onChange={(e) => onChange(e.target.checked)}
         className="mt-1 size-7 shrink-0 accent-accent focus-visible:outline-none"
       />
-      <span>
+      <span className="min-w-0 break-words hyphens-auto">
         <span className="block font-bold">{title}</span>
         <span className="block text-ink-soft">{hint}</span>
       </span>

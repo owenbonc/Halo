@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonClass } from '@/components/ui/Button';
 import { BandBadge, Card } from '@/components/ui/band';
 import { Check, Phone, Speaker, TriangleAlert } from '@/components/ui/icons';
 import { GUIDANCE } from '@/lib/guidance';
@@ -9,17 +9,17 @@ import type { AlertRecord, CallView } from '@/lib/types';
 
 const ALERT_LINE: Record<AlertRecord['status'], (contact: string) => string> = {
   sent: (c) => `${c} has been told and asked to call you.`,
-  acknowledged: (c) => `${c} is calling you now.`,
-  escalated: (c) => `${c} hasn't replied yet. If you're worried, call 159.`,
+  acknowledged: (c) => `${c} is calling you.`,
+  escalated: (c) => `${c} hasn't replied. Call 159.`,
 };
 
 const ALERT_STYLE: Record<AlertRecord['status'], { box: string; Icon: typeof Check }> = {
-  sent: { box: 'border-ink/25 bg-surface', Icon: Check },
-  acknowledged: { box: 'border-accent bg-accent-soft text-accent-strong text-2xl', Icon: Phone },
-  escalated: { box: 'border-caution bg-caution-soft text-caution', Icon: TriangleAlert },
+  sent: { box: 'bg-surface', Icon: Check },
+  acknowledged: { box: 'bg-accent text-white text-2xl', Icon: Phone },
+  escalated: { box: 'bg-surface text-danger', Icon: TriangleAlert },
 };
 
-function when(iso: string) {
+export function when(iso: string) {
   const date = new Date(iso);
   const time = date.toLocaleTimeString('en-GB', {
     hour: 'numeric',
@@ -80,10 +80,14 @@ export function CallCard({
   const status = call.alert && ALERT_LINE[call.alert.status](contact);
   const voice = useReadAloud();
   const titleId = useId();
+  // 159 is the one action she can take herself; once Sam is calling, it would only compete.
+  const call159 =
+    analysis.band === 'strong' && (call.alert ? call.alert.status !== 'acknowledged' : paused);
 
   const script = sentences([
     BAND_LABEL[analysis.band].title,
     warning && FAMILY_LABEL[analysis.family],
+    warning && analysis.summary,
     reassurance(call),
     status,
     steps.length > 0 && 'What to do now',
@@ -91,11 +95,12 @@ export function CallCard({
     analysis.cues.length > 0 && `The caller said: ${analysis.cues.join(', ')}`,
   ]);
 
+  // Entrances move but never fade: if a browser stops drawing frames, the card must still be readable.
   return (
     <Card
       tone={analysis.band}
       aria-labelledby={titleId}
-      className="space-y-5 transition duration-500 ease-out starting:translate-y-3 starting:opacity-0 motion-reduce:transition-none"
+      className="space-y-5 transition duration-500 ease-out starting:translate-y-3 motion-reduce:transition-none"
     >
       <p className="text-ink-soft">
         {call.callerLabel} · {when(call.createdAt)}
@@ -105,10 +110,11 @@ export function CallCard({
           <BandBadge band={analysis.band} />
         </h2>
         {warning && <p className="text-2xl font-semibold">{FAMILY_LABEL[analysis.family]}</p>}
+        {warning && analysis.summary && <p>{analysis.summary}</p>}
       </div>
       <p>{reassurance(call)}</p>
 
-      <div aria-live="polite">
+      <div aria-live="polite" className="space-y-3">
         {call.alert && status ? (
           <AlertLine key={call.alert.status} status={call.alert.status} text={status} />
         ) : (
@@ -121,6 +127,12 @@ export function CallCard({
             <AskButton callId={call.id} contact={contact} />
           ))
         )}
+        {call159 && (
+          <a href="tel:159" className={buttonClass('primary')}>
+            <Phone />
+            Call 159
+          </a>
+        )}
       </div>
 
       <Button
@@ -132,7 +144,7 @@ export function CallCard({
       </Button>
 
       {steps.length > 0 && (
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h3 className="font-bold">What to do now</h3>
           <ol className="list-decimal space-y-3 pl-7 marker:font-bold">
             {steps.map((step) => (
@@ -141,22 +153,21 @@ export function CallCard({
               </li>
             ))}
           </ol>
-        </section>
+        </div>
       )}
 
       {analysis.cues.length > 0 && (
-        <section className="space-y-2">
+        <div className="space-y-2">
           <h3 className="font-bold">What the caller said that worried us</h3>
           <ul className="space-y-2">
             {analysis.cues.map((cue) => (
-              <li key={cue} className="rounded-lg bg-surface/80 px-4 py-2">
+              <li key={cue} className="break-words rounded-lg bg-surface/80 px-4 py-2">
                 “{cue}”
               </li>
             ))}
           </ul>
-        </section>
+        </div>
       )}
-      {warning && analysis.summary && <p>{analysis.summary}</p>}
     </Card>
   );
 }
@@ -165,7 +176,7 @@ function AlertLine({ status, text }: { status: AlertRecord['status']; text: stri
   const { box, Icon } = ALERT_STYLE[status];
   return (
     <p
-      className={`flex items-start gap-3 rounded-xl border-2 p-4 font-semibold transition duration-500 ease-out starting:scale-[0.97] starting:opacity-0 motion-reduce:transition-none ${box}`}
+      className={`flex items-start gap-3 rounded-xl p-4 font-semibold transition duration-500 ease-out starting:scale-[0.97] motion-reduce:transition-none ${box}`}
     >
       <Icon className="mt-1 size-[1.1em]" />
       {text}

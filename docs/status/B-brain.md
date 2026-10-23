@@ -14,11 +14,11 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - `transcribe`: Gemini Flash, inline audio, browser MIME parameters stripped. Not yet run live (no keys).
 
 ## Doing
-- `DEMO_FALLBACK=1` (needs a live run to record results).
+- Waiting on GEMINI_API_KEY and an Atlas cluster to run the live steps.
 
 ## Next
-- Live: probes, `pnpm seed:patterns`, Argon smoke test, live eval, `transcribe` check, record `data/demo-fallback.json`. All waiting on GEMINI_API_KEY and an Atlas cluster.
-- `DEMO_FALLBACK=1`.
+- Live: Argon/audio probes, `pnpm seed:patterns`, Argon smoke test, three-run live eval, `transcribe` check on WAV and browser audio.
+- `DEMO_FALLBACK=1`: record `data/demo-fallback.json` from live runs of the three demo scripts.
 
 ## Needs from others
 - **A:** please prefix each turn in the posted transcript with `Caller:` or `Assistant:` on its own line. The brain only treats the caller's words as evidence, so the screener's own questions never turn into "quoted phrases".
@@ -26,6 +26,7 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - **Owen:** `package.json` now has `@google/genai`. `lib/rules.ts` and `lib/gemini.ts` are new B-owned files.
 - **Owen:** on Windows, Git's default `core.autocrlf=true` checks files out with CRLF and `pnpm lint` (Biome) then fails on every file. Please add a `.gitattributes` with `* text=auto eol=lf`.
 - **Owen:** Biome formats YAML, but `pnpm install` rewrites `pnpm-lock.yaml` in its own style, so lint fails after every dependency change. Please add `"!**/pnpm-lock.yaml"` to `files.includes` in biome.json. Until then I format the lockfile with Biome after installs.
+- **A and C:** `transcribe()` now calls Gemini, and `app/api/transcribe` and `app/api/voice-note` don't catch its errors, so a quota or network failure returns a bare 500. Please wrap the call and return `fail(502, "I couldn't hear that. Try again, or call 159.")`. (`analyse()` never throws on a Gemini failure; it falls back to word rules.)
 
 ## Contract change requests
 - None.

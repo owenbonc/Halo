@@ -1,0 +1,13 @@
+{
+  "id": "courier-gold-jeweller",
+  "family": "courier",
+  "title": "Buy gold for a courier to collect",
+  "description": "This is a newer version of courier fraud. She is sent to jewellers to buy gold or watches with her savings, supposedly to keep them safe. She then hands the items to a courier, who takes them away for the scammers.",
+  "phrases": [
+    "buy gold",
+    "go to the jewellers",
+    "keep your savings safe",
+    "a courier will come for it"
+  ],
+  "source": "https://www.cityoflondon.police.uk/news/city-of-london/news/2026/june/over-70s-targeted-as-courier-fraud-exceeds-21-million-in-2025-with-london-and-home-counties-hit-hardest/"
+}

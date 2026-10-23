@@ -1,0 +1,8 @@
+{
+  "id": "bank-confirm-details",
+  "family": "bank_impersonation",
+  "title": "Asks her to confirm card number and PIN",
+  "description": "The caller asks her to \"confirm\" her full card number, her PIN or her online banking password for security. A real bank will never ask for these details, whether on the phone, by text or by email.",
+  "phrases": ["confirm your card number", "what's your PIN", "your online banking password"],
+  "source": "https://www.stopscamsuk.org.uk/159"
+}

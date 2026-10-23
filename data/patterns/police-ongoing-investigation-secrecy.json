@@ -1,0 +1,13 @@
+{
+  "id": "police-ongoing-investigation-secrecy",
+  "family": "police_impersonation",
+  "title": "\"Ongoing investigation, tell no one\"",
+  "description": "The caller says they are a police officer and that staff at her bank are under investigation. She is told she must not tell her family or the bank, so nobody gets the chance to warn her that it is a scam.",
+  "phrases": [
+    "it's an ongoing investigation",
+    "don't tell your family",
+    "staff at your bank are involved",
+    "this is confidential"
+  ],
+  "source": "https://planetradio.co.uk/greatest-hits/harrogate-yorkshire-dales/news/fraudsters-impersonating-police-officers-in-north-yorkshire/"
+}

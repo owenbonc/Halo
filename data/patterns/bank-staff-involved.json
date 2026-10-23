@@ -1,0 +1,12 @@
+{
+  "id": "bank-staff-involved",
+  "family": "bank_impersonation",
+  "title": "\"Branch staff are in on it\"",
+  "description": "The caller tells her not to trust the staff at her local branch, saying they may be involved in the fraud. They then give her a cover story to use when she withdraws or sends money, so the real bank will not stop her.",
+  "phrases": [
+    "don't tell the staff at the branch",
+    "they may be involved",
+    "say it's for a holiday"
+  ],
+  "source": "https://www.ukfinance.org.uk/news-and-insight/press-release/fraud-report-2026-press-release"
+}

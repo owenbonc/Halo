@@ -1,0 +1,12 @@
+{
+  "id": "bank-spoofed-number",
+  "family": "bank_impersonation",
+  "title": "\"Look, it's our number calling\"",
+  "description": "The caller points out that the number on her phone matches the one on the back of her bank card, as proof the call is genuine. Scammers can fake the number that appears on her screen, so this proves nothing.",
+  "phrases": [
+    "look at the number I'm calling from",
+    "it matches the back of your card",
+    "that proves it's us"
+  ],
+  "source": "https://www.stopscamsuk.org.uk/159"
+}

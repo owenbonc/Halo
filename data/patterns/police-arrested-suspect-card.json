@@ -1,0 +1,8 @@
+{
+  "id": "police-arrested-suspect-card",
+  "family": "police_impersonation",
+  "title": "\"We've arrested someone with your card\"",
+  "description": "To build trust, the caller claims a suspect has just been arrested holding her bank card or personal details. This makes the call feel urgent and real, and she is then asked to help by moving or handing over money.",
+  "phrases": ["we've arrested someone", "they had your bank card", "your details were found"],
+  "source": "https://www.cityoflondon.police.uk/news/city-of-london/news/2026/june/over-70s-targeted-as-courier-fraud-exceeds-21-million-in-2025-with-london-and-home-counties-hit-hardest/"
+}

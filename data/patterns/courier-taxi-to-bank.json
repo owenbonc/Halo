@@ -1,0 +1,8 @@
+{
+  "id": "courier-taxi-to-bank",
+  "family": "courier",
+  "title": "Taxi sent to take her to the bank",
+  "description": "The caller books a taxi to take her to her bank branch. They keep her on the phone the whole way, and while she withdraws the cash, so she has no chance to speak to anyone else. The money is then handed over to a courier.",
+  "phrases": ["a taxi is on its way", "stay on the line", "withdraw it today"],
+  "source": "https://www.which.co.uk/news/article/courier-scams-fraudsters-stole-over-28.7m-last-year-ajDnq2L4vpqM"
+}

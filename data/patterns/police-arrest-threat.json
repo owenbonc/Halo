@@ -1,0 +1,8 @@
+{
+  "id": "police-arrest-threat",
+  "family": "police_impersonation",
+  "title": "Threat of arrest unless she pays",
+  "description": "The caller says they are from the police or the tax office. They claim a warrant has been issued and that she will be arrested unless she pays a fine today. Real police and tax officials never demand payment over the phone.",
+  "phrases": ["you will be arrested", "pay the fine today", "a warrant has been issued"],
+  "source": "https://www.ageuk.org.uk/information-advice/money-legal/scams-fraud/phone-scams/"
+}

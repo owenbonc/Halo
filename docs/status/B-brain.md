@@ -6,9 +6,10 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 ## Done
 - Added `@google/genai` to package.json (A needs it too).
 - Branch `slice/b-brain` created.
+- Scam pattern library: 30 synthetic UK patterns in `data/patterns/` (courier, police, bank, remote access, investment), schema-checked by `lib/patterns.test.ts`.
 
 ## Doing
-- Scam pattern library in `data/patterns/`.
+- Rules (`lib/rules.ts`).
 
 ## Next
 - Argon/audio/Atlas probes: waiting on GEMINI_API_KEY and an Atlas cluster (M10, MongoDB 8.x).

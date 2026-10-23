@@ -1,0 +1,8 @@
+{
+  "id": "remote-screen-sharing-bank",
+  "family": "remote_access",
+  "title": "Share your screen while banking",
+  "description": "The caller asks her to share her screen on a video or messaging call, and then to open her banking app. They can watch her enter her details, and guide her step by step into sending money.",
+  "phrases": ["share your screen", "open your banking app", "I'll guide you through it"],
+  "source": "https://www.which.co.uk/news/article/beware-whatsapp-screen-sharing-scams-ak3d32L0Zd5D"
+}

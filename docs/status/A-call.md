@@ -5,6 +5,10 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Done
 
+- PR milestone: SPEC demo step 2, the simulated browser call from microphone through Gemini screening to transcript submission. Live caller speech and fixed Kokoro screening lines are implemented; downstream analysis is still slice B’s placeholder in this checkout.
+- Merged `origin/main` (f44524e), read `DESIGN.md`, and checked the laptop phone frame. The shared root layout already pads `/call` with `var(--safe-top)` / `var(--safe-bottom)`; the call page adds no duplicate inset and uses no window scrolling. Colour/token migration is left to Owen as explicitly requested.
+- Full `scripts/verify.sh` now prints READY on the merged branch, including the default Turbopack build. Stale generated route types from the pre-merge dev server were cleared and regenerated; no shared build configuration was changed.
+
 - Integrated live Gemini calls: microphone AudioWorklet, PCM audio, input/output transcription, 45-second limit, manual/assistant hang-up and guarded transcript submission.
 - Independent security/usability review completed, followed by fixes and a second review. Verdict: suitable for further controlled synthetic-demo testing, not unrestricted public or real-user deployment.
 - Token issuance now requires `CALL_DEMO_ACCESS_CODE` in production (at least 16 characters); missing/short configuration fails closed. The code is checked server-side before provider/database work and is held only in browser memory. Origin checking remains a CSRF layer, not the authentication mechanism.
@@ -20,7 +24,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - Fixed late-transcription handling with fragment-driven completion and a bounded deadline, including empty noise turns. Moved the incompatible worklet to `/call/microphone` and disabled stale caching. Independent review findings were addressed.
 - Adapted the 100 ms initial buffering and gain scheduling approach from Google's Apache-2.0 Live API Web Console. Added a bounded 15-second queue and short interruption fades. Attribution/change notice are in `app/call/audio-player.ts`; full upstream license is in `app/call/licenses/google-audio.txt`. No new package dependency or voice server was introduced.
 - Reviewed Pipecat as an alternative. Its Gemini starter introduces a Python server and WebRTC transport; that is a larger architectural change than this browser-to-Gemini slice warrants during the event.
-- Validation: 44 tests cover credentials, rate windows, PCM, transcript limits, startup races, late fragments, silence, cancellation, stalled bodies, fallback errors, audio scheduling, fixed-line sequence, real bundled audio, completed-vs-cancelled speech, capture gating and stale frames. Typecheck, lint and webpack production build pass.
+- Validation: automated tests cover credentials, rate windows, PCM, transcript limits, startup races, late fragments, silence, cancellation, stalled bodies, fallback errors, audio scheduling, fixed-line sequence, real bundled audio, completed-vs-cancelled speech, capture gating and stale frames. Typecheck, lint and webpack production build pass.
 - Actual LiveCall controller exercised against real Gemini with synthetic caller audio and bundled Kokoro clips: transcript saved successfully. 216 synthetic noise frames injected during protected playback, 50 caller frames sent while listening. AudioContext playback timing was simulated; physical phone testing is still needed.
 - Production dependency audit reports no known vulnerabilities. This is an advisory check, not proof of application security.
 - Chrome UI reviewed at a 390-pixel phone viewport. Speaker test, explicit sample disclosure and cancellation exercised without collecting personal microphone audio.
@@ -38,17 +42,17 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Needs from others
 
-- **P1 shared API protection:** `/api/transcribe`, `/api/voice-note`, `/api/calls`, `/api/settings` and alert routes need the shared owner's access-control review. Token gating does not secure those routes. Limit uploads before buffering; authenticate/rate-limit billable transcription.
+- **P1 shared API protection:** `/api/transcribe`, `/api/calls`, `/api/settings` and alert routes need the shared owner's access-control review. Token gating does not secure those routes. Main now includes slice C’s voice-note size/rate guard; its in-memory limit and access control still need review before real users. Authenticate/rate-limit billable transcription and bound uploads before buffering.
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
 - **P1 truthfulness/analysis:** slice B's transcription and analysis are still placeholders here. A's recorded sample disclosure is explicit, but it is not a working real-transcription fallback.
 - **P2 expiry/privacy:** enforce call-session expiry on consumption and define transcript retention/access. Session records currently have no expiry check. This demo must use synthetic data only.
 - Spoken responses are now deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
-- Stage-phone and HTTPS deployment access are needed for acceptance. Default `scripts/verify.sh` remains NOT READY due to local Turbopack `binding to a port / Operation not permitted`; separate webpack build passes. Shared build settings were left unchanged.
+- Stage-phone and HTTPS deployment access are still needed for final acceptance. Local full verification is READY; physical microphone/speaker checks and three deployed scenario runs remain outstanding.
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
 
 ## Contract change requests
 
-- Token response now adds `recordedFixture: boolean`; slice-local schema validates it. Please add that field to the keeper-owned `LiveToken` type when integrating. Existing nullable token/model fields are unchanged.
+- Keeper request for this PR: add `recordedFixture: boolean` to `LiveToken` in `lib/types.ts`. It is true only for recorded/fallback mode while `CALL_RECORDED_TRANSCRIPTION_READY` is not `1`; live mode and validated real transcription return false. The API sends it and the slice-local schema requires it. Existing nullable token/model fields are unchanged. Owen requested this contract change in the same merge; this branch does not edit the keeper-owned file.
 - Shared keeper: idempotent submission lifecycle, session expiry, and authenticated/bounded transcription as described above.
 
 ## Research references

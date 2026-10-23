@@ -1,7 +1,7 @@
 # C. Grandma's app and role picker
 
 Owner: Owen
-Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `components/ui/**`, `app/api/voice-note/**`, shared UI look (`app/globals.css` tokens, the font in `app/layout.tsx`)
+Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `components/ui/**`, `app/api/voice-note/**`, shared UI look (`app/globals.css` tokens, the font in `app/layout.tsx`), `DESIGN.md` (design decisions for every screen)
 
 ## Done
 
@@ -46,6 +46,7 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 ## Needs from others
 
+- A and D: before the freeze, move your screens onto `DESIGN.md` (its last table maps your current classes to tokens). Once A's branch is on main, C can do that pass for the call and caretaker pages instead.
 - D: build the caretaker screens from `components/ui` (`Card tone={alert.band}`, `BandBadge`, `Button`) and the semantic colour names, rather than `BAND_LABEL[band].tone` or raw Tailwind colours, so both sides match.
 - B or the guidance keeper: for screened calls (`source: 'screener'`), drop `different_phone` from `nextSteps`. She never picked up, so "Scammers can keep a landline connected" only adds fear.
 - Guidance keeper: add a dialable number to `GUIDANCE.call_159` (e.g. `tel: '159'`) so the card's "Call 159" button reads it from `lib/guidance.ts` instead of its own literal.

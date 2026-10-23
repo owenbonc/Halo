@@ -230,7 +230,7 @@ function Choice({
         onChange={(e) => onChange(e.target.checked)}
         className="mt-1 size-7 shrink-0 accent-accent-ink focus-visible:outline-none"
       />
-      <span className="min-w-0 break-words hyphens-auto">
+      <span className="min-w-0 break-words">
         <span className="block font-bold">{title}</span>
         <span className="block text-ink-2">{hint}</span>
       </span>

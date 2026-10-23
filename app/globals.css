@@ -10,14 +10,17 @@
 }
 
 /*
- * The shared look (slice C), as a token graph: reference palette (OKLCH) -> semantic roles -> components.
- * Components use only the semantic --color-* names. Every text pair clears WCAG AA (checked with APCA too).
- * Calm comes from low chroma; the three warning colours share one lightness so none shouts louder.
+ * The shared look, as a token graph: reference palette (OKLCH) -> semantic roles -> components.
+ * Components use only the semantic --color-* names, so a redesign edits this file, not the screens.
+ * Character over hue (color-expert): low-chroma neutrals for calm; band inks share one character
+ * (75% of the gamut edge); pale tints share one perceived chroma. Every text pair clears WCAG AA
+ * and APCA Lc 60+. Under colour-blindness the pale tints converge, so cards also carry a band-ink edge,
+ * a distinct icon shape and words.
  */
 :root {
-  /* Sand: warm neutrals, hue 70-80. */
+  /* Sand: warm neutrals. */
   --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.3% 0.013 80);
+  --sand-50: oklch(96.3% 0.012 80);
   --sand-100: oklch(93.5% 0.016 80);
   --sand-200: oklch(89.5% 0.018 80);
   --sand-500: oklch(63% 0.03 75);
@@ -25,17 +28,18 @@
   --sand-700: oklch(45% 0.025 70);
   --sand-950: oklch(22% 0.012 70);
 
-  /* Lavender: the brand. Far from red, amber and green, so it never reads as a warning. */
-  --lavender-50: oklch(95% 0.025 295);
-  --lavender-300: oklch(77% 0.105 295);
-  --lavender-700: oklch(45% 0.15 295);
+  /* Lavender: the brand. Far from the three band hues, so it never reads as a warning. */
+  --lavender-50: oklch(95% 0.024 295);
+  --lavender-300: oklch(77% 0.092 295);
+  --lavender-700: oklch(45% 0.148 295);
 
-  --tomato-50: oklch(95.5% 0.022 30);
-  --tomato-700: oklch(47% 0.15 30);
-  --ochre-50: oklch(95.8% 0.04 85);
-  --ochre-700: oklch(50% 0.105 65);
-  --fern-50: oklch(95.5% 0.025 145);
-  --fern-700: oklch(47% 0.095 145);
+  /* Band hues, spread for colour-blind separation (red 28, ochre 68, teal-green 165). */
+  --tomato-50: oklch(94.5% 0.026 28);
+  --tomato-700: oklch(47% 0.144 28);
+  --ochre-50: oklch(95.5% 0.034 85);
+  --ochre-700: oklch(50% 0.082 68);
+  --fern-50: oklch(95% 0.028 165);
+  --fern-700: oklch(49% 0.077 165);
 }
 
 @theme inline {

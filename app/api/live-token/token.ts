@@ -19,6 +19,15 @@ export function tokenRequest(now = Date.now()) {
       systemInstruction: { parts: [{ text: SCREENER_INSTRUCTIONS }], role: 'user' },
       inputAudioTranscription: {},
       outputAudioTranscription: {},
+      realtimeInputConfig: {
+        activityHandling: 'NO_INTERRUPTION',
+        automaticActivityDetection: {
+          startOfSpeechSensitivity: 'START_SENSITIVITY_LOW',
+          endOfSpeechSensitivity: 'END_SENSITIVITY_LOW',
+          prefixPaddingMs: 300,
+          silenceDurationMs: 700,
+        },
+      },
     },
   };
 }

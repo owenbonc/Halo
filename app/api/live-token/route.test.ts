@@ -43,6 +43,15 @@ describe('live token endpoint', () => {
       model: 'models/gemini-3.8-live',
       inputAudioTranscription: {},
       outputAudioTranscription: {},
+      realtimeInputConfig: {
+        activityHandling: 'NO_INTERRUPTION',
+        automaticActivityDetection: {
+          startOfSpeechSensitivity: 'START_SENSITIVITY_LOW',
+          endOfSpeechSensitivity: 'END_SENSITIVITY_LOW',
+          prefixPaddingMs: 300,
+          silenceDurationMs: 700,
+        },
+      },
       generationConfig: {
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
@@ -84,6 +93,15 @@ describe('live token endpoint', () => {
     expect((await POST(request())).status).toBe(503);
     expect((await POST(request('?mode=unknown'))).status).toBe(400);
     expect(insertOne).not.toHaveBeenCalled();
+  });
+  it('does not let a client override protected turn-taking', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'auth_tokens/synthetic' }));
+    vi.stubGlobal('fetch', fetcher);
+    expect((await POST(request('?interruptions=on'))).status).toBe(201);
+    const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
+    expect(wire.bidiGenerateContentSetup.realtimeInputConfig.activityHandling).toBe(
+      'NO_INTERRUPTION',
+    );
   });
 });
 it('limits new-session and connection lifetimes', () => {

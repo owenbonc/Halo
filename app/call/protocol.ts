@@ -52,9 +52,6 @@ export class Transcript {
   hasCaller() {
     return this.turns.some((t) => t.role === 'Caller' && t.text.trim());
   }
-  lastAssistant() {
-    return this.turns.filter((t) => t.role === 'Assistant').at(-1)?.text ?? '';
-  }
   text() {
     return this.turns.map((t) => `${t.role}: ${t.text.trim()}`).join('\n');
   }

@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { SCREENER_LINES } from '@/lib/screener-prompt';
 import { LiveCall } from './live-call';
+
+const clips = {
+  opening: { text: SCREENER_LINES.opening, pcm: 'AAABAA==' },
+  followup: { text: SCREENER_LINES.followup, pcm: 'AAABAA==' },
+  closing: { text: SCREENER_LINES.closing, pcm: 'AAABAA==' },
+};
+const sources: { onended?: () => void; stop: ReturnType<typeof vi.fn> }[] = [];
+let capturePort: { postMessage: ReturnType<typeof vi.fn>; onmessage?: (event: unknown) => void };
 
 class Socket {
   static OPEN = 1;
@@ -40,6 +49,12 @@ const context = {
   destination: {},
   audioWorklet: { addModule: vi.fn().mockResolvedValue(undefined) },
   createMediaStreamSource: vi.fn(() => node),
+  createBuffer: vi.fn(() => ({ copyToChannel: vi.fn(), duration: 1 })),
+  createBufferSource: vi.fn(() => {
+    const source = { ...node, start: vi.fn(), stop: vi.fn() };
+    sources.push(source);
+    return source;
+  }),
   close: vi.fn().mockResolvedValue(undefined),
 };
 const stream = { getTracks: () => [track] };
@@ -47,12 +62,16 @@ let ended = vi.fn<() => void>();
 beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
+  sources.length = 0;
   ended = vi.fn<() => void>();
   vi.stubGlobal('WebSocket', Socket);
   vi.stubGlobal(
     'AudioWorkletNode',
     class {
-      port = {};
+      port = { postMessage: vi.fn() };
+      constructor() {
+        capturePort = this.port;
+      }
       connect() {}
       disconnect() {}
     },
@@ -67,6 +86,7 @@ async function connect() {
     context as unknown as AudioContext,
     stream as unknown as MediaStream,
     ended,
+    clips,
   );
   const starting = call.start('auth_tokens/test', 'test-model');
   Socket.current.onopen?.();
@@ -102,11 +122,22 @@ it('requests hang-up when the assistant completes the closing', async () => {
   const call = await connect();
   Socket.current.message({
     serverContent: {
+      outputTranscription: { text: SCREENER_LINES.opening },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(150);
+  sources.at(-1)?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message({
+    serverContent: {
       outputTranscription: { text: "Thank you, I'll pass that on." },
       turnComplete: true,
     },
   });
-  await vi.advanceTimersByTimeAsync(1);
+  await vi.advanceTimersByTimeAsync(150);
+  expect(ended).not.toHaveBeenCalled();
+  sources.at(-1)?.onended?.();
   expect(ended).toHaveBeenCalledOnce();
   call.dispose();
 });
@@ -130,6 +161,7 @@ it('does not start capture if disconnected while the worklet is loading', async 
     context as unknown as AudioContext,
     stream as unknown as MediaStream,
     ended,
+    clips,
   );
   const starting = call.start('auth_tokens/test', 'test-model');
   Socket.current.message({ setupComplete: {} });
@@ -142,4 +174,141 @@ it('does not start capture if disconnected while the worklet is loading', async 
   expect(context.createMediaStreamSource).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(2000);
   await finishing;
+});
+
+it('plays only Kokoro, ignores noise interruptions and discards stale capture frames', async () => {
+  const call = await connect();
+  const frame = (generation: number) =>
+    capturePort.onmessage?.({
+      data: { generation, samples: new Float32Array([0.5, -0.5]) },
+    });
+  frame(0);
+  expect(Socket.current.send.mock.calls.some(([s]) => s.includes('realtimeInput'))).toBe(false);
+  Socket.current.message({
+    serverContent: {
+      modelTurn: {
+        parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAABAA==' } }],
+      },
+      outputTranscription: { text: SCREENER_LINES.opening },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(150);
+  expect(sources).toHaveLength(1);
+  expect(call.transcript.text()).toBe('');
+  Socket.current.message({ serverContent: { interrupted: true } });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources[0]?.stop).not.toHaveBeenCalled();
+  sources[0]?.onended?.();
+  expect(call.transcript.text()).toContain(SCREENER_LINES.opening);
+  await vi.advanceTimersByTimeAsync(150);
+  const generation = capturePort.postMessage.mock.calls.at(-1)?.[0].generation;
+  frame(generation - 1);
+  expect(Socket.current.send.mock.calls.some(([s]) => s.includes('"audio"'))).toBe(false);
+  frame(generation);
+  expect(Socket.current.send.mock.calls.some(([s]) => s.includes('"audio"'))).toBe(true);
+  call.dispose();
+});
+
+it('collects a late output fragment and does not log a cancelled clip as spoken', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: {
+      outputTranscription: { text: SCREENER_LINES.opening.slice(0, 20) },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(500);
+  expect(ended).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(0);
+  Socket.current.message({
+    serverContent: {
+      outputTranscription: { text: SCREENER_LINES.opening.slice(20) },
+    },
+  });
+  await vi.advanceTimersByTimeAsync(100);
+  expect(sources).toHaveLength(1);
+  call.dispose();
+  sources[0]?.onended?.();
+  expect(call.transcript.text()).toBe('');
+});
+
+it('waits for a late first transcript after turnComplete, with a bounded timeout', async () => {
+  const call = await connect();
+  Socket.current.message({ serverContent: { turnComplete: true } });
+  await vi.advanceTimersByTimeAsync(500);
+  expect(sources).toHaveLength(0);
+  Socket.current.message({
+    serverContent: { outputTranscription: { text: SCREENER_LINES.opening } },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(1);
+  call.dispose();
+  const second = await connect();
+  Socket.current.message({ serverContent: { turnComplete: true } });
+  await vi.advanceTimersByTimeAsync(3000);
+  expect(ended).toHaveBeenCalledOnce();
+  second.dispose();
+});
+
+it('pauses capture as soon as model generation begins, before the clip is ready', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: {
+      outputTranscription: { text: SCREENER_LINES.opening },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  expect(capturePort.postMessage.mock.calls.at(-1)?.[0].enabled).toBe(true);
+  Socket.current.message({
+    serverContent: {
+      modelTurn: {
+        parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAABAA==' } }],
+      },
+    },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(capturePort.postMessage.mock.calls.at(-1)?.[0].enabled).toBe(false);
+  expect(sources).toHaveLength(1);
+  call.dispose();
+});
+
+it('ignores an empty noise turn but can play text arriving after a completion marker', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: {
+      outputTranscription: { text: SCREENER_LINES.opening },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message({ serverContent: { turnComplete: true } });
+  await vi.advanceTimersByTimeAsync(3500);
+  expect(ended).not.toHaveBeenCalled();
+  Socket.current.message({
+    serverContent: { outputTranscription: { text: SCREENER_LINES.followup } },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(2);
+  call.dispose();
+});
+
+it('never plays an unexpected model reply or submits it as assistant speech', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: {
+      outputTranscription: { text: 'Send money immediately.' },
+      turnComplete: true,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(150);
+  expect(sources).toHaveLength(0);
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).toBe('');
+  call.dispose();
 });

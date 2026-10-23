@@ -23,7 +23,7 @@ export class AudioPlayer {
     this.volume = Math.max(0, Math.min(1, volume));
     this.gain.gain.setTargetAtTime(this.volume, this.context.currentTime, 0.02);
   }
-  play(data: string) {
+  play(data: string, completed?: () => void) {
     const samples = decodePcm(data);
     if (this.remainingMs + samples.length / 24 > 15_000)
       throw new Error('Audio queue exceeded its limit');
@@ -34,8 +34,9 @@ export class AudioPlayer {
     source.connect(this.gain);
     this.sources.add(source);
     source.onended = () => {
-      this.sources.delete(source);
+      const played = this.sources.delete(source);
       source.disconnect();
+      if (played) completed?.();
     };
     // A small initial buffer absorbs network jitter without adding delay to each chunk.
     this.scheduled = Math.max(

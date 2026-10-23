@@ -14,11 +14,14 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - Replaced browser reliance on `AbortSignal.timeout` with a bounded AbortController request helper. Explicit capability checks explain unsupported microphone, AudioWorklet and MediaRecorder paths; no deprecated ScriptProcessor implementation was added.
 - Recorded fallback requires a separate recording tap after the visible question. Optional read-aloud is initiated directly by a user tap. Until `CALL_RECORDED_TRANSCRIPTION_READY=1`, a prominent warning explains that the recording produces a preset sample scam result; completion is also labelled as a sample.
 - Call UI now includes microphone mute, assistant volume, speaking/listening status, a gentle two-tone speaker test, readable failures, wrapped mobile controls, and pre-call audio/transcript privacy information.
-- Voice changed to Google's warm `Sulafat`, with calm, clear British-English pacing requested in the screener prompt. Real Gemini token/audio/transcript/save smoke tests passed with this voice. Voice preference remains subjective; a local preview is available.
-- Refined delivery toward an ordinary phone conversation: natural contractions, varied intonation and meaning-led pauses, without forced slow pacing, announcer delivery or scripted hesitations. Assistant identity and screening restrictions remain explicit.
+- Live screening now uses three bundled clips generated locally with open-source/open-weight Kokoro-82M, British voice `bf_emma` at speed 0.98. The user explicitly selected fixed lines without an extra server. UI discloses prerecorded questions. Gemini still handles live caller audio and turn selection; its generated audio is discarded (but remains billable). No new deployed dependency or inference server. Reproduction instructions and model hashes are in `app/call/voice/README.md`; licenses are included.
+- Client allows only the exact opening, optional fixed follow-up and closing, in order. Unexpected model wording fails closed. Canonical assistant text enters the transcript only after its Kokoro clip completes; cancelled clips are omitted.
+- Questions cannot be cut off by incidental sounds: server uses NO_INTERRUPTION and low speech-detection sensitivity; microphone processing/transmission pause during response generation and playback. UI says when the microphone is paused. Intentional voice interruption is unavailable; wait for Listening. Generation tags discard stale microphone frames.
+- Fixed late-transcription handling with fragment-driven completion and a bounded deadline, including empty noise turns. Moved the incompatible worklet to `/call/microphone` and disabled stale caching. Independent review findings were addressed.
 - Adapted the 100 ms initial buffering and gain scheduling approach from Google's Apache-2.0 Live API Web Console. Added a bounded 15-second queue and short interruption fades. Attribution/change notice are in `app/call/audio-player.ts`; full upstream license is in `app/call/licenses/google-audio.txt`. No new package dependency or voice server was introduced.
 - Reviewed Pipecat as an alternative. Its Gemini starter introduces a Python server and WebRTC transport; that is a larger architectural change than this browser-to-Gemini slice warrants during the event.
-- Validation: 32 tests, typecheck and lint pass; webpack production build passes. Tests cover credentials, rate windows, PCM, transcript limits, startup race, late fragments, silence, cancellation, stalled bodies, fallback errors, audio buffering/fades/limits and duplicate finish.
+- Validation: 44 tests cover credentials, rate windows, PCM, transcript limits, startup races, late fragments, silence, cancellation, stalled bodies, fallback errors, audio scheduling, fixed-line sequence, real bundled audio, completed-vs-cancelled speech, capture gating and stale frames. Typecheck, lint and webpack production build pass.
+- Actual LiveCall controller exercised against real Gemini with synthetic caller audio and bundled Kokoro clips: transcript saved successfully. 216 synthetic noise frames injected during protected playback, 50 caller frames sent while listening. AudioContext playback timing was simulated; physical phone testing is still needed.
 - Production dependency audit reports no known vulnerabilities. This is an advisory check, not proof of application security.
 - Chrome UI reviewed at a 390-pixel phone viewport. Speaker test, explicit sample disclosure and cancellation exercised without collecting personal microphone audio.
 
@@ -30,7 +33,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 - Set a random production `CALL_DEMO_ACCESS_CODE` (16+ characters) privately. Do not put it in a `NEXT_PUBLIC_` variable. Without it, production calls intentionally return 503. Configure provider spending limits and deployment access protection for the entire demo.
 - Only set `CALL_RECORDED_TRANSCRIPTION_READY=1` after slice B's real transcription is integrated and validated. The current checkout's transcription is a fixture.
-- Test physical phone permissions, audibility, interruption, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
+- Test physical phone permissions, Kokoro audibility, turn-taking, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
 - Run all three synthetic scenarios three times on the deployed build after shared blockers are fixed.
 
 ## Needs from others
@@ -39,7 +42,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
 - **P1 truthfulness/analysis:** slice B's transcription and analysis are still placeholders here. A's recorded sample disclosure is explicit, but it is not a working real-transcription fallback.
 - **P2 expiry/privacy:** enforce call-session expiry on consumption and define transcript retention/access. Session records currently have no expiry check. This demo must use synthetic data only.
-- Prompt rules cannot guarantee safe model speech. Direct generated audio is played without a deterministic safety filter; do not claim it can safely screen real callers.
+- Spoken responses are now deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
 - Stage-phone and HTTPS deployment access are needed for acceptance. Default `scripts/verify.sh` remains NOT READY due to local Turbopack `binding to a port / Operation not permitted`; separate webpack build passes. Shared build settings were left unchanged.
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
 
@@ -52,4 +55,5 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 - Google Live API Web Console: https://github.com/google-gemini/live-api-web-console (Apache-2.0; only the small audio buffering/gain approach was adapted).
 - Pipecat: https://github.com/pipecat-ai/pipecat and its Gemini starter https://github.com/pipecat-ai/pipecat-examples/tree/main/gemini-live-starters/web-bot (evaluated, not added).
-- Google's voice catalogue: https://firebase.google.com/docs/ai-logic/live-api/configuration (`Sulafat`: warm).
+- Kokoro model: https://github.com/hexgrad/kokoro and https://huggingface.co/hexgrad/Kokoro-82M (Apache-2.0); generation runtime https://github.com/thewh1teagle/kokoro-onnx (MIT).
+- Gemini activity settings: https://ai.google.dev/api/live

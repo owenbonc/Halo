@@ -7,6 +7,7 @@ import { LiveCall } from './live-call';
 import { LiveTokenResponse } from './protocol';
 import { RecordedCall } from './recorded-call';
 import { AccessCodeError, CallError, callRequest } from './request';
+import { loadVoice, type VoiceClips } from './scripted-voice';
 
 type Phase = 'idle' | 'connecting' | 'prompting' | 'listening' | 'sending' | 'done' | 'error';
 type Attempt = {
@@ -16,6 +17,7 @@ type Attempt = {
   id?: string;
   stream?: MediaStream;
   context?: AudioContext;
+  clips?: VoiceClips;
   call?: LiveCall | RecordedCall;
   timer?: ReturnType<typeof setInterval>;
   limit?: ReturnType<typeof setTimeout>;
@@ -49,7 +51,7 @@ export default function CallPage() {
   const [actualMode, setActualMode] = useState(mode);
   const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
-  const [activity, setActivity] = useState<'speaking' | 'listening'>('listening');
+  const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(85);
   const [speakerTesting, setSpeakerTesting] = useState(false);
@@ -156,7 +158,7 @@ export default function CallPage() {
     setPhase('connecting');
     setSeconds(0);
     setMuted(false);
-    setActivity('listening');
+    setActivity('waiting');
     setError(null);
     setFixture(false);
     try {
@@ -180,6 +182,8 @@ export default function CallPage() {
         attempt.context = new AudioContext();
         // Unlock the speaker in the tap, before asynchronous setup.
         await attempt.context.resume();
+        if (attempt.cancelled) return;
+        attempt.clips = await loadVoice(attempt.abort.signal);
         if (attempt.cancelled) return;
         await microphone(attempt);
       }
@@ -205,7 +209,7 @@ export default function CallPage() {
       if (attempt.cancelled) return;
       attempt.id = token.callSessionId;
       setFixture(token.recordedFixture);
-      if (token.token && token.model && attempt.context && attempt.stream) {
+      if (token.token && token.model && attempt.context && attempt.stream && attempt.clips) {
         setActualMode('live');
         const live = new LiveCall(
           attempt.context,
@@ -213,6 +217,7 @@ export default function CallPage() {
           () => {
             void finish(attempt);
           },
+          attempt.clips,
           setActivity,
         );
         attempt.call = live;
@@ -279,8 +284,10 @@ export default function CallPage() {
             : muted
               ? 'Your microphone is muted.'
               : activity === 'speaking'
-                ? 'Grandma’s assistant is speaking. You can interrupt.'
-                : 'Listening. Tell the assistant why you’re calling.'
+                ? 'The assistant is speaking. Your microphone is paused until she finishes.'
+                : activity === 'waiting'
+                  ? 'Preparing the response. Your microphone is paused; please wait.'
+                  : 'Listening. Tell the assistant why you’re calling.'
           : phase === 'sending'
             ? 'Microphone off. Passing the conversation to Grandma…'
             : phase === 'done'
@@ -323,6 +330,12 @@ export default function CallPage() {
           Recorded message
         </label>
       </fieldset>
+      {mode === 'live' && (
+        <p className="text-base text-stone-600">
+          Kokoro voice · prerecorded screening questions. Please take turns: background sounds won’t
+          cut off a question. Gemini listens when the assistant finishes.
+        </p>
+      )}
       {codeRequired && (
         <label className="block text-left text-base">
           Event demo code

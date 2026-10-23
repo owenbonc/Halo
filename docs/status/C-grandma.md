@@ -1,7 +1,7 @@
-# C. Grandma's app
+# C. Grandma's app and role picker
 
 Owner: (name)
-Owns: `app/(mum)/**`, `components/mum/**`, `app/api/voice-note/**`, shared UI look
+Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `components/ui/**`, `app/api/voice-note/**`, shared UI look
 
 ## Done
 

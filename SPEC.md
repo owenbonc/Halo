@@ -22,7 +22,7 @@
 
 ---
 
-**Hackathon:** Encode London 2026, https://www.encodeclub.com/programmes/encode-london-2026. **Deadline:** Sunday 25 Oct 2026, 12:00 Europe/London (hacking opened Friday 23 Oct, 17:00). **Team:** A (screener line), B (analysis), C (Fcrandma's app), D (caretaker’s app), pitch, README, video). Names to fill in.
+**Hackathon:** Encode London 2026, https://www.encodeclub.com/programmes/encode-london-2026. **Deadline:** Sunday 25 Oct 2026, 12:00 Europe/London (hacking opened Friday 23 Oct, 17:00). **Team:** A (screener line), B (analysis), C (Grandma's app and the role picker), D (caretaker's app, pitch, README, video). Names to fill in.
 
 ## Pitch
 
@@ -64,7 +64,7 @@ Close with: tested on synthetic scripts written by the team; it doesn't stop spo
 
 ## Cut list
 
-- Not building: Twilio or any phone-network integration; monitoring of calls, texts, WhatsApp or email; listening to answered calls; native iOS or Android apps; landline diversion; SMS delivery to Mum or Sam; sign-in or multiple users; transcripts or recordings shown to Sam; remote hang-up; languages other than English; any real user data; Saint.
+- Not building: Twilio or any phone-network integration; monitoring of calls, texts, WhatsApp or email; listening to answered calls; native iOS or Android apps; landline diversion; SMS delivery to Mum or Sam; sign-in, accounts or multiple households (the role is picked on each device); transcripts or recordings shown to Sam; remote hang-up; languages other than English; any real user data; Saint.
 - Faked, and said so if asked:
   - One seeded household (Mum, Sam, backup contact). Sam's verification code shows on screen instead of by SMS.
   - Sam's and Mum's phones keep the web app open and poll for updates (production: push or SMS).
@@ -75,6 +75,7 @@ Close with: tested on synthetic scripts written by the team; it doesn't stop spo
 ## Stack and deploy
 
 - **Web app** (Mum's and Sam's views, all API routes): Next.js 16, TypeScript, Tailwind, pnpm, Biome, Vitest, `zod` at every boundary. Deployed on Vercel. HTTPS is required for the microphone.
+- **One app, two roles.** `/` asks "Who are you?" with two big buttons, **Grandma** and **Caretaker**. The choice is remembered on that device (localStorage), and both views have a small "Switch role" link. `/grandma` is the older person's view, `/caretaker` the caretaker's. `/call` is the demo caller's page and isn't offered on the picker.
 - **Screener** (Plan C, inside the same Next.js app): the caller's phone opens `/call`. The browser gets a short-lived Gemini Live token from `POST /api/live-token`, streams the microphone straight to Gemini Live, plays the AI's voice back, and posts the transcript to `POST /api/calls` when the call ends. No separate server and no phone network. The API key never reaches the browser; only the short-lived token does.
 - **AI:** `@google/genai`. `gemini-4-argon` does the analysis (required for the DeepMind bounty). A Gemini Live model handles the spoken conversation; `gemini-3.8-flash` transcribes voice notes and recordings if Argon doesn't take audio.
 - **Data:** MongoDB Atlas via the `mongodb` driver. Collections `patterns` (with a Vector Search index), `calls`, `alerts`, `settings`.
@@ -163,8 +164,8 @@ Screener (`app/call/`): the caller page. The screener's instructions live in `li
 | Skeleton | Claude | `lib/types.ts`, `lib/db.ts`, `lib/guidance.ts`, `app/api/**` stubs, `app/layout.tsx`, `scripts/demo-reset.ts`, `app/call` recorded-line stub, deploy config | all, on stubs | Fri 19:00–23:30 |
 | A. Screener line | A + agent | `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts` | 2, 6 (live voice) | Sat 09:00–16:00 |
 | B. Analysis | B + agent | `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `data/patterns/**`, `data/test-cases.json`, `scripts/seed-patterns.ts`, `lib/*.test.ts` | 3, 5, 6, 7 | Sat 09:00–15:00 |
-| C. Mum's app | C + agent | `app/(mum)/**`, `components/mum/**`, `app/api/voice-note/**` | 1, 3, 4 (Mum side), voice note | Sat 09:00–16:00 |
-| D. Sam's app, alerts, pitch | D + agent | `app/sam/**`, `components/sam/**`, `app/api/alerts/**`, `lib/alerts.ts`, `README.md`, `demo/**` | 4, 7, escalation | Sat 09:00–16:00 |
+| C. Grandma's app and role picker | C + agent | `app/page.tsx`, `app/grandma/**`, `components/grandma/**`, `components/ui/**` (shared look), `app/api/voice-note/**` | 1, 3, 4 (Mum side), voice note | Sat 09:00–16:00 |
+| D. Caretaker's app, alerts, pitch | D + agent | `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/alerts.ts`, `README.md`, `demo/**` | 4, 7, escalation | Sat 09:00–16:00 |
 
 ## Risks
 

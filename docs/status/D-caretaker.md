@@ -1,7 +1,7 @@
 # D. Caretaker's app, alerts, pitch
 
 Owner: (name)
-Owns: `app/sam/**`, `components/sam/**`, `app/api/alerts/**`, `lib/alerts.ts`, `README.md`, `demo/**`
+Owns: `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/alerts.ts`, `README.md`, `demo/**`
 
 ## Done
 

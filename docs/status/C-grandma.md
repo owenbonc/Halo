@@ -50,6 +50,12 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - B's request is also done: transcription and analysis errors return a plain 502.
 - **Keeper fixes for B (Owen):** `.gitattributes` keeps line endings LF, so Windows checkouts pass lint, and Biome now skips `pnpm-lock.yaml`.
 
+- **Tabs on both apps (Owen's design call):**
+  - Grandma: **New** (`/grandma`), **Past calls** (`/grandma/past`, with filters), **Profile** (`/grandma/profile`, replacing `/grandma/setup`; it adds Standard/Large/Largest text size and Switch role).
+  - A call leaves New when she taps "I've dealt with this" (remembered on her phone). Green calls show for 5 minutes and are never kept in Past.
+  - Caretaker: **Alerts**, **History**, **Profile** at standard iPhone sizes, with "I'm calling her now" floating above a small glass tab bar.
+  - The phone frame now shows whenever a mouse drives the window, at any width.
+
 ## Doing
 
 ## Next
@@ -59,6 +65,8 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 ## Needs from others
 
+- D: the caretaker screens (`app/caretaker/**`, `components/caretaker/**`) are built and on main, at Owen's request as design owner, before you'd pushed anything. Please build on them (Alerts, History, Profile tabs, `CaretakerShell` with `useAlerts()`), and keep README, video and pitch as yours.
+- B: the card shows `analysis.summary` as is. SPEC says digits and URLs are stripped from it; please make sure `analyse()` does that, so no number from a model ever reaches either app.
 - A and D: your pages now render inside the laptop phone frame too. Use `var(--safe-top)` / `var(--safe-bottom)` and `appScroller()` (see `DESIGN.md`, The phone). Before the freeze, move your screens onto `DESIGN.md` (its last table maps your current classes to tokens). Once A's branch is on main, C can do that pass for the call and caretaker pages instead.
 - D: build the caretaker screens from `components/ui` (`Card tone={alert.band}`, `BandBadge`, `Button`) and the semantic colour names, rather than `BAND_LABEL[band].tone` or raw Tailwind colours, so both sides match.
 - B or the guidance keeper: for screened calls (`source: 'screener'`), drop `different_phone` from `nextSteps`. She never picked up, so "Scammers can keep a landline connected" only adds fear.

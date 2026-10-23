@@ -97,7 +97,7 @@ export default function ProfilePage() {
       <Card className="space-y-4">
         <h2 className="text-2xl font-bold">What {contact} sees</h2>
         <List
-          icon={<Check className="mt-1 size-6 text-clear" />}
+          icon={<Check className="mt-1 size-6 text-accent-ink" />}
           heading={`${contact} will see`}
           items={[
             'That a call worried us, and the kind of scam it looked like',
@@ -106,7 +106,7 @@ export default function ProfilePage() {
           ]}
         />
         <List
-          icon={<Cross className="mt-1 size-6 text-danger" />}
+          icon={<Cross className="mt-1 size-6 text-ink-2" />}
           heading={`${contact} will never see`}
           items={[
             'What was said, word for word',
@@ -194,7 +194,7 @@ function ContactSection({
     <Card className="space-y-4">
       <h2 className="text-2xl font-bold">Your person: {contact.name}</h2>
       {contact.verified ? (
-        <Pill tone="none">
+        <Pill tone="accent">
           <CircleCheck />
           {contact.name}'s phone is checked and ready
         </Pill>

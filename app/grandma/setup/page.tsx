@@ -43,18 +43,29 @@ export default function SetupPage() {
   const contact = settings.contact.name;
 
   return (
-    <section className="space-y-10">
+    <section className="space-y-10 pb-24">
       <header className="space-y-2">
-        <Link href="/grandma" className="text-lg font-semibold text-accent underline">
+        <Link
+          href="/grandma"
+          className="inline-flex min-h-12 items-center font-semibold text-accent underline"
+        >
           Back to your calls
         </Link>
         <h1 className="text-3xl font-bold">Your settings</h1>
-        <p className="text-lg text-ink-soft" role="status">
-          {save === 'saving' && 'Saving…'}
-          {save === 'saved' && 'Saved.'}
-          {save === 'failed' && "That change didn't save. Try again."}
-        </p>
       </header>
+      {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
+      <p
+        role="status"
+        className={
+          save === 'idle'
+            ? 'sr-only'
+            : `fixed inset-x-4 bottom-4 z-10 mx-auto max-w-md rounded-xl p-4 font-semibold shadow-card ${save === 'failed' ? 'bg-danger text-white' : 'bg-ink text-paper'}`
+        }
+      >
+        {save === 'saving' && 'Saving…'}
+        {save === 'saved' && 'Saved.'}
+        {save === 'failed' && "That change didn't save. Try again."}
+      </p>
 
       <ContactSection settings={settings} onChange={update} />
 
@@ -73,7 +84,7 @@ export default function SetupPage() {
           name="mode"
           checked={settings.alertMode === 'auto_strong'}
           onChange={() => update({ alertMode: 'auto_strong' })}
-          title="Tell them automatically when it's serious"
+          title={`Tell ${contact} automatically when it's serious`}
           hint={`For strong warning signs, ${contact} is told straight away.`}
         />
       </fieldset>
@@ -172,7 +183,7 @@ function ContactSection({
             We send this code to {contact.name}'s phone. Ask {contact.name} to read it back to you.
           </p>
           <p className="text-4xl font-bold tracking-[0.3em] tabular-nums">{code}</p>
-          <p className="text-lg text-ink-soft">
+          <p className="text-ink-soft">
             In this demo the code is shown here instead of by text message.
           </p>
           <Button onClick={() => onChange({ contact: { ...contact, verified: true } })}>
@@ -221,7 +232,7 @@ function Choice({
       />
       <span>
         <span className="block font-bold">{title}</span>
-        <span className="block text-lg text-ink-soft">{hint}</span>
+        <span className="block text-ink-soft">{hint}</span>
       </span>
     </label>
   );

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CallCard } from '@/components/grandma/CallCard';
 import { VoiceNote } from '@/components/grandma/VoiceNote';
 import { Card } from '@/components/ui/band';
+import { BAND_LABEL } from '@/lib/labels';
 import type { CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
 
@@ -14,15 +15,21 @@ export default function GrandmaPage() {
 
   return (
     <section className="space-y-10">
-      <header className="flex items-baseline justify-between gap-4">
+      <header className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Your calls</h1>
-        <Link href="/grandma/setup" className="text-lg font-semibold text-accent underline">
+        <Link
+          href="/grandma/setup"
+          className="inline-flex min-h-12 items-center font-semibold text-accent underline"
+        >
           Settings
         </Link>
       </header>
+      <p className="sr-only" aria-live="polite">
+        {latest ? `Newest call: ${BAND_LABEL[latest.analysis.band].title}` : ''}
+      </p>
       {calls.error && (
         <p role="alert" className="font-semibold text-danger">
-          {calls.error}
+          We can't get your latest calls right now. We'll keep trying.
         </p>
       )}
       {latest ? (
@@ -43,7 +50,7 @@ export default function GrandmaPage() {
         )
       )}
       <VoiceNote />
-      <Link href="/?switch" className="block text-lg text-ink-soft underline">
+      <Link href="/?switch" className="inline-flex min-h-12 items-center text-ink-soft underline">
         Switch role
       </Link>
     </section>

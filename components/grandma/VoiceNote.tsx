@@ -34,7 +34,7 @@ export function VoiceNote() {
       setState({
         kind: 'idle',
         message:
-          'I need the microphone to listen. Allow it in your browser settings, then try again.',
+          'We need the microphone to listen. Allow it in your browser settings, then try again.',
       });
     }
   };
@@ -57,7 +57,8 @@ export function VoiceNote() {
       .catch(() => undefined);
     setState({
       kind: 'idle',
-      message: error ?? "I couldn't check that just now. Try again, or call 159 if you're worried.",
+      message:
+        error ?? "We couldn't check that just now. Try again, or call 159 if you're worried.",
     });
   };
 
@@ -65,7 +66,7 @@ export function VoiceNote() {
     <section className="space-y-3">
       <h2 className="text-2xl font-bold">Did you answer a call yourself?</h2>
       <p className="text-ink-soft">
-        Tell me what the caller said, in your own words. Take as long as you need.
+        Tell us what the caller said, in your own words. Take as long as you need.
       </p>
       {state.kind === 'recording' ? (
         <>

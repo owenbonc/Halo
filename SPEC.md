@@ -148,6 +148,7 @@ HTTP (Next.js route handlers):
 |---|---|---|
 | `POST /api/calls` | `{ callSessionId, transcript, callerLabel }` → `CallRecord` (`callSessionId` must come from `/api/live-token` and is single-use; runs `analyse`, saves, auto-alerts if `alertMode` is `auto_strong`, band is `strong` and not paused) | call page |
 | `POST /api/live-token` | → `{ token, callSessionId, model }` (short-lived Gemini Live token, screener instructions locked server-side) | call page |
+| `POST /api/transcribe` | multipart `audio` → `{ transcript }` | call page (recorded line) |
 | `POST /api/voice-note` | multipart `audio` → `CallRecord` | Mum's app |
 | `GET /api/calls` | → `CallRecord[]` without `transcript`, newest first, each with its latest alert status | Mum's app (polls every 2 s) |
 | `POST /api/alerts` | `{ callId }` → `AlertRecord` (`trigger: "user_tap"`) | Mum's app |
@@ -155,7 +156,7 @@ HTTP (Next.js route handlers):
 | `GET /api/alerts` | → `SamAlert[]` | Sam's app (polls every 2 s) |
 | `GET /api/settings`, `PUT /api/settings` | `Settings` | both |
 
-Screener (`app/call/`): the caller page. The screener's instructions live in `lib/screener-prompt.ts`: ask who's calling and why, ask one follow-up, never give advice, never say a call is safe, never repeat numbers. Live input and output transcription are joined into one transcript and posted to `POST /api/calls`. The skeleton version is a recorded line in the browser: the page says "Please say your name and why you're calling", records the answer, and posts the audio for transcription.
+Screener (`app/call/`): the caller page. The screener's instructions live in `lib/screener-prompt.ts`: ask who's calling and why, ask one follow-up, never give advice, never say a call is safe, never repeat numbers. Live input and output transcription are joined into one transcript and posted to `POST /api/calls`. The skeleton version is a recorded line in the browser: the page says "Please say your name and why you're calling", records the answer, sends it to `POST /api/transcribe`, then posts the transcript to `POST /api/calls`.
 
 ## Slices
 

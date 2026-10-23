@@ -7,3 +7,5 @@ coverage/
 !.env.example
 .claude/worktrees/
 .DS_Store
+next-env.d.ts
+*.tsbuildinfo

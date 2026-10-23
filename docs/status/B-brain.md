@@ -8,9 +8,10 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - Branch `slice/b-brain` created.
 - Scam pattern library: 30 synthetic UK patterns in `data/patterns/` (courier, police, bank, remote access, investment), schema-checked by `lib/patterns.test.ts`.
 - Rules (`lib/rules.ts`): fixed band rules, a word-rule floor the model can't lower, number/URL scrubbing, verbatim-cue check; behaviour tests in `lib/rules.test.ts`.
+- `findPatterns`: one `$rankFusion` query fusing Atlas Vector Search (Automated Embedding, `voyage-4`) and Atlas Search; `pnpm seed:patterns` loads the patterns, builds both indexes and runs a smoke query. Not yet run against Atlas (no cluster yet).
 
 ## Doing
-- Atlas hybrid search (`findPatterns`, `pnpm seed:patterns`).
+- Argon analysis (`lib/analyse.ts`).
 
 ## Next
 - Argon/audio/Atlas probes: waiting on GEMINI_API_KEY and an Atlas cluster (M10, MongoDB 8.x).

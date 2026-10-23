@@ -21,6 +21,7 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - **D:** keep the stage dialogue in line with the `demo-*` cases in `data/test-cases.json`, or send me changes, so the rehearsed results match.
 - **Owen:** `package.json` now has `@google/genai`. `lib/rules.ts` and `lib/gemini.ts` are new B-owned files.
 - **Owen:** on Windows, Git's default `core.autocrlf=true` checks files out with CRLF and `pnpm lint` (Biome) then fails on every file. Please add a `.gitattributes` with `* text=auto eol=lf`.
+- **Owen:** Biome formats YAML, but `pnpm install` rewrites `pnpm-lock.yaml` in its own style, so lint fails after every dependency change. Please add `"!**/pnpm-lock.yaml"` to `files.includes` in biome.json. Until then I format the lockfile with Biome after installs.
 
 ## Contract change requests
 - None.

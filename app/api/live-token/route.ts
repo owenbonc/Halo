@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       used: false,
       createdAt: new Date().toISOString(),
     });
-    const body: LiveToken & { recordedFixture: boolean } = {
+    const body: LiveToken = {
       token,
       callSessionId,
       model: recorded ? null : LIVE_MODEL,

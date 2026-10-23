@@ -147,7 +147,7 @@ HTTP (Next.js route handlers):
 | Route | Body → response | Caller |
 |---|---|---|
 | `POST /api/calls` | `{ callSessionId, transcript, callerLabel }` → `CallRecord` (`callSessionId` must come from `/api/live-token` and is single-use; runs `analyse`, saves, auto-alerts if `alertMode` is `auto_strong`, band is `strong` and not paused) | call page |
-| `POST /api/live-token` | → `{ token, callSessionId, model }` (short-lived Gemini Live token, screener instructions locked server-side) | call page |
+| `POST /api/live-token` | → `{ token, callSessionId, model, recordedFixture }` (short-lived Gemini Live token, screener instructions locked server-side; `recordedFixture` is true when the recorded fallback returns a preset sample) | call page |
 | `POST /api/transcribe` | multipart `audio` → `{ transcript }` | call page (recorded line) |
 | `POST /api/voice-note` | multipart `audio` → `CallRecord` | Mum's app |
 | `GET /api/calls` | → `CallRecord[]` without `transcript`, newest first, each with its latest alert status | Mum's app (polls every 2 s) |

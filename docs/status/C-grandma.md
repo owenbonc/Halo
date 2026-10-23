@@ -43,6 +43,13 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - `/grandma` lists earlier calls under the latest card, and each opens at `/grandma/calls/[id]`.
   - Inside warning cards, pills and panels are deeper tints of the band, not white.
 
+- **Voice-note route hardened (A's P1):**
+  - It checks `content-length` before reading the body: 411 when it's missing, 413 over the 10 MB cap.
+  - It allows 5 notes a minute per phone (429), because transcription is billable. The counter lives in each server's memory, so it resets on cold start; it should move to Atlas before real users.
+  - Tested in `app/api/voice-note/guard.test.ts` and against the real server.
+  - B's request is also done: transcription and analysis errors return a plain 502.
+- **Keeper fixes for B (Owen):** `.gitattributes` keeps line endings LF, so Windows checkouts pass lint, and Biome now skips `pnpm-lock.yaml`.
+
 ## Doing
 
 ## Next

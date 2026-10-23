@@ -5,22 +5,37 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 ## Done
 
-- Shared look, ready for D. Tokens live in `app/globals.css` (`@theme`): `paper`, `surface`, `ink`, `ink-soft`, `line`, `accent` (with `-strong`, `-soft`), and band colours `danger`, `caution`, `clear` (each with `-soft`), plus `shadow-card` and `ease-out`. The font is Atkinson Hyperlegible Next.
-- `components/ui/`: `Button` and `buttonClass(variant)` (primary or secondary, 56px tall, full width; use `buttonClass` on a `<Link>`), `Card` (takes `tone={band}`), `BandBadge` (icon plus words for a band), `BAND_TONE`, and SVG icons in `icons.tsx`.
-
-- Role picker (`/`): "Who are you?", remembered on the device, "Switch role" on Grandma's view.
-- Grandma home (`/grandma`): polls every 2 s and shows the newest card. Red, amber and green each come with an icon and words; the card shows the quoted cues, the scam type, fixed next steps from `lib/guidance.ts`, and "Read it to me". The alert line reads "Sam has been told", "Sam is calling you now" or "Sam hasn't replied yet. If you're worried, call 159". "Ask Sam to call me" appears only for warnings with no alert, and is hidden while messages are paused, because `POST /api/alerts` doesn't check `paused`.
-- Setup and consent (`/grandma/setup`): changes save straight away. "Choose someone else" resets the contact to unverified and shows a 4-digit code (labelled as a demo stand-in for the text message). Ask first or tell automatically, pause, and what Sam will and won't see.
-- Voice note: no time limit (the server caps uploads at 10 MB), a visible timer, errors shown, scrolls to the new card. The route returns 502 with a plain message if transcription or analysis throws.
-- Impeccable critique (design review plus detector) scored 26/40. Fixed:
-  - The card leads with reassurance and Sam's status, then "Read it to me" (now on the first screen), then the steps, then the caller's words.
-  - Read-aloud uses an en-GB voice at 0.9 speed, pauses between sentences, and has a Stop button.
-  - No sideways scroll at 200% text.
-  - All links are at least 48px tall, all text at least 20px, and times show as "7:31 pm".
-  - One voice ("we") throughout, and "Tell Sam automatically when it's serious".
-  - The save status sits pinned at the bottom of the screen.
-  - New cards are announced to screen readers, and the poll error copy is plain English.
-- Checked at 375 px against the stubbed slices: red, green, ask-first tap, Sam's acknowledgement, setup change and verify, voice note (synthetic mic stream; the browser pane blocks real microphones). All token pairs pass WCAG AA (lowest 5.6:1). `scripts/verify.sh` prints READY.
+- **Shared look, ready for D.** The design rules come from Owen's bulk project (not its layout), with a lavender brand accent. The palette was built with the color-expert method.
+  - **Tokens:** the reference palette in `app/globals.css` is OKLCH (sand, lavender, tomato, ochre, fern). Use only these semantic names:
+    - Surfaces: `bg`, `surface`, `surface-hover`, `surface-2`.
+    - Text: `ink`, `ink-2`, `ink-3`.
+    - Lines: `line`, and `line-strong` for borders that carry meaning (3:1).
+    - Accent: `accent` (fill, with `on-accent` ink text, never white), `accent-hover` and `accent-strong` (derived from the base), `accent-soft`, and `accent-ink` for accent-coloured text and icons.
+    - Warning bands: `danger`, `caution`, `clear`, each with `-soft`.
+    - Every text pair is checked with WCAG AA and APCA.
+  - **Shape and depth:** radii `rounded-chip` (12), `rounded-card` (18), `rounded-sheet` (24); pill buttons. Shadows only on floating layers (`shadow-float`); cards use a 1px `line` border.
+  - **Type:** Bricolage Grotesque for headings (`font-display`, tight tracking), Atkinson Hyperlegible Next for 20px body text, `tabular-nums` for times and codes.
+  - **Feel:** 0.97 press feedback, and hover only on precise pointers.
+  - **Mobile and browser details:** no tap highlight, `touch-action`, safe areas, theme colour; selection, focus ring and caret in the accent ink.
+- **`components/ui/`:**
+  - `Button` and `buttonClass(variant)`: primary or secondary, 56px tall pills. Use `buttonClass` on a `<Link>` or `<a>`.
+  - `Card` (takes `tone={band}`), `BandBadge`, `BAND_TONE`.
+  - SVG icons in `icons.tsx`, stroke 1.75.
+- **Role picker (`/`):** "Who are you?", remembered on the device.
+- **Grandma home (`/grandma`):**
+  - A warning call stays on top until Sam has called back (up to an hour), so a later harmless call shows as a small "Newer call" note instead of replacing it.
+  - Card order: band, scam type, summary, reassurance, Sam's status (or the ask button), a tappable "Call 159" (strong warning, not yet acknowledged), "Read it to me" with Stop, the next steps, then what the caller said.
+  - Alert lines follow the spec: "Sam has been told…", "Sam is calling you.", "Sam hasn't replied. Call 159."
+  - There is a loading state, new cards are announced to screen readers, and the ask button is hidden while paused.
+- **Setup and consent (`/grandma/setup`):**
+  - Changes save straight away, with the status pinned to the bottom of the screen.
+  - "Choose someone else" shows a 4-digit code, labelled as a demo stand-in for the text message.
+  - Ask first or tell automatically, pause, and what Sam will and won't see.
+- **Voice note:** no time limit (the server caps uploads at 10 MB), a visible timer, errors shown, and it scrolls to the new card. The route returns 502 with a plain message if transcription or analysis throws.
+- **Checks:**
+  - Two impeccable critiques (design review plus detector), with the fixes applied.
+  - At 375px on all three pages: no tap target under 48px, no text under 20px, no sideways scroll at 200% text.
+  - `scripts/verify.sh` prints READY.
 
 ## Doing
 
@@ -31,7 +46,9 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 ## Needs from others
 
-- D: build the caretaker screens from `components/ui` (`Card tone={alert.band}`, `BandBadge`, `Button`) rather than `BAND_LABEL[band].tone`, so both sides match.
+- D: build the caretaker screens from `components/ui` (`Card tone={alert.band}`, `BandBadge`, `Button`) and the semantic colour names, rather than `BAND_LABEL[band].tone` or raw Tailwind colours, so both sides match.
+- B or the guidance keeper: for screened calls (`source: 'screener'`), drop `different_phone` from `nextSteps`. She never picked up, so "Scammers can keep a landline connected" only adds fear.
+- Guidance keeper: add a dialable number to `GUIDANCE.call_159` (e.g. `tel: '159'`) so the card's "Call 159" button reads it from `lib/guidance.ts` instead of its own literal.
 
 - B: the stub's green summary repeats the card title ("No common warning signs found."). Argon's summary should say what the call was about instead.
 - Skeleton keeper: `POST /api/alerts` creates an alert even while `paused` is true. Grandma's view hides the button, but the route should refuse too.

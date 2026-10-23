@@ -15,7 +15,7 @@ const ALERT_LINE: Record<AlertRecord['status'], (contact: string) => string> = {
 
 const ALERT_STYLE: Record<AlertRecord['status'], { box: string; Icon: typeof Check }> = {
   sent: { box: 'bg-surface', Icon: Check },
-  acknowledged: { box: 'bg-accent text-white text-2xl', Icon: Phone },
+  acknowledged: { box: 'bg-accent text-on-accent text-2xl', Icon: Phone },
   escalated: { box: 'bg-surface text-danger', Icon: TriangleAlert },
 };
 
@@ -102,7 +102,7 @@ export function CallCard({
       aria-labelledby={titleId}
       className="space-y-5 transition duration-500 ease-out starting:translate-y-3 motion-reduce:transition-none"
     >
-      <p className="text-ink-soft">
+      <p className="text-ink-2 tabular-nums">
         {call.callerLabel} · {when(call.createdAt)}
       </p>
       <div className="space-y-2">
@@ -120,7 +120,7 @@ export function CallCard({
         ) : (
           warning &&
           (paused ? (
-            <p className="text-ink-soft">
+            <p className="text-ink-2">
               Messages to {contact} are paused. You can turn them back on in Settings.
             </p>
           ) : (
@@ -161,7 +161,7 @@ export function CallCard({
           <h3 className="font-bold">What the caller said that worried us</h3>
           <ul className="space-y-2">
             {analysis.cues.map((cue) => (
-              <li key={cue} className="break-words rounded-lg bg-surface/80 px-4 py-2">
+              <li key={cue} className="break-words rounded-chip bg-surface/80 px-4 py-2">
                 “{cue}”
               </li>
             ))}
@@ -176,7 +176,7 @@ function AlertLine({ status, text }: { status: AlertRecord['status']; text: stri
   const { box, Icon } = ALERT_STYLE[status];
   return (
     <p
-      className={`flex items-start gap-3 rounded-xl p-4 font-semibold transition duration-500 ease-out starting:scale-[0.97] motion-reduce:transition-none ${box}`}
+      className={`flex items-start gap-3 rounded-chip p-4 font-semibold transition duration-500 ease-out starting:scale-[0.97] motion-reduce:transition-none ${box}`}
     >
       <Icon className="mt-1 size-[1.1em]" />
       {text}

@@ -47,7 +47,7 @@ export default function SetupPage() {
       <header className="space-y-2">
         <Link
           href="/grandma"
-          className="inline-flex min-h-12 items-center font-semibold text-accent underline"
+          className="inline-flex min-h-12 items-center font-semibold text-accent-ink underline"
         >
           Back to your calls
         </Link>
@@ -59,7 +59,7 @@ export default function SetupPage() {
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 bottom-4 z-10 mx-auto max-w-md rounded-xl p-4 font-semibold shadow-card ${save === 'failed' ? 'bg-danger text-white' : 'bg-ink text-paper'}`
+            : `fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 mx-auto max-w-md rounded-chip p-4 font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}
@@ -159,7 +159,7 @@ function ContactSection({
             required
             autoComplete="off"
             placeholder="Their first name"
-            className="min-h-14 w-full rounded-xl border-2 border-ink/70 bg-surface px-4 text-xl placeholder:text-ink-soft"
+            className="min-h-14 w-full rounded-chip border border-line-strong bg-surface px-4 text-xl placeholder:text-ink-2"
           />
           <Button type="submit">Save</Button>
           <Button variant="secondary" onClick={() => setEditing(false)}>
@@ -183,7 +183,7 @@ function ContactSection({
             We send this code to {contact.name}'s phone. Ask {contact.name} to read it back to you.
           </p>
           <p className="text-4xl font-bold tracking-[0.3em] tabular-nums">{code}</p>
-          <p className="text-ink-soft">
+          <p className="text-ink-2">
             In this demo the code is shown here instead of by text message.
           </p>
           <Button onClick={() => onChange({ contact: { ...contact, verified: true } })}>
@@ -221,18 +221,18 @@ function Choice({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-4 transition-colors duration-150 has-focus-visible:outline-3 has-focus-visible:outline-accent ${checked ? 'border-accent bg-accent-soft' : 'border-line bg-surface'}`}
+      className={`flex cursor-pointer items-start gap-4 rounded-card border p-4 transition-colors duration-150 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent-ink ${checked ? 'border-accent-ink bg-accent-soft' : 'border-line-strong bg-surface'}`}
     >
       <input
         type={type}
         name={name}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-1 size-7 shrink-0 accent-accent focus-visible:outline-none"
+        className="mt-1 size-7 shrink-0 accent-accent-ink focus-visible:outline-none"
       />
       <span className="min-w-0 break-words hyphens-auto">
         <span className="block font-bold">{title}</span>
-        <span className="block text-ink-soft">{hint}</span>
+        <span className="block text-ink-2">{hint}</span>
       </span>
     </label>
   );

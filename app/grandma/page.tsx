@@ -27,7 +27,7 @@ export default function GrandmaPage() {
         <h1 className="text-3xl font-bold">Your calls</h1>
         <Link
           href="/grandma/setup"
-          className="inline-flex min-h-12 items-center font-semibold text-accent underline"
+          className="inline-flex min-h-12 items-center font-semibold text-accent-ink underline"
         >
           Settings
         </Link>
@@ -51,7 +51,7 @@ export default function GrandmaPage() {
           />
           {latest && latest !== featured && (
             <Card className="space-y-2">
-              <p className="text-ink-soft">Newer call · {when(latest.createdAt)}</p>
+              <p className="text-ink-2">Newer call · {when(latest.createdAt)}</p>
               <BandBadge band={latest.analysis.band} className="text-xl" />
             </Card>
           )}
@@ -67,7 +67,7 @@ export default function GrandmaPage() {
         )
       )}
       <VoiceNote />
-      <Link href="/?switch" className="inline-flex min-h-12 items-center text-ink-soft underline">
+      <Link href="/?switch" className="inline-flex min-h-12 items-center text-ink-2 underline">
         Switch role
       </Link>
     </section>

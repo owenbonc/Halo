@@ -65,13 +65,13 @@ export function VoiceNote() {
   return (
     <section className="space-y-3">
       <h2 className="text-2xl font-bold">Did you answer a call yourself?</h2>
-      <p className="text-ink-soft">
+      <p className="text-ink-2">
         Tell us what the caller said, in your own words. Take as long as you need.
       </p>
       {state.kind === 'recording' ? (
         <>
           <p className="flex items-center gap-3 text-2xl font-semibold" role="status">
-            <span className="size-3 rounded-full bg-accent motion-safe:animate-pulse" />
+            <span className="size-3 rounded-full bg-accent-ink motion-safe:animate-pulse" />
             Listening <span className="tabular-nums">{minutes(now - state.since)}</span>
           </p>
           <Button onClick={finish}>I've finished, check it</Button>

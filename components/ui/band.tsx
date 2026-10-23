@@ -4,9 +4,9 @@ import type { Band } from '@/lib/types';
 import { CircleCheck, OctagonAlert, TriangleAlert } from './icons';
 
 export const BAND_TONE: Record<Band, { card: string; text: string; Icon: typeof CircleCheck }> = {
-  strong: { card: 'border-danger bg-danger-soft', text: 'text-danger', Icon: OctagonAlert },
-  some: { card: 'border-caution bg-caution-soft', text: 'text-caution', Icon: TriangleAlert },
-  none: { card: 'border-clear bg-clear-soft', text: 'text-clear', Icon: CircleCheck },
+  strong: { card: 'border-danger/40 bg-danger-soft', text: 'text-danger', Icon: OctagonAlert },
+  some: { card: 'border-caution/40 bg-caution-soft', text: 'text-caution', Icon: TriangleAlert },
+  none: { card: 'border-clear/40 bg-clear-soft', text: 'text-clear', Icon: CircleCheck },
 };
 
 // Colour is never the only signal: every band carries its icon and its words.
@@ -41,7 +41,7 @@ export function Card({
   return (
     <article
       {...props}
-      className={`rounded-2xl border-2 p-5 shadow-card ${tone ? BAND_TONE[tone].card : 'border-line bg-surface'} ${className}`}
+      className={`rounded-card border p-5 ${tone ? BAND_TONE[tone].card : 'border-line bg-surface'} ${className}`}
     />
   );
 }

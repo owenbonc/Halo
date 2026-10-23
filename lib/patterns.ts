@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { collections } from './db';
 import { type Pattern, ScamFamily } from './types';
 
 // One file in data/patterns. Ids carry no digits, so a matched id can never look like a number.
@@ -18,7 +19,48 @@ export function patternText(pattern: Pattern): string {
   return `${pattern.title}. ${pattern.description} Typical phrases: ${pattern.phrases.join('; ')}.`;
 }
 
-// shortcut: returns nothing until Task 3 adds Atlas hybrid search.
-export async function findPatterns(_transcript: string, _k: number): Promise<Pattern[]> {
-  return [];
+export const VECTOR_INDEX = 'patterns_semantic';
+export const TEXT_INDEX = 'patterns_phrases';
+export const EMBED_MODEL = 'voyage-4';
+
+// Hybrid search: meaning (Vector Search, embedded by Atlas with Voyage) fused with the exact
+// scam phrases (Atlas Search), so "safe account" ranks even when the story around it is new.
+export async function findPatterns(transcript: string, k: number): Promise<Pattern[]> {
+  const { patterns } = await collections();
+  return patterns
+    .aggregate<Pattern>([
+      {
+        $rankFusion: {
+          input: {
+            pipelines: {
+              semantic: [
+                {
+                  $vectorSearch: {
+                    index: VECTOR_INDEX,
+                    path: 'text',
+                    query: { text: transcript },
+                    model: EMBED_MODEL,
+                    numCandidates: 50,
+                    limit: k * 2,
+                  },
+                },
+              ],
+              phrases: [
+                {
+                  $search: {
+                    index: TEXT_INDEX,
+                    text: { query: transcript, path: ['phrases', 'title', 'description'] },
+                  },
+                },
+                { $limit: k * 2 },
+              ],
+            },
+          },
+          combination: { weights: { semantic: 0.6, phrases: 0.4 } },
+        },
+      },
+      { $limit: k },
+      { $project: { _id: 0, id: 1, family: 1, title: 1, description: 1, phrases: 1, source: 1 } },
+    ])
+    .toArray();
 }

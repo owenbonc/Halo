@@ -12,10 +12,17 @@ export const BAND_TONE: Record<Band, { card: string; text: string; Icon: typeof 
 // Colour is never the only signal: every band carries its icon and its words.
 export function BandBadge({ band, className = 'text-2xl' }: { band: Band; className?: string }) {
   const { text, Icon } = BAND_TONE[band];
+  // The green title carries a caveat sentence; it stays visible but reads as a second line.
+  const [headline, ...caveat] = BAND_LABEL[band].title.split('. ');
   return (
     <span className={`flex items-start gap-3 font-bold leading-snug ${text} ${className}`}>
       <Icon className="mt-0.5 size-[1.25em]" />
-      <span>{BAND_LABEL[band].title}</span>
+      <span>
+        {caveat.length > 0 ? `${headline}.` : headline}
+        {caveat.length > 0 && (
+          <span className="mt-1 block text-[0.7em] font-semibold">{caveat.join('. ')}</span>
+        )}
+      </span>
     </span>
   );
 }

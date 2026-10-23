@@ -34,15 +34,18 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## Shape and depth
 
-- Radii: `rounded-chip` 12px (status boxes, inputs, quoted phrases), `rounded-card` 18px (cards, options), `rounded-sheet` 24px; buttons are pills (`rounded-full`).
-- Cards on the page: a 1px `line` border, no shadow. `shadow-float` only on things that float (toasts, sheets).
+- Radii: `rounded-chip` 12px (status boxes, inputs, quoted phrases), `rounded-card` 18px (cards, panels, options), `rounded-sheet` 24px; buttons and links that act like buttons are full pills (`rounded-full`).
+- **Pills** carry single facts (caller, time, scam type, status, the listening timer). **Boxes** group every chunk: cards on the page, white panels inside a warning card. Panels inside a tinted card are a deliberate choice of the design owner, not an accident.
+- Cards and panels: a 1px `line` border, no shadow. Warning cards: a 1px band-ink edge on the band tint.
+- `shadow-float` only on things that float (glass controls, toasts).
 
-## Components (`components/ui/`)
+## Glass (from bulk)
 
-- `Button` / `buttonClass(variant)`: `primary` (accent pill) or `secondary` (surface pill with a `line-strong` edge), 56px tall, full width. Put `buttonClass` on a `<Link>` or `<a>` that should look like a button.
-- `Card`: neutral, or `tone={band}` for a warning card.
-- `BandBadge`: a band's icon and words. `BAND_TONE` has each band's classes and icon.
-- `icons.tsx`: drawn SVG icons, 1.75 stroke. No emoji as icons.
+- `glass`: clear glass (white at 55% over a 20px blur, a bright edge and top highlight, a faint ink hairline, the float shadow). Secondary buttons, the role choices and the pill links in the header.
+- `glass-accent`: lavender glass at 62% for primary actions. Ink text on top (at least 10:1 over every background).
+- `material`: translucent paper for bars that stay on screen. Headers are sticky `material` bars with the content scrolling under them.
+- Every glass surface turns solid (white with a `line-strong` edge, or solid lavender) when the browser has no backdrop blur, or the user asks for reduced transparency or more contrast.
+- Status messages (like "Sam is calling you") are solid, never glass: glass is for things you press or that stay on screen.
 
 ## Motion and touch
 

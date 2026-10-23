@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react';
 
 const VARIANT = {
-  primary: 'bg-accent text-on-accent hover:bg-accent-hover active:bg-accent-strong',
-  secondary: 'border border-line-strong bg-surface text-ink hover:bg-surface-hover',
+  primary: 'glass-accent text-on-accent',
+  secondary: 'glass text-ink',
 };
 export type ButtonVariant = keyof typeof VARIANT;
 

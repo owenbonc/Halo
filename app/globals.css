@@ -40,6 +40,27 @@
   --ochre-700: oklch(50% 0.082 68);
   --fern-50: oklch(95% 0.028 165);
   --fern-700: oklch(49% 0.077 165);
+
+  --elevation-float: 0 8px 24px -8px rgb(30 26 21 / 0.18), 0 2px 6px -2px rgb(30 26 21 / 0.08);
+
+  /* Glass (from bulk): translucent white or lavender over a blur, with a bright edge and top highlight. */
+  --glass: rgb(255 255 255 / 0.55);
+  --glass-hover: rgb(255 255 255 / 0.68);
+  --glass-pressed: rgb(255 255 255 / 0.8);
+  --glass-fallback: rgb(255 255 255 / 0.92);
+  --glass-edge: rgb(255 255 255 / 0.75);
+  --glass-highlight: rgb(255 255 255 / 0.9);
+  /* Stronger than bulk's 50% so the primary action still reads as primary for older eyes. */
+  --glass-accent: color-mix(in oklab, var(--lavender-300) 62%, transparent);
+  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 72%, transparent);
+  --glass-accent-pressed: color-mix(in oklab, var(--lavender-300) 84%, transparent);
+  --glass-accent-edge: rgb(255 255 255 / 0.6);
+  /* A faint ink hairline keeps the button's edge visible on pale paper, where a white edge vanishes. */
+  --glass-outline: 0 0 0 1px rgb(30 26 21 / 0.1);
+
+  /* Material: translucent paper for bars that stay on screen while content scrolls under them. */
+  --material: color-mix(in oklab, var(--sand-50) 78%, transparent);
+  --material-fallback: color-mix(in oklab, var(--sand-50) 96%, transparent);
 }
 
 @theme inline {
@@ -71,15 +92,15 @@
   --color-caution-soft: var(--ochre-50);
   --color-clear: var(--fern-700);
   --color-clear-soft: var(--fern-50);
+
+  /* Shadows belong to floating layers only; cards on the page use a 1px line border. */
+  --shadow-float: var(--elevation-float);
 }
 
 @theme {
   --radius-chip: 12px;
   --radius-card: 18px;
   --radius-sheet: 24px;
-
-  /* Shadows belong to floating layers only; cards on the page use a 1px line border. */
-  --shadow-float: 0 8px 24px -8px rgb(30 26 21 / 0.18), 0 2px 6px -2px rgb(30 26 21 / 0.08);
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -164,5 +185,96 @@
   a {
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
+  }
+}
+
+/* Translucent material for bars that stay on screen. Solid paper when blur is missing or unwanted. */
+@utility material {
+  background-color: var(--material);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--material-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background-color: var(--sand-50);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Clear glass for secondary buttons and big choices. Solid white with a real border when blur is missing or unwanted. */
+@utility glass {
+  background-color: var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px var(--glass-edge),
+    var(--glass-outline),
+    var(--elevation-float);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      background-color: var(--glass-hover);
+    }
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--glass-pressed);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--glass-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background-color: var(--sand-0);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--sand-500);
+
+    &:active:not(:disabled) {
+      background-color: var(--sand-100);
+    }
+  }
+}
+
+/* Lavender glass for primary actions. Solid lavender when blur is missing or unwanted. */
+@utility glass-accent {
+  background-color: var(--glass-accent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px var(--glass-accent-edge),
+    var(--glass-outline),
+    var(--elevation-float);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      background-color: var(--glass-accent-hover);
+    }
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--glass-accent-pressed);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--lavender-300);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background-color: var(--lavender-300);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--lavender-700);
+
+    &:active:not(:disabled) {
+      background-color: oklch(from var(--lavender-300) calc(l - 0.06) c h);
+    }
   }
 }

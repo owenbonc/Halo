@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
 import { Check, CircleCheck, Cross } from '@/components/ui/icons';
+import { Pill } from '@/components/ui/Pill';
 import type { Settings } from '@/lib/types';
 
 type Save = 'idle' | 'saving' | 'saved' | 'failed';
@@ -44,14 +45,14 @@ export default function SetupPage() {
 
   return (
     <section className="space-y-10 pb-24">
-      <header className="space-y-2">
+      <header className="material sticky top-0 z-10 -mx-4 flex items-center justify-between gap-4 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+        <h1 className="text-3xl font-bold">Settings</h1>
         <Link
           href="/grandma"
-          className="inline-flex min-h-12 items-center font-semibold text-accent-ink underline"
+          className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink"
         >
-          Back to your calls
+          Your calls
         </Link>
-        <h1 className="text-3xl font-bold">Your settings</h1>
       </header>
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p
@@ -59,7 +60,7 @@ export default function SetupPage() {
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 mx-auto max-w-md rounded-chip p-4 font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}
@@ -97,7 +98,7 @@ export default function SetupPage() {
         hint={`While paused, ${contact} isn't told about any call.`}
       />
 
-      <section className="space-y-4">
+      <Card className="space-y-4">
         <h2 className="text-2xl font-bold">What {contact} sees</h2>
         <List
           icon={<Check className="mt-1 size-6 text-clear" />}
@@ -117,7 +118,7 @@ export default function SetupPage() {
             'Calls that showed no warning signs',
           ]}
         />
-      </section>
+      </Card>
     </section>
   );
 }
@@ -173,10 +174,10 @@ function ContactSection({
     <Card className="space-y-4">
       <h2 className="text-2xl font-bold">Your person: {contact.name}</h2>
       {contact.verified ? (
-        <p className="flex items-center gap-3 font-semibold text-clear">
+        <Pill tone="none">
           <CircleCheck />
-          {contact.name}'s phone is checked and ready.
-        </p>
+          {contact.name}'s phone is checked and ready
+        </Pill>
       ) : (
         <div className="space-y-3">
           <p>

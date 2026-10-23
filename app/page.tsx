@@ -33,7 +33,7 @@ export default function RolePicker() {
             key={role}
             href={`/${role}`}
             onClick={() => saveRole(role)}
-            className="flex min-h-24 w-full flex-col items-start justify-center gap-1 rounded-card border border-line-strong bg-surface px-6 py-4 text-left transition-[transform,background-color] duration-100 ease-out hover:bg-surface-hover active:scale-[0.97]"
+            className="glass flex min-h-24 w-full flex-col items-start justify-center gap-1 rounded-card px-6 py-4 text-left transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
           >
             <span className="font-display text-3xl font-bold tracking-[-0.02em]">{label}</span>
             <span className="font-normal text-ink-2">{hint}</span>

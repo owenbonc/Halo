@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from 'react';
 import { Button, buttonClass } from '@/components/ui/Button';
 import { BandBadge, Card } from '@/components/ui/band';
 import { Check, Phone, Speaker, TriangleAlert } from '@/components/ui/icons';
+import { Panel, Pill } from '@/components/ui/Pill';
 import { GUIDANCE } from '@/lib/guidance';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { AlertRecord, CallView } from '@/lib/types';
@@ -102,14 +103,15 @@ export function CallCard({
       aria-labelledby={titleId}
       className="space-y-5 transition duration-500 ease-out starting:translate-y-3 motion-reduce:transition-none"
     >
-      <p className="text-ink-2 tabular-nums">
-        {call.callerLabel} · {when(call.createdAt)}
-      </p>
-      <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <Pill>{call.callerLabel}</Pill>
+        <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
+      </div>
+      <div className="space-y-3">
         <h2 id={titleId}>
           <BandBadge band={analysis.band} />
         </h2>
-        {warning && <p className="text-2xl font-semibold">{FAMILY_LABEL[analysis.family]}</p>}
+        {warning && <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>}
         {warning && analysis.summary && <p>{analysis.summary}</p>}
       </div>
       <p>{reassurance(call)}</p>
@@ -144,29 +146,37 @@ export function CallCard({
       </Button>
 
       {steps.length > 0 && (
-        <div className="space-y-2">
+        <Panel>
           <h3 className="font-bold">What to do now</h3>
-          <ol className="list-decimal space-y-3 pl-7 marker:font-bold">
-            {steps.map((step) => (
-              <li key={step.title}>
-                <strong>{step.title}.</strong> {step.body}
+          <ol className="space-y-4">
+            {steps.map((step, i) => (
+              <li key={step.title} className="flex gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft font-bold text-accent-ink tabular-nums"
+                >
+                  {i + 1}
+                </span>
+                <span>
+                  <strong>{step.title}.</strong> {step.body}
+                </span>
               </li>
             ))}
           </ol>
-        </div>
+        </Panel>
       )}
 
       {analysis.cues.length > 0 && (
-        <div className="space-y-2">
+        <Panel>
           <h3 className="font-bold">What the caller said that worried us</h3>
           <ul className="space-y-2">
             {analysis.cues.map((cue) => (
-              <li key={cue} className="break-words rounded-chip bg-surface/80 px-4 py-2">
+              <li key={cue} className="break-words rounded-chip bg-surface-2 px-4 py-2">
                 “{cue}”
               </li>
             ))}
           </ul>
-        </div>
+        </Panel>
       )}
     </Card>
   );

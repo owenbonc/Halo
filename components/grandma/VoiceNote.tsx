@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/band';
 import { Mic } from '@/components/ui/icons';
+import { Pill } from '@/components/ui/Pill';
 import { startRecording } from '@/lib/recorder';
 
 type State =
@@ -63,16 +65,18 @@ export function VoiceNote() {
   };
 
   return (
-    <section className="space-y-3">
+    <Card className="space-y-4">
       <h2 className="text-2xl font-bold">Did you answer a call yourself?</h2>
       <p className="text-ink-2">
         Tell us what the caller said, in your own words. Take as long as you need.
       </p>
       {state.kind === 'recording' ? (
         <>
-          <p className="flex items-center gap-3 text-2xl font-semibold" role="status">
-            <span className="size-3 rounded-full bg-accent-ink motion-safe:animate-pulse" />
-            Listening <span className="tabular-nums">{minutes(now - state.since)}</span>
+          <p role="status">
+            <Pill tone="accent" className="text-2xl">
+              <span className="size-3 rounded-full bg-accent-ink motion-safe:animate-pulse" />
+              Listening <span className="tabular-nums">{minutes(now - state.since)}</span>
+            </Pill>
           </p>
           <Button onClick={finish}>I've finished, check it</Button>
         </>
@@ -87,6 +91,6 @@ export function VoiceNote() {
           {state.message}
         </p>
       )}
-    </section>
+    </Card>
   );
 }

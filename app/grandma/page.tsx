@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CallCard, when } from '@/components/grandma/CallCard';
 import { VoiceNote } from '@/components/grandma/VoiceNote';
 import { BandBadge, Card } from '@/components/ui/band';
+import { Pill } from '@/components/ui/Pill';
 import { BAND_LABEL } from '@/lib/labels';
 import type { CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
@@ -23,11 +24,12 @@ export default function GrandmaPage() {
 
   return (
     <section className="space-y-10">
-      <header className="flex items-center justify-between gap-4">
+      {/* Stays on screen as material; the card scrolls under it. */}
+      <header className="material sticky top-0 z-10 -mx-4 flex items-center justify-between gap-4 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
         <h1 className="text-3xl font-bold">Your calls</h1>
         <Link
           href="/grandma/setup"
-          className="inline-flex min-h-12 items-center font-semibold text-accent-ink underline"
+          className="inline-flex min-h-12 items-center rounded-full px-5 font-semibold glass text-ink"
         >
           Settings
         </Link>
@@ -50,8 +52,11 @@ export default function GrandmaPage() {
             paused={settings.data?.paused ?? false}
           />
           {latest && latest !== featured && (
-            <Card className="space-y-2">
-              <p className="text-ink-2">Newer call · {when(latest.createdAt)}</p>
+            <Card className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <Pill>Newer call</Pill>
+                <Pill className="tabular-nums">{when(latest.createdAt)}</Pill>
+              </div>
               <BandBadge band={latest.analysis.band} className="text-xl" />
             </Card>
           )}
@@ -67,7 +72,10 @@ export default function GrandmaPage() {
         )
       )}
       <VoiceNote />
-      <Link href="/?switch" className="inline-flex min-h-12 items-center text-ink-2 underline">
+      <Link
+        href="/?switch"
+        className="inline-flex min-h-12 items-center rounded-full px-5 font-semibold glass text-ink-2"
+      >
         Switch role
       </Link>
     </section>

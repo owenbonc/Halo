@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import cases from '../data/test-cases.json';
 import {
   bandFor,
   DEGRADED_SUMMARY,
@@ -267,4 +268,20 @@ describe('decide', () => {
     expect(result.matchedPatternIds).toEqual(['courier-police-cash-collection']);
     expect(result.nextSteps).toEqual(['dont_call_back', 'different_phone', 'call_159']);
   });
+});
+
+describe('every team-written case with Argon down', () => {
+  it.each(cases)('$id is never green and never shows a number', ({ transcript }) => {
+    const result = decide(transcript, null, []);
+    expect(result.band).not.toBe('none');
+    const { cues, summary, matchedPatternIds } = result;
+    expect(JSON.stringify({ cues, summary, matchedPatternIds })).not.toMatch(/\p{Nd}/u);
+  });
+
+  it.each(cases.filter((c) => c.set === 'adversarial' || c.id.startsWith('demo-police')))(
+    '$id gets its expected band on word rules alone',
+    ({ transcript, bands }) => {
+      expect(bands).toContain(decide(transcript, null, []).band);
+    },
+  );
 });

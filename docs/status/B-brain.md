@@ -10,13 +10,14 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
 - Rules (`lib/rules.ts`): fixed band rules, a word-rule floor the model can't lower, number/URL scrubbing, verbatim-cue check; behaviour tests in `lib/rules.test.ts`.
 - `findPatterns`: one `$rankFusion` query fusing Atlas Vector Search (Automated Embedding, `voyage-4`) and Atlas Search; `pnpm seed:patterns` loads the patterns, builds both indexes and runs a smoke query. Not yet run against Atlas (no cluster yet).
 - `analyse`: retrieve (Atlas) → judge (Argon, structured JSON, transcript fenced as untrusted data) → decide (fixed rules). Falls back to word rules if Argon or Atlas fails. Not yet run live (no keys).
+- 15 synthetic test cases (`data/test-cases.json`) with an offline sweep (never green, never a number when Argon is down) and a three-run live eval (`RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts`), not yet run (no keys).
 
 ## Doing
-- Test cases and live eval (`data/test-cases.json`).
+- `transcribe` with Gemini Flash.
 
 ## Next
-- Argon/audio/Atlas probes: waiting on GEMINI_API_KEY and an Atlas cluster (M10, MongoDB 8.x).
-- Rules, Atlas hybrid search, Argon analysis, transcribe, DEMO_FALLBACK.
+- Live: probes, `pnpm seed:patterns`, Argon smoke test, live eval, `transcribe` check, record `data/demo-fallback.json`. All waiting on GEMINI_API_KEY and an Atlas cluster.
+- `DEMO_FALLBACK=1`.
 
 ## Needs from others
 - **A:** please prefix each turn in the posted transcript with `Caller:` or `Assistant:` on its own line. The brain only treats the caller's words as evidence, so the screener's own questions never turn into "quoted phrases".

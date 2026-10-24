@@ -17,6 +17,7 @@ Built at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London tim
    cd grandma-s-phone
    git config user.name "Your Name"
    git config user.email "you@example.com"
+   git config core.hooksPath .githooks   # scans for keys before every push
    pnpm install
    cp .env.example .env
    ```

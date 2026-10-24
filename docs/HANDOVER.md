@@ -13,6 +13,8 @@ Owen is at another hackathon all Saturday and replies to messages slowly, if at 
 
 - Every push to `main` deploys production automatically, in about a minute. Other branches get preview links. Previews have no environment variables, so their data routes fail; that's expected.
 - `main` must always be demoable: `scripts/verify.sh` prints READY before every push to main, and you click through the real thing.
+- Run `git config core.hooksPath .githooks` once in your checkout. The hook scans for keys and env files before every push, so a pasted secret never reaches GitHub. CI scans too, but only after it's pushed.
+- CI's `smoke` job checks the live site about a minute after each push to main. A red ❌ on `smoke` means production is broken even though the code passed: tell Owen, since only he can see the Vercel logs.
 - The Vercel project sits on Owen's personal Hobby account. Only Owen can open its dashboard, read its logs or change its environment variables. If something breaks in production and the cause isn't obvious, reproduce it locally first.
 
 | Environment variable | Production |

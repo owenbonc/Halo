@@ -1,4 +1,4 @@
-# Hang Up & Check
+# Halo
 
 > Source of truth: the [Specification page in Notion](https://app.notion.com/p/14297080891e838fae6c01ef02aa20d8) (Encode London 2026 → Resources). Edit there; this file is refreshed from it before building.
 

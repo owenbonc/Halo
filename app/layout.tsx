@@ -13,7 +13,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: 'Hang Up & Check',
+  title: 'Halo',
   description:
     'An AI call screener that helps older people spot phone scams and loops in their person.',
 };

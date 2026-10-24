@@ -1,10 +1,10 @@
 # Brief for every teammate and their agent
 
-We're building **Hang Up & Check** at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London time**. It's one web app: `/` asks "Who are you?" (Grandma or Caretaker), and `/call` is the demo caller's page.
+We're building **Halo** at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London time**. It's one web app: `/` asks "Who are you?" (Grandma or Caretaker), and `/call` is the demo caller's page.
 
 Start your agent with one line:
 
-> You are working on slice X of Hang Up & Check. Read AGENTS.md, SPEC.md, docs/briefs/README.md, docs/briefs/X-….md and every file in docs/status/ before doing anything.
+> You are working on slice X of Halo. Read AGENTS.md, SPEC.md, docs/briefs/README.md, docs/briefs/X-….md and every file in docs/status/ before doing anything.
 
 ## Setup
 

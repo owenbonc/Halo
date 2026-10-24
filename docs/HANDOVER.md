@@ -1,5 +1,7 @@
 # Handover: Owen is away on Saturday 24 Oct
 
+The app is called **Halo**. The Vercel URL and the GitHub repo keep their old names.
+
 Owen is at another hackathon all Saturday and replies to messages slowly, if at all. Until he's back:
 
 - **Keeper: A (ish24cho).** A merges to main and owns `lib/types.ts`, the shared routes and deploy settings, the same way Owen did (AGENTS.md).

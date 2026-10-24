@@ -1,6 +1,6 @@
 # DESIGN.md
 
-How Hang Up & Check looks. Owner: slice C (Owen), who decides design for every screen. Change the look by editing the tokens in `app/globals.css` and the components in `components/ui/`, never screen by screen.
+How Halo looks. Owner: slice C (Owen), who decides design for every screen. Change the look by editing the tokens in `app/globals.css` and the components in `components/ui/`, never screen by screen.
 
 ## Rules for every screen
 

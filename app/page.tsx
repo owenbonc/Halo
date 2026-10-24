@@ -28,7 +28,7 @@ export default function RolePicker() {
     <section className="space-y-10 pt-6">
       <header className="space-y-3">
         <p className="font-display text-2xl font-extrabold tracking-[-0.02em] text-accent-ink">
-          Hang Up &amp; Check
+          Halo
         </p>
         <h1 className="text-4xl font-bold leading-tight">What would you like to do?</h1>
         <p className="text-ink-2">This phone will remember your answer.</p>

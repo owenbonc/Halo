@@ -59,7 +59,6 @@ If a box is still empty when you read this, ask Owen in the group chat.
 - Owen's decisions on Kota's review (PR #15): recorded messages are transcribed for real, and the preset police-call sample is served only under `DEMO_FALLBACK=1` (the call page says so); `CALL_RECORDED_TRANSCRIPTION_READY` is gone. Sam sees the summary when she was on automatic alerts at the time the alert went out, tap or automatic, so `AlertRecord` now stores `alertMode`. Run `pnpm demo:reset` after merging: older alerts lack the field.
 
 **A**
-- The screener's fixed opening says "you've reached a call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its clip), but her name is now set at setup. Make the line name-free, or agree a persona name and put it in `lib/seed.ts` too.
 - Move `/call` onto `DESIGN.md` tokens: it still uses raw Tailwind colours.
 
 **B**

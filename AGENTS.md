@@ -42,7 +42,7 @@ Four people, each with their own agent, build one app. The repo is how you know 
 ```
 app/page.tsx      role picker: "Who are you?" Loved one or Caregiver
 app/loved-one/    Loved one's view: cards, voice note, setup and consent
-app/caregiver/    caregiver's view: alerts, acknowledge, history
+app/caregiver/    Caregiver's view: alerts, acknowledge, history
 app/call/         the caller's call page: Gemini Live screener in the browser
 app/api/          route handlers (contracts in SPEC.md)
 components/       shared ui/, plus loved-one/ and caregiver/

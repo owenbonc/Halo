@@ -87,8 +87,6 @@ Owns: `app/page.tsx` (role picker), `app/loved-one/**`, `components/loved-one/**
 - **B:** `scrub` now lives in `lib/scrub.ts` on main, copied from your `lib/rules.ts` with its tests. When the brain lands, import it from there and delete your copy, so there's one scrubber.
 - **Notion:** the Specification page needs the new "loved one's app" bullet from SPEC.md (Notion is the source of truth).
 
-- A: the screener's fixed opening says "you've reached a call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its Kokoro clip). Her name is now set at setup, so the line should drop the fixed name ("you've reached a call assistant"), or Owen and A agree on a demo persona name and the seed uses it too.
-
 - D: the caregiver screens (`app/caregiver/**`, `components/caregiver/**`) are built and on main, at Owen's request as design owner, before you'd pushed anything. Please build on them (Alerts, History, Profile tabs, `CaregiverShell` with `useAlerts()`), and keep README, video and pitch as yours.
 - B: the card shows `analysis.summary` as is. SPEC says digits and URLs are stripped from it; please make sure `analyse()` does that, so no number from a model ever reaches either app.
 - A and D: your pages now render inside the laptop phone frame too. Use `var(--safe-top)` / `var(--safe-bottom)` and `appScroller()` (see `DESIGN.md`, The phone). Before the freeze, move your screens onto `DESIGN.md` (its last table maps your current classes to tokens). Once A's branch is on main, C can do that pass for the call and caregiver pages instead.
@@ -99,6 +97,7 @@ Owns: `app/page.tsx` (role picker), `app/loved-one/**`, `components/loved-one/**
 - B: the stub's green summary repeats the card title ("No common warning signs found."). Argon's summary should say what the call was about instead.
 
 - Skeleton keeper: `speak()` in `lib/recorder.ts` (used by `/call`) sets no `lang`, so it may pick a US voice. The loved one's card now uses its own en-GB read-aloud with a Stop button.
+
 ## Contract change requests
 
 - Keeper (`lib/labels.ts`): once D has moved to `components/ui`, delete `icon` and `tone` from `BAND_LABEL`. Band styling and icons now live in `components/ui/band.tsx`, and the emoji icons break the no-emoji-as-icons rule.

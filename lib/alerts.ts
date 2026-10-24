@@ -20,7 +20,7 @@ export function withStatus(alert: AlertRecord, now = Date.now()): AlertRecord {
   return { ...alert, status: statusAt(alert, now) };
 }
 
-// The caregiver never sees the transcript or cues; the summary only if she chose automatic alerts when it was sent.
+// The caregiver never sees the transcript or cues; the summary only if the loved one chose automatic alerts when it was sent.
 export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Settings): SamAlert {
   return {
     id: alert.id,

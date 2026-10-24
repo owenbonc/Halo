@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { soundOn, unlockSound } from '@/components/caretaker/alert-signal';
 import { BandLine } from '@/components/caretaker/BandLine';
 import { LargeTitle, PollStatus, useAlerts } from '@/components/caretaker/Shell';
 import { when } from '@/components/grandma/CallCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
-import { Check, Phone } from '@/components/ui/icons';
+import { Check, Phone, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import { FAMILY_LABEL } from '@/lib/labels';
@@ -18,6 +19,8 @@ export default function AlertsPage() {
   // Acknowledged here: shown as done straight away, before the next poll confirms it.
   const [done, setDone] = useState<string | null>(null);
   const [ack, setAck] = useState<{ id: string; failed: boolean } | null>(null);
+  // Starts from the shared audio context, so leaving the tab and coming back doesn't ask again.
+  const [sound, setSound] = useState(soundOn);
 
   const open = alerts.data?.find((a) => a.status !== 'acknowledged' && a.id !== done);
   const latest = alerts.data?.[0];
@@ -44,15 +47,34 @@ export default function AlertsPage() {
     <section className={open ? 'pb-14' : undefined}>
       <LargeTitle>Alerts</LargeTitle>
       <PollStatus alerts={alerts} loading="Checking for alerts…" />
+      {sound ? (
+        <p role="status" className="mb-4 flex items-center gap-2 text-[0.9375rem] text-ink-2">
+          <Speaker className="size-5" />
+          Alert sound is on while this app is open.
+        </p>
+      ) : (
+        <Button
+          size="md"
+          variant="secondary"
+          className="mb-4"
+          onClick={() => {
+            unlockSound();
+            setSound(true);
+          }}
+        >
+          <Speaker className="size-5" />
+          Turn on alert sound
+        </Button>
+      )}
       <div aria-live="polite">
         {open ? (
           <Card
             key={open.id}
             tone={open.band}
-            className={`space-y-3 ${ENTER} starting:translate-y-3`}
+            className={`space-y-4 py-8 ${ENTER} starting:translate-y-3`}
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
-            <h2 className="text-[1.375rem] leading-tight font-bold">
+            <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
               {open.elderName} got a call that looks like a scam. Please call her.
             </h2>
             <div className="flex flex-wrap items-center gap-2">

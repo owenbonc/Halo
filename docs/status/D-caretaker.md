@@ -6,9 +6,11 @@ Owns: `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/a
 ## Done
 - Branch `slice/d-caretaker` from main. Caretaker screens, `lib/alerts.ts` and the alert routes were built by C on main; I build on them.
 - `demo/scripts.md`: stage lines for the three screener calls (word for word B's `demo-*` cases), the voice note and the escalation.
+- Detect new alerts: `arrivals()` in components/caretaker, 4 behaviour tests.
+- Alert chimes, vibrates and jumps to a large Alerts card. Exercised: typecheck, lint, unit tests and verify.sh READY; browser check by the controller pending.
 
 ## Doing
-- Full-screen alert, alert sound and vibration.
+- Escalation and Atlas audit check.
 
 ## Next
 - Atlas audit check, wording pass, README, video plan, pitch.

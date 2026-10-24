@@ -5,6 +5,9 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Done
 
+- PR milestone: merged current main `193bd68` (including the action-ring UI) into `The-call` without conflicts. On the combined branch, `IS_WEBPACK_TEST=1 scripts/verify.sh` prints READY and all six Python boundary tests pass. The first typecheck hit a duplicated generated Next route type; the production build regenerated it and the full rerun passed. No tracked build configuration changed.
+- Re-exercised six real GPU WAV/WebM submissions through the combined production build against a fresh local database: saved cards, automatic/manual/paused alerts, acknowledgement, replay protection and transcript scrubbing pass. Browser navigation from the new action ring to Their words works. This PR makes the local recorded-call backup usable; Gemini remains default, and production still needs no GPU configuration. Owen can review/merge; no new public contract is requested.
+
 - User reports a teammate’s Gemini key is working. Gemini remains the primary demo path; private Whisper is retained as an explicitly enabled, local-only backup. Documented activation and return-to-Gemini steps. This report is not independent verification of the teammate’s key or production settings.
 
 - Actual production-build rehearsal passed: real GPU WAV/WebM -> existing app transcript/session -> persisted cards; courier/trick strong, GP amber under degraded rules; auto/manual/paused consent, caretaker privacy, acknowledgement, replay rejection and digit scrubbing verified. Browser checks covered pre-mic provider disclosure, access-code rejection and an actual caregiver acknowledgement. Disconnecting private GPU forwarding returns a controlled 502 with no new card. Independent Codex with ChatGPT review accepted this local milestone after inspecting the diff and all seven recorded execution outputs, including the default-build failure. Gemini remains default and production is unchanged.

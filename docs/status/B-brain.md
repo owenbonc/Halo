@@ -12,7 +12,7 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 - The seed script checks 30 unique patterns before replacement, checks stored count and searchable text, and waits for both READY indexes and a relevant courier/police smoke result. Actual seeding exposed a propagation delay after indexes became queryable; bounded retries now handle it. Behavior tests cover recovery and the five-minute deadline.
 - Added transcription behavior tests for WAV and browser WebM/Opus MIME parameters, submitted audio, provider-error propagation, bounded output and silence. These mock the provider; they are not live audio acceptance.
 - Current B verification: 6 test files / 89 tests passed. Full repository offline suite: 18 files / 143 tests passed; the 15 opt-in live cases are skipped by default. Typecheck and lint pass with the readiness fix. The history secret scan passed on push; `pnpm exec next build --webpack` compiles all routes and passes TypeScript.
-- GitHub CI ran unchanged `scripts/verify.sh` on code commit `ced411f` and printed **READY**, including the default production build: https://github.com/owenbonc/grandma-s-phone/actions/runs/40103517909. Local Turbopack CSS-worker setup reports `binding to a port: Operation not permitted`; local webpack and CI default builds pass, so no shared build change is needed.
+- GitHub CI ran unchanged `scripts/verify.sh` on final code commit `35267d7` and printed **READY**, including the default production build: https://github.com/owenbonc/grandma-s-phone/actions/runs/40104150178. Local Turbopack CSS-worker setup reports `binding to a port: Operation not permitted`; local webpack and CI default builds pass, so no shared build change is needed.
 - Draft PR: https://github.com/owenbonc/grandma-s-phone/pull/12. A is tagged for review; C received the green-summary handoff on issue #4 and D received all three exact synthetic caller scripts plus evidence requirements on issue #5.
 - The user approved shared demo target `cluster0.lhbq6vr.mongodb.net`, database `hangup`. This replaces the older handover target. Credentials stay in `.env`; the application uses URI credentials, not `MONGODB_API_KEY`.
 - **Atlas acceptance passed after the user added the current IP:** ping succeeds; `pnpm seed:patterns` exits successfully; an independent read-back validates all 30 stored pattern schemas and all 30 searchable `text` fields. `patterns_semantic` is READY/queryable with Automated Embedding on `text` using `voyage-4`; `patterns_phrases` is READY/queryable with `lucene.english` on title, description and phrases.
@@ -20,7 +20,7 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 
 ## Doing
 
-- Delivering the successful Atlas acceptance checkpoint and readiness regression fix in draft PR #12. Gemini/fallback acceptance remains explicitly deferred.
+- Atlas setup, output-safety changes and validation improvements are delivered in draft PR #12 for A's review. Gemini/fallback acceptance remains explicitly deferred.
 
 ## Deferred at the user's request
 

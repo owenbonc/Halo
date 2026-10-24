@@ -42,6 +42,13 @@ export async function mintLiveToken() {
     signal: AbortSignal.timeout(10_000),
     cache: 'no-store',
   });
-  if (!response.ok) throw new Error('Live service unavailable');
+  if (!response.ok) {
+    // Server log only: Google's body names the exhausted quota or billing problem behind a 429.
+    console.error(
+      `Live token request failed: ${response.status}`,
+      await response.text().catch(() => ''),
+    );
+    throw new Error('Live service unavailable');
+  }
   return TokenResponse.parse(await response.json()).name;
 }

@@ -53,7 +53,8 @@ export async function POST(request: Request) {
       recordedFixture,
     };
     return Response.json(body, { status: 201, headers });
-  } catch {
+  } catch (error) {
+    console.error('live token failed', error);
     return Response.json(
       { error: 'Could not start the call. Try the recorded message option or try again.' },
       { status: 503, headers },

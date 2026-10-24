@@ -36,6 +36,7 @@ describe('live token endpoint', () => {
       id: body.callSessionId,
       used: false,
       createdAt: expect.any(String),
+      recordedFixture: false,
     });
     const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
     expect(wire.uses).toBe(1);

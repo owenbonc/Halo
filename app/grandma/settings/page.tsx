@@ -69,6 +69,11 @@ export default function SettingsPage() {
 
       <ContactSection settings={settings} onChange={update} />
 
+      <BackupSection
+        name={settings.backupContact?.name ?? ''}
+        onChange={(name) => update({ backupContact: name ? { name } : null })}
+      />
+
       <AlertModeChoice
         contact={contact}
         mode={settings.alertMode}
@@ -109,6 +114,40 @@ export default function SettingsPage() {
       {/* Room to scroll clear of the tab bar. */}
       <div aria-hidden="true" className="h-24" />
     </section>
+  );
+}
+
+function BackupSection({ name, onChange }: { name: string; onChange: (name: string) => void }) {
+  const [value, setValue] = useState(name);
+  const inputId = useId();
+  const trimmed = value.trim();
+
+  return (
+    <Card>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onChange(trimmed);
+        }}
+      >
+        <label htmlFor={inputId} className="block text-2xl font-bold">
+          Backup person (optional)
+        </label>
+        <input
+          id={inputId}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={40}
+          autoComplete="off"
+          placeholder="Their first name"
+          className="min-h-14 w-full rounded-chip border border-line-strong bg-surface px-4 text-xl placeholder:text-ink-2"
+        />
+        {trimmed !== name && (
+          <Button type="submit">{trimmed ? 'Save backup person' : 'Remove backup person'}</Button>
+        )}
+      </form>
+    </Card>
   );
 }
 

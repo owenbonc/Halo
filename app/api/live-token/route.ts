@@ -38,16 +38,18 @@ export async function POST(request: Request) {
     const recorded = mode.data === 'recorded' || process.env.DEMO_FALLBACK === '1';
     const token = recorded ? null : await mintLiveToken();
     const callSessionId = crypto.randomUUID();
+    const recordedFixture = recorded && process.env.CALL_RECORDED_TRANSCRIPTION_READY !== '1';
     await callSessions.insertOne({
       id: callSessionId,
       used: false,
       createdAt: new Date().toISOString(),
+      recordedFixture,
     });
     const body: LiveToken = {
       token,
       callSessionId,
       model: recorded ? null : LIVE_MODEL,
-      recordedFixture: recorded && process.env.CALL_RECORDED_TRANSCRIPTION_READY !== '1',
+      recordedFixture,
     };
     return Response.json(body, { status: 201, headers });
   } catch {

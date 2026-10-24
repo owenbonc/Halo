@@ -1,7 +1,13 @@
 import { type Db, MongoClient } from 'mongodb';
 import type { AlertRecord, CallRecord, Pattern, Settings } from './types';
 
-type CallSession = { id: string; used: boolean; createdAt: string };
+type CallSession = {
+  id: string;
+  used: boolean;
+  createdAt: string;
+  recordedFixture: boolean;
+  transcribed?: boolean;
+};
 type SettingsDoc = Settings & { id: 'household' };
 
 // Survives Next.js hot reloads, which would otherwise open a new pool per edit.

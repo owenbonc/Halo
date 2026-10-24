@@ -23,7 +23,7 @@ it('records only after explicit start and submits once while releasing the micro
   const stream = { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream;
   const fetcher = vi.fn().mockResolvedValue(Response.json({ transcript: 'A synthetic caller.' }));
   vi.stubGlobal('fetch', fetcher);
-  const call = new RecordedCall(stream, vi.fn());
+  const call = new RecordedCall(stream, 'synthetic-session', vi.fn());
   call.start();
   const first = call.finish();
   expect(call.finish()).toBe(first);
@@ -38,6 +38,7 @@ it('reports transcription errors without claiming delivery', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop() {} }] } as unknown as MediaStream,
+    'synthetic-session',
     vi.fn(),
   );
   call.start();

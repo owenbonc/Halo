@@ -14,7 +14,7 @@ export function tokenRequest(now = Date.now(), multilingual = false) {
       model: `models/${LIVE_MODEL}`,
       generationConfig: {
         responseModalities: ['AUDIO'],
-        ...(multilingual ? { maxOutputTokens: 256 } : {}),
+        maxOutputTokens: 256,
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
       systemInstruction: {

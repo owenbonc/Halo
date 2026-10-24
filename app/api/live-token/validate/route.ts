@@ -17,7 +17,6 @@ const answer = (status: number, valid = false) =>
 
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return answer(403);
-  if (process.env.HALO_MULTILINGUAL_PILOT !== '1') return answer(503);
   const access = accessStatus(request);
   if (access !== 200) return answer(access);
   if (!request.body) return answer(400);
@@ -64,10 +63,11 @@ export async function POST(request: Request) {
       recordedFixture: false,
       createdAt: { $gte: new Date(now - 120_000).toISOString(), $lte: new Date(now).toISOString() },
     });
-    if (!session || !(await claimNativeReply(callSessions.db, input.sessionId, input.stage, now)))
-      return answer(403);
+    const voice =
+      session && (await claimNativeReply(callSessions.db, input.sessionId, input.stage, now));
+    if (!voice) return answer(403);
     // Each short check is claimed once, even when the provider fails; no billable retry loop.
-    const valid = await checkReply(input.text, input.stage, request.signal);
+    const valid = await checkReply(input.text, input.stage, voice, request.signal);
     return answer(valid ? 200 : 422, valid);
   } catch {
     return answer(502);

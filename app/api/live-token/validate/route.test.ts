@@ -26,10 +26,9 @@ const request = (
     body: JSON.stringify(body),
   });
 beforeEach(() => {
-  vi.stubEnv('HALO_MULTILINGUAL_PILOT', '1');
   vi.stubEnv('CALL_DEMO_ACCESS_CODE', 'synthetic-code-for-tests');
   findOne.mockReset().mockResolvedValue({ id });
-  claim.mockReset().mockResolvedValue(true);
+  claim.mockReset().mockResolvedValue('english');
   check.mockReset().mockResolvedValue(true);
 });
 afterEach(() => {
@@ -48,14 +47,17 @@ it('checks one bounded output only after an authenticated unused session claim',
     createdAt: { $gte: expect.any(String), $lte: expect.any(String) },
   });
   expect(claim).toHaveBeenCalledOnce();
-  expect(check).toHaveBeenCalledWith('Please explain.', 'followup', expect.any(AbortSignal));
+  expect(check).toHaveBeenCalledWith(
+    'Please explain.',
+    'followup',
+    'english',
+    expect.any(AbortSignal),
+  );
 });
 
-it('rejects disabled mode, wrong origin and wrong code before billable work', async () => {
+it('rejects wrong origin and wrong code before billable work', async () => {
   expect((await POST(request(undefined, { origin: 'https://elsewhere.test' }))).status).toBe(403);
   expect((await POST(request(undefined, { 'x-call-demo-code': 'wrong' }))).status).toBe(401);
-  vi.stubEnv('HALO_MULTILINGUAL_PILOT', '0');
-  expect((await POST(request())).status).toBe(503);
   expect(findOne).not.toHaveBeenCalled();
   expect(check).not.toHaveBeenCalled();
 });
@@ -74,7 +76,7 @@ it('rejects oversized, invalid, extra-field or destination-bearing input before 
 it('refuses consumed/expired sessions and duplicate or out-of-order claims', async () => {
   findOne.mockResolvedValueOnce(null);
   expect((await POST(request())).status).toBe(403);
-  claim.mockResolvedValueOnce(false);
+  claim.mockResolvedValueOnce(null);
   expect((await POST(request())).status).toBe(403);
   expect(check).not.toHaveBeenCalled();
 });

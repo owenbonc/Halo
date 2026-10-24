@@ -1,10 +1,10 @@
 # Automatic-language pilot
 
-The default remains the fixed English Kokoro screener. Set `HALO_MULTILINGUAL_PILOT=1` on the Next.js server and restart to show **Automatic language · experimental** on `/call`. The server also requires this flag before issuing native-mode credentials or checking speech. Existing production demo-code and token budgets still apply. No public contract or B-owned analysis implementation changes.
+The default is the English screener: a prerecorded opening, one follow-up question Gemini writes from what the caller said (played only after the semantic check below passes, otherwise the prerecorded follow-up plays) and a prerecorded closing. Set `HALO_MULTILINGUAL_PILOT=1` on the Next.js server and restart to show **Automatic language · experimental** on `/call`. The server also requires this flag before issuing automatic-language credentials. Existing production demo-code and token budgets still apply. No public contract or B-owned analysis implementation changes.
 
 The pilot starts with the existing local English greeting. Gemini then infers the caller’s language from audio and generates only a clarification and closing in that language. Both complete replies are buffered and their finished output transcriptions are checked before playback. A separate bounded Flash request judges whether each proposed reply means only the fixed screening sentence. It sees the proposed assistant text, not the raw caller transcript. A schema, same-origin/access-code checks, a fresh unused call session and an atomic two-stage record protect that endpoint. Consumed stages are not retried after failure. Native audio is limited to 10 seconds and text to 500 characters per response; malformed, incomplete, destination-bearing or unapproved replies stop the call.
 
-Microphone capture remains paused during generation, checking and playback. Completed speech enters the transcript only after playback; cancellation aborts checks and discards late approval. The ordinary 45-second limit remains, with an independent native-controller limit. Missing `outputTranscription.finished` fails closed; actual provider compatibility must be checked.
+Microphone capture remains paused during generation, checking and playback. Completed speech enters the transcript only after playback; cancellation aborts checks and discards late approval. The ordinary 45-second limit remains, with an independent native-controller limit. Gemini Live sends no end-of-transcription marker, so a reply is complete at `turnComplete`.
 
 ## Cost controls, not a savings claim
 
@@ -12,9 +12,9 @@ Microphone capture remains paused during generation, checking and playback. Comp
 - The native prompt is shorter; native output is capped at 256 tokens per response, with at most two replies.
 - The model is the existing non-extended-thinking Live model; no unsupported thinking configuration is added.
 - Only caller listening periods send microphone audio. No separate translation or language-detection API call is made.
-- Each native reply adds one semantic check, capped at 64 output tokens; there are at most two checks per issued native session. This is extra billed work, not free validation.
+- Each checked reply adds one semantic check on `gemini-3.8-flash` at low thinking, capped at 512 output tokens including its thoughts; English sessions check only the follow-up, automatic sessions at most two replies. This is extra billed work, not free validation.
 - The client retains the latest Live `usageMetadata` counts and stops if a reported request exceeds 4,000 total tokens. This is a defensive cutoff after provider reporting, not a prepaid or exact billing limit. Checker token counts are logged separately without speech or audio.
-- Compare Live and checker usage together in real rehearsals before reporting savings. Discarding generated Gemini audio in fixed mode does not remove its cost.
+- Compare Live and checker usage together in real rehearsals before reporting savings. Gemini still generates the English closing it doesn't play, and that costs tokens.
 
 ## What is and is not verified
 

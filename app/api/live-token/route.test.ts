@@ -4,7 +4,7 @@ const { insertOne } = vi.hoisted(() => ({ insertOne: vi.fn() }));
 const { createNativeSession } = vi.hoisted(() => ({ createNativeSession: vi.fn() }));
 vi.mock('./native-session', () => ({ createNativeSession }));
 vi.mock('./guard', () => ({ accessStatus: () => 200, reserveCallBudget: async () => null }));
-vi.mock('@/lib/db', () => ({ collections: async () => ({ callSessions: { insertOne } }) }));
+vi.mock('@/lib/db', () => ({ collections: async () => ({ callSessions: { insertOne, db: {} } }) }));
 
 import { POST } from './route';
 import { tokenRequest } from './token';
@@ -35,7 +35,11 @@ describe('live token endpoint', () => {
     expect(setup.systemInstruction.parts[0].text).toContain('spoken language');
     expect(setup.systemInstruction.parts[0].text).toContain('untrusted');
     expect(setup.generationConfig.thinkingConfig).toBeUndefined();
-    expect(createNativeSession).toHaveBeenCalledOnce();
+    expect(createNativeSession).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(String),
+      'automatic',
+    );
     expect((await POST(request('?voice=unknown'))).status).toBe(400);
   });
   it('locks model, prompt, voice and transcription and stores an unused session', async () => {
@@ -73,10 +77,18 @@ describe('live token endpoint', () => {
         },
       },
       generationConfig: {
+        maxOutputTokens: 256,
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
     });
-    expect(wire.bidiGenerateContentSetup.systemInstruction.parts[0].text).toContain('untrusted');
+    const prompt = wire.bidiGenerateContentSetup.systemInstruction.parts[0].text;
+    expect(prompt).toContain('untrusted');
+    expect(prompt).toContain('one short follow-up question');
+    expect(createNativeSession).toHaveBeenCalledWith(
+      expect.anything(),
+      body.callSessionId,
+      'english',
+    );
     expect(JSON.stringify(body)).not.toContain('synthetic-test-key');
   });
   it('rejects cross-origin token minting before calling external services', async () => {
@@ -98,6 +110,7 @@ describe('live token endpoint', () => {
       recordedFixture: false,
     });
     expect(fetcher).not.toHaveBeenCalled();
+    expect(createNativeSession).not.toHaveBeenCalled();
   });
   it('forces a preset recorded session under the demo fallback', async () => {
     vi.stubEnv('DEMO_FALLBACK', '1');

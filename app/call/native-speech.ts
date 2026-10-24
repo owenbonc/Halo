@@ -3,6 +3,7 @@ import { decodePcm } from './protocol';
 import { CallError, callRequest } from './request';
 
 export const NativeStage = z.enum(['followup', 'closing']);
+export type NativeStage = z.infer<typeof NativeStage>;
 export const NativeText = z
   .string()
   .trim()
@@ -12,18 +13,17 @@ export const NativeText = z
     (text) => !/[\p{N}\p{Cc}\p{Cf}]|https?:|www\.|@|[\p{L}]\.[\p{L}]/iu.test(text),
     'Unexpected screening response.',
   );
-export type NativeTurn = { stage: z.infer<typeof NativeStage>; text: string; pcm: string };
+export type NativeTurn = { stage: NativeStage; text: string; pcm: string };
 
 export class NativeReply {
   private text = '';
   private chunks: Uint8Array[] = [];
   private bytes = 0;
-  private finished = false;
   private complete = false;
   private turns = 0;
 
   add(content: {
-    outputTranscription?: { text?: string; finished?: boolean };
+    outputTranscription?: { text?: string };
     modelTurn?: { parts: { inlineData?: { data: string; mimeType: string } }[] };
     turnComplete?: boolean;
     interrupted?: boolean;
@@ -31,7 +31,6 @@ export class NativeReply {
     if (content.interrupted) throw new CallError('The screening reply was interrupted. Try again.');
     this.text += content.outputTranscription?.text ?? '';
     if (this.text.length > 500) throw new CallError('The screening reply was too long.');
-    this.finished ||= content.outputTranscription?.finished === true;
     this.complete ||= content.turnComplete === true;
     for (const part of content.modelTurn?.parts ?? []) {
       if (!part.inlineData) continue;
@@ -45,36 +44,43 @@ export class NativeReply {
     }
   }
 
+  // Gemini Live sends no end-of-transcription marker; its output transcription has arrived by turnComplete.
   get ready() {
-    return this.complete && this.finished;
+    return this.complete;
   }
 
+  get stage(): NativeStage {
+    return this.turns === 0 ? 'followup' : 'closing';
+  }
+
+  // Every reply moves the call to its next stage, even one that fails here.
   take(): NativeTurn {
-    if (!this.ready || !this.bytes || this.turns >= 2)
-      throw new CallError('The screening reply was incomplete. Try again.');
-    const parsed = NativeText.safeParse(this.text);
+    const { text, bytes, complete, stage } = this;
+    const chunks = this.skip();
+    if (!complete || !bytes) throw new CallError('The screening reply was incomplete. Try again.');
+    const parsed = NativeText.safeParse(text);
     if (!parsed.success) throw new CallError('The screening reply could not be checked.');
     const pcm = btoa(
-      this.chunks
+      chunks
         .map((chunk) => {
-          let text = '';
-          for (const byte of chunk) text += String.fromCharCode(byte);
-          return text;
+          let binary = '';
+          for (const byte of chunk) binary += String.fromCharCode(byte);
+          return binary;
         })
         .join(''),
     );
-    const turn = {
-      stage: this.turns === 0 ? ('followup' as const) : ('closing' as const),
-      text: parsed.data,
-      pcm,
-    };
+    return { stage, text: parsed.data, pcm };
+  }
+
+  skip() {
+    if (this.turns >= 2) throw new CallError('The screening reply was incomplete. Try again.');
+    const { chunks } = this;
     this.turns += 1;
     this.text = '';
     this.chunks = [];
     this.bytes = 0;
-    this.finished = false;
     this.complete = false;
-    return turn;
+    return chunks;
   }
 }
 
@@ -91,7 +97,7 @@ export async function validateNativeReply(
       headers: { 'Content-Type': 'application/json', 'x-call-demo-code': code },
       body: JSON.stringify({ sessionId, stage: turn.stage, text: turn.text }),
     },
-    10_000,
+    5_000,
     signal,
   );
   if (

@@ -6,7 +6,7 @@ import { createNativeSession } from './native-session';
 import { LIVE_MODEL, mintLiveToken } from './token';
 
 const Mode = z.enum(['live', 'recorded']);
-const Voice = z.enum(['fixed', 'automatic']);
+const Voice = z.enum(['english', 'automatic']);
 const headers = { 'Cache-Control': 'no-store' };
 
 export async function POST(request: Request) {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Start the call from this app.' }, { status: 403, headers });
   }
   const mode = Mode.safeParse(url.searchParams.get('mode') ?? 'live');
-  const voice = Voice.safeParse(url.searchParams.get('voice') ?? 'fixed');
+  const voice = Voice.safeParse(url.searchParams.get('voice') ?? 'english');
   if (!mode.success || !voice.success) {
     return Response.json({ error: 'Unknown call mode.' }, { status: 400, headers });
   }
@@ -54,8 +54,7 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
       recordedFixture,
     });
-    if (!recorded && voice.data === 'automatic')
-      await createNativeSession(callSessions.db, callSessionId);
+    if (!recorded) await createNativeSession(callSessions.db, callSessionId, voice.data);
     const body: LiveToken = {
       token,
       callSessionId,

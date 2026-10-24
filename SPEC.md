@@ -163,7 +163,7 @@ HTTP (Next.js route handlers):
 | `GET /api/alerts` | → `SamAlert[]` | Sam's app (polls every 2 s) |
 | `GET /api/settings`, `PUT /api/settings` | `Settings` | both |
 
-Screener (`app/call/`): the caller page. The screener's instructions live in `lib/screener-prompt.ts`: ask who's calling and why, ask one follow-up, never give advice, never say a call is safe, never repeat numbers. Live input and output transcription are joined into one transcript and posted to `POST /api/calls`. The skeleton version is a recorded line in the browser: the page says "Please say your name and why you're calling", records the answer, sends it to `POST /api/transcribe`, then posts the transcript to `POST /api/calls`.
+Screener (`app/call/`): the caller page. The screener's instructions live in `lib/screener-prompt.ts`. A prerecorded opening asks who's calling and why. Gemini then writes one follow-up question in English from what the caller said, spoken in its own voice only after a separate check confirms it is a single question with no numbers, links, advice or safety claims; otherwise the prerecorded follow-up plays. A prerecorded closing ends the call. The screener never gives advice, never says a call is safe and never repeats numbers. Live input and output transcription are joined into one transcript and posted to `POST /api/calls`. The skeleton version is a recorded line in the browser: the page says "Please say your name and why you're calling", records the answer, sends it to `POST /api/transcribe`, then posts the transcript to `POST /api/calls`.
 
 ## Slices
 

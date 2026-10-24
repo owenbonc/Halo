@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { NativeReply, validateNativeReply } from './native-speech';
 
 const response = (text: string) => ({
-  outputTranscription: { text, finished: true },
+  outputTranscription: { text },
   modelTurn: { parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAABAA==' } }] },
   turnComplete: true,
 });
@@ -20,17 +20,27 @@ it.each([
   expect(reply.take()).toEqual({ stage: 'followup', text, pcm: 'AAABAA==' });
 });
 
-it('requires both completed audio turn and finished transcription, then limits to two replies', () => {
+it('is ready at turnComplete, then limits the call to two replies', () => {
   const reply = new NativeReply();
-  reply.add({ ...response('Please explain.'), outputTranscription: { text: 'Please explain.' } });
+  reply.add({ ...response('Please explain.'), turnComplete: false });
   expect(reply.ready).toBe(false);
-  expect(() => reply.take()).toThrow('incomplete');
-  reply.add({ outputTranscription: { finished: true } });
+  reply.add({ turnComplete: true });
+  expect(reply.ready).toBe(true);
   expect(reply.take().stage).toBe('followup');
   reply.add(response('Thank you.'));
   expect(reply.take().stage).toBe('closing');
   reply.add(response('Another question.'));
   expect(() => reply.take()).toThrow('incomplete');
+});
+
+it('moves to the next stage even when a reply fails, and skips one unparsed', () => {
+  const reply = new NativeReply();
+  reply.add(response('Ring 0800 now?'));
+  expect(() => reply.take()).toThrow('could not be checked');
+  expect(reply.stage).toBe('closing');
+  reply.add(response('Call 0800 123.'));
+  reply.skip();
+  expect(() => reply.skip()).toThrow('incomplete');
 });
 
 it.each(['Ring ０８００', 'Use bank.example', 'visit https://evil.test', 'x@y', 'Hello\u202e'])(

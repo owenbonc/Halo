@@ -1,8 +1,9 @@
+import type { NativeVoice } from '@/app/api/live-token/native-session';
 import { AudioPlayer } from './audio-player';
 import { NativeReply, type NativeTurn } from './native-speech';
 import { LiveMessage, pcm16, Transcript } from './protocol';
 import { CallError } from './request';
-import { ScriptedReply, type VoiceClips } from './scripted-voice';
+import type { VoiceClips } from './scripted-voice';
 
 export class LiveCall {
   readonly transcript = new Transcript();
@@ -16,16 +17,11 @@ export class LiveCall {
   private finishing?: Promise<string>;
   private ready = false;
   private activityTimer?: ReturnType<typeof setTimeout>;
-  private replyTimer?: ReturnType<typeof setTimeout>;
   private pending = Promise.resolve();
   private fatal?: Error;
-  private reply = '';
-  private script = new ScriptedReply();
   private listening = false;
   private generation = 0;
   private speaking = false;
-  private awaitingReply = false;
-  private lateCompletion = false;
   private nativeReply = new NativeReply();
   private checkingNative = false;
   private nativeAbort = new AbortController();
@@ -38,8 +34,9 @@ export class LiveCall {
     private stream: MediaStream,
     private ended: () => void,
     private clips: VoiceClips,
+    private voice: NativeVoice,
+    private validate: (turn: NativeTurn, signal: AbortSignal) => Promise<void>,
     private activity: (state: 'waiting' | 'speaking' | 'listening') => void = () => {},
-    private validateNative?: (turn: NativeTurn, signal: AbortSignal) => Promise<void>,
   ) {
     this.player = new AudioPlayer(context);
   }
@@ -69,7 +66,7 @@ export class LiveCall {
             const message = LiveMessage.parse(JSON.parse(raw));
             if (message.usageMetadata) {
               this.usage = message.usageMetadata;
-              if (this.validateNative && (this.usage.totalTokenCount ?? 0) > 4000)
+              if ((this.usage.totalTokenCount ?? 0) > 4000)
                 throw new CallError('The practice call reached its usage limit. Please try again.');
             }
             if (message.setupComplete) {
@@ -80,7 +77,7 @@ export class LiveCall {
             const content = message.serverContent;
             if (content) {
               this.transcript.add('Caller', content.inputTranscription?.text);
-              if (!this.finishing && !this.terminated && this.validateNative) {
+              if (!this.finishing && !this.terminated) {
                 const hasOutput =
                   !!content.outputTranscription || !!content.modelTurn?.parts.length;
                 if (hasOutput && (this.speaking || this.checkingNative))
@@ -92,41 +89,8 @@ export class LiveCall {
                     this.activity('waiting');
                   }
                   this.nativeReply.add(content);
-                  if (content.turnComplete && !this.replyTimer)
-                    this.replyTimer = setTimeout(
-                      () =>
-                        this.end(new CallError('The screening reply was incomplete. Try again.')),
-                      3000,
-                    );
                   if (this.nativeReply.ready) void this.playNativeReply();
                 }
-              } else if (!this.finishing && !this.terminated) {
-                if (content.modelTurn?.parts.length) this.lateCompletion = false;
-                if (content.turnComplete && !this.speaking) this.lateCompletion = true;
-                if (content.outputTranscription?.text || content.modelTurn?.parts.length) {
-                  if (this.listening) {
-                    this.send({ realtimeInput: { audioStreamEnd: true } });
-                    this.setListening(false);
-                    this.activity('waiting');
-                  }
-                }
-                this.reply += content.outputTranscription?.text ?? '';
-                if (this.reply.length > 1000) throw new CallError('Unexpected screening response.');
-                if (content.interrupted && !this.speaking) this.reply = '';
-                if (
-                  this.lateCompletion &&
-                  !this.speaking &&
-                  !this.awaitingReply &&
-                  (!this.listening || this.reply.trim())
-                ) {
-                  this.awaitingReply = true;
-                  // Retry on later fragments, but never wait indefinitely for a complete line.
-                  this.replyTimer = setTimeout(() => {
-                    if (this.closed || this.finishing) return;
-                    this.end(new CallError('The screening response was incomplete. Try again.'));
-                  }, 3000);
-                }
-                if (this.awaitingReply) this.playReply();
               }
             }
             if (message.goAway && this.ready) this.end(this.interrupted());
@@ -179,29 +143,17 @@ export class LiveCall {
     };
     this.source.connect(this.capture);
     this.capture.connect(this.context.destination);
-    if (this.validateNative) {
-      this.sessionLimit = setTimeout(
-        () =>
-          this.end(new CallError('The practice call reached its time limit. Please try again.')),
-        45_000,
-      );
-      this.send({
-        clientContent: {
-          turns: [{ role: 'model', parts: [{ text: this.clips.opening.text }] }],
-          turnComplete: false,
-        },
-      });
-      this.playClip(this.clips.opening.pcm, this.clips.opening.text, false);
-      return;
-    }
+    this.sessionLimit = setTimeout(
+      () => this.end(new CallError('The practice call reached its time limit. Please try again.')),
+      45_000,
+    );
     this.send({
       clientContent: {
-        turns: [
-          { role: 'user', parts: [{ text: 'The demo caller has connected. Please greet them.' }] },
-        ],
-        turnComplete: true,
+        turns: [{ role: 'model', parts: [{ text: this.clips.opening.text }] }],
+        turnComplete: false,
       },
     });
+    this.playClip(this.clips.opening.pcm, this.clips.opening.text, false);
   }
 
   private setListening(enabled: boolean) {
@@ -209,40 +161,15 @@ export class LiveCall {
     this.generation += 1;
     this.capture?.port.postMessage({ enabled, generation: this.generation });
   }
-  private playReply() {
-    if (this.closed || this.finishing || this.script.isIncomplete(this.reply)) return;
-    try {
-      if (this.speaking) throw new CallError('The assistant spoke out of turn. Please try again.');
-      const id = this.script.accept(this.reply);
-      clearTimeout(this.replyTimer);
-      this.awaitingReply = false;
-      this.lateCompletion = false;
-      this.reply = '';
-      const clip = this.clips[id];
-      this.playClip(clip.pcm, clip.text, id === 'closing');
-    } catch (error) {
-      this.end(error instanceof CallError ? error : new CallError('The voice could not play.'));
-    }
-  }
   private async playNativeReply() {
-    if (
-      !this.validateNative ||
-      this.checkingNative ||
-      this.closed ||
-      this.finishing ||
-      this.terminated
-    )
-      return;
+    if (this.checkingNative || this.closed || this.finishing || this.terminated) return;
     this.checkingNative = true;
-    clearTimeout(this.replyTimer);
-    this.replyTimer = undefined;
     try {
       if (this.transcript.text().length <= this.nativeCallerBaseline)
         throw new CallError('No caller speech was captured. Please try again.');
-      const turn = this.nativeReply.take();
-      await this.validateNative(turn, this.nativeAbort.signal);
+      const line = await this.nextLine();
       if (this.closed || this.finishing || this.terminated) return;
-      this.playClip(turn.pcm, turn.text, turn.stage === 'closing');
+      this.playClip(line.pcm, line.text, line.closing);
     } catch (error) {
       if (!this.closed && !this.finishing && !this.terminated)
         this.end(
@@ -252,6 +179,21 @@ export class LiveCall {
         );
     } finally {
       this.checkingNative = false;
+    }
+  }
+  // English always closes with the prerecorded line, and plays the prerecorded follow-up whenever Gemini's own question fails its check.
+  private async nextLine() {
+    if (this.voice === 'english' && this.nativeReply.stage === 'closing') {
+      this.nativeReply.skip();
+      return { ...this.clips.closing, closing: true };
+    }
+    try {
+      const turn = this.nativeReply.take();
+      await this.validate(turn, this.nativeAbort.signal);
+      return { pcm: turn.pcm, text: turn.text, closing: turn.stage === 'closing' };
+    } catch (error) {
+      if (this.voice !== 'english' || this.nativeAbort.signal.aborted) throw error;
+      return { ...this.clips.followup, closing: false };
     }
   }
   private playClip(pcm: string, text: string, closing: boolean) {
@@ -292,7 +234,6 @@ export class LiveCall {
     this.stopMic();
     this.player.stop();
     clearTimeout(this.activityTimer);
-    clearTimeout(this.replyTimer);
     this.ended();
   }
   private send(value: unknown) {
@@ -320,7 +261,6 @@ export class LiveCall {
       clearTimeout(this.sessionLimit);
       this.stopMic();
       this.player.stop();
-      clearTimeout(this.replyTimer);
       clearTimeout(this.activityTimer);
       this.send({ realtimeInput: { audioStreamEnd: true } });
       // Input transcription arrives independently, so allow final fragments to drain.
@@ -341,7 +281,6 @@ export class LiveCall {
     clearTimeout(this.sessionLimit);
     this.cancelStart?.();
     clearTimeout(this.activityTimer);
-    clearTimeout(this.replyTimer);
     this.stopMic();
     this.player.dispose();
     this.socket?.close();

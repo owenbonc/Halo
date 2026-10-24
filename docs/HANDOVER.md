@@ -47,7 +47,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 - **Setup** (`/setup`): the caretaker fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told.
 - **Grandma's app** (`/grandma`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
 - **Caretaker's app** (`/caretaker`): Alerts, History and Profile, with a floating "I'm calling her now". It was built by C at Owen's request; D builds on it.
-- **The call** (`/call`): A's live Gemini screener with Kokoro voice clips (PR #7), including the `recordedFixture` contract.
+- **The call** (`/call`): A's live Gemini screener with a tailored, checked follow-up and prerecorded lines in Gemini's Sulafat voice, including the `recordedFixture` contract.
 - **Not merged yet:** B's brain (`slice/b-brain`). `analyse` on main is still the stub.
 
 ## Open work

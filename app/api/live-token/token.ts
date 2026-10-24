@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { MULTILINGUAL_INSTRUCTIONS, SCREENER_INSTRUCTIONS } from '@/lib/screener-prompt';
 
 export const LIVE_MODEL = 'gemini-3.8-live';
+export const LIVE_VOICE = 'Sulafat';
 const TokenResponse = z.object({ name: z.string().startsWith('auth_tokens/') });
 
 export function tokenRequest(now = Date.now(), multilingual = false) {
@@ -15,7 +16,7 @@ export function tokenRequest(now = Date.now(), multilingual = false) {
       generationConfig: {
         responseModalities: ['AUDIO'],
         maxOutputTokens: 1024,
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LIVE_VOICE } } },
       },
       systemInstruction: {
         parts: [{ text: multilingual ? MULTILINGUAL_INSTRUCTIONS : SCREENER_INSTRUCTIONS }],

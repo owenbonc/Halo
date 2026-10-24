@@ -20,11 +20,11 @@ Owen is at another hackathon all Saturday and replies to messages slowly, if at 
 | `CALL_DEMO_ACCESS_CODE` | **Missing**: `/call` refuses every call (503) until it's set |
 | `MONGODB_DB`, `ESCALATE_AFTER_MIN`, `DEMO_FALLBACK` | Not needed: the code defaults to `hangup`, 3 minutes and off |
 
-### Owen's checklist before he leaves
+### Owen's checklist (Saturday morning, before he leaves)
 
 - [ ] Add `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE` to Vercel production (as Secrets), then push or redeploy. Send the access code privately to whoever plays the caller.
 - [ ] Invite the team to the Atlas project (Project → Access Manager → Invite).
-- [ ] Add D as a GitHub collaborator. Only `ish24cho` (A) and `Josh-Lim18` (B) have access now.
+- [x] Invite D as a GitHub collaborator. **D: accept the invite email** (or go to github.com/owenbonc/grandma-s-phone/invitations); until then you can't push.
 
 If a box is still empty when you read this, ask Owen in the group chat.
 

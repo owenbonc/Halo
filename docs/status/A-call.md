@@ -5,7 +5,12 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Done
 
-- Integrated B finish `04cfb58` and D `fdfa29d` into `The-call` without conflicts. B adds the shared destination scrubber, transcription tests and Atlas readiness checks; D adds alert arrival/chime controls and demo material. `origin/main` remains `82f32f8`; no PRs were merged into main.
+- M3 usability: green-call summaries now appear on the Read it to me screen and in its spoken script, with the uncertainty caveat retained. Browser speech is guarded for missing support, synchronous failures and denied playback; a visible error leaves the text and retry button usable. Stop, replacement and navigation suppress late speech callbacks.
+- Keeper/C-open cleanup: Call 159 dial destinations and labels come from `lib/guidance.ts` in both help and escalation screens. Removed unused band emoji/colour fields and the unused legacy `speak()` helper. The recorder used by voice notes and the Kokoro call clips are unchanged.
+- M3 checks: 84 targeted tests pass and full `scripts/verify.sh` prints READY. Actual production-build browser checks on isolated local data covered a synthetic green summary/caveat, speech completion/replay/Stop, and both `tel:159` link destinations without placing a call. These are UI fixtures inserted only into a temporary local database, not live/captured model responses or a deployed fallback. Visual review at the standard phone-frame size found no clipping or overlap.
+- Synced `origin/main` at `a20d3f9` after Owen merged B/D. This changes ancestry only; main is not pushed from this branch.
+
+- Integrated B finish `04cfb58` and D `fdfa29d` into `The-call` without conflicts. B adds the shared destination scrubber, transcription tests and Atlas readiness checks; D adds alert arrival/chime controls and demo material. B/D were subsequently merged into main by Owen; this branch has synced that history without pushing main.
 - Shared reliability fixes: transcription failures return a plain 502; a failed initial MongoDB connection is cleared and can reconnect on the next request; call submission atomically rejects sessions older than five minutes or dated in the future; caller labels are assigned server-side so caller-provided destinations cannot reach cards. Submission failures remain explicitly uncertain; no automatic retry or fabricated receipt.
 - Integration validation: 73 targeted tests passed, and full `scripts/verify.sh` printed READY after regenerating duplicated Next.js cache files. No build configuration or public API shape changed.
 - Exercised the actual production build against isolated local MongoDB with synthetic transcripts and the existing degraded word rules: courier and trick produce strong cards, GP remains amber with no alert while Argon is unavailable, automatic alerts arrive, a caretaker browser moves from History to Alerts, acknowledgement persists, paused/manual-consent behavior holds, caretaker responses omit transcripts/cues, replay and expired/future sessions fail, and transcript display removes caller numbers. Gemini and Atlas were deliberately unavailable in this local check: this is database/UI integration evidence, not live AI or deployed acceptance.
@@ -46,8 +51,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 ## Doing
 
 
-- Codex with ChatGPT independently accepted the merged local integration milestone after reviewing the diff, merged implementation and all four execution records. Full live-demo certification and PR remain gated on real end-to-end evidence. Current key was retried at the user’s request: both Argon and Flash still report the monthly spending cap. The user is arranging billing/a working local key. Prior live-controller check minted a token but disconnected with a billing error. No full live-demo or deployed acceptance is claimed.
-- Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.
+- Codex with ChatGPT independently accepted the merged local integration milestone after reviewing the diff, merged implementation and all four execution records. Full live-demo certification and PR remain gated on real end-to-end evidence. Current key was retried at the user’s request: both Argon and Flash still report the monthly spending cap. Both required models remain capped on the latest retry. The user is arranging billing/a working local key and confirmed Owen will configure production; Vercel access here stops at its login screen. Prior live-controller check minted a token but disconnected with a billing error. No full live-demo or deployed acceptance is claimed.
+- Codex with ChatGPT independently accepted M3 after inspecting the full diff and all three execution records. Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.
 
 ## Next
 

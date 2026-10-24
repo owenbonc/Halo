@@ -2,8 +2,6 @@ import { collections } from '@/lib/db';
 import { fail } from '@/lib/http';
 import { scrubTranscript } from '@/lib/scrub';
 
-export const dynamic = 'force-dynamic';
-
 // Mum's "What they said": the whole call, with every number and link the caller gave taken out.
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { calls } = await collections();

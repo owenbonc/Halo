@@ -35,7 +35,7 @@ it('records only after explicit start and submits once while releasing the micro
   const stream = { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream;
   const fetcher = vi.fn().mockResolvedValue(Response.json({ transcript: 'A synthetic caller.' }));
   vi.stubGlobal('fetch', fetcher);
-  const call = new RecordedCall(stream, vi.fn());
+  const call = new RecordedCall(stream, 'synthetic-session', vi.fn());
   call.start();
   const first = call.finish();
   expect(call.finish()).toBe(first);
@@ -50,6 +50,7 @@ it('reports transcription errors without claiming delivery', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop() {} }] } as unknown as MediaStream,
+    'synthetic-session',
     vi.fn(),
   );
   call.start();
@@ -69,6 +70,7 @@ it.each([MAX_RECORDING_BYTES, MAX_RECORDING_BYTES + 1])(
     const ended = vi.fn();
     const call = new RecordedCall(
       { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream,
+      'synthetic-session',
       ended,
     );
     call.start();
@@ -98,6 +100,7 @@ it('rejects empty recordings before transcription', async () => {
   vi.stubGlobal('fetch', fetcher);
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop() {} }] } as unknown as MediaStream,
+    'synthetic-session',
     vi.fn(),
   );
   call.start();
@@ -125,6 +128,7 @@ it.each(['timeout', 'cancel'] as const)(
     const ended = vi.fn();
     const call = new RecordedCall(
       { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream,
+      'synthetic-session',
       ended,
     );
     call.start();
@@ -165,6 +169,7 @@ it('accepts a final chunk arriving after three seconds, within the bounded wait'
   const ended = vi.fn();
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream,
+    'synthetic-session',
     ended,
   );
   call.start();
@@ -186,6 +191,7 @@ it('does not start a failed recorder even if its stream still reports active', a
   const ended = vi.fn();
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop() {} }] } as unknown as MediaStream,
+    'synthetic-session',
     ended,
   );
   Recorder.current.onerror?.();

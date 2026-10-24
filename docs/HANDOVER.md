@@ -54,7 +54,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 **Keeper (A)**
 - Review and merge B's brain once it's a PR; verify the combined app.
 - A's P1s from `docs/status/A-call.md`: access control on shared routes, submission recovery, session expiry.
-- Small keeper fixes: give `speak()` in `lib/recorder.ts` `lang: 'en-GB'`; delete `BAND_LABEL.icon` and `.tone`; add a dialable number to `GUIDANCE.call_159`.
+- Small keeper fix: add a dialable number to `GUIDANCE.call_159`.
 
 **A**
 - The screener's fixed opening says "you've reached Grandma's call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its clip), but her name is now set at setup. Make the line name-free, or agree a persona name and put it in `lib/seed.ts` too.
@@ -62,7 +62,6 @@ If a box is still empty when you read this, ask Owen in the group chat.
 
 **B**
 - Land the brain and run `pnpm seed:patterns` on Atlas.
-- Make sure `analyse()` strips digits and URLs from `summary`. For screener calls, drop `different_phone`. A green summary shouldn't repeat the card title.
 
 **D**
 - README, pitch and video. Keep the stage dialogue in line with B's `demo-*` test cases.

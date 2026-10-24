@@ -4,7 +4,6 @@ import type { LiveToken } from '@/lib/types';
 import { accessStatus, reserveCallBudget } from './guard';
 import { LIVE_MODEL, mintLiveToken } from './token';
 
-export const dynamic = 'force-dynamic';
 const Mode = z.enum(['live', 'recorded']);
 const headers = { 'Cache-Control': 'no-store' };
 
@@ -39,16 +38,18 @@ export async function POST(request: Request) {
     const recorded = mode.data === 'recorded' || process.env.DEMO_FALLBACK === '1';
     const token = recorded ? null : await mintLiveToken();
     const callSessionId = crypto.randomUUID();
+    const recordedFixture = recorded && process.env.CALL_RECORDED_TRANSCRIPTION_READY !== '1';
     await callSessions.insertOne({
       id: callSessionId,
       used: false,
       createdAt: new Date().toISOString(),
+      recordedFixture,
     });
     const body: LiveToken = {
       token,
       callSessionId,
       model: recorded ? null : LIVE_MODEL,
-      recordedFixture: false,
+      recordedFixture,
     };
     return Response.json(body, { status: 201, headers });
   } catch {

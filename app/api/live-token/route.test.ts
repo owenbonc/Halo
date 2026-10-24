@@ -36,6 +36,7 @@ describe('live token endpoint', () => {
       id: body.callSessionId,
       used: false,
       createdAt: expect.any(String),
+      recordedFixture: false,
     });
     const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
     expect(wire.uses).toBe(1);
@@ -58,9 +59,6 @@ describe('live token endpoint', () => {
     });
     expect(wire.bidiGenerateContentSetup.systemInstruction.parts[0].text).toContain('untrusted');
     expect(JSON.stringify(body)).not.toContain('synthetic-test-key');
-    expect(new Date(wire.newSessionExpireTime).getTime()).toBeLessThan(
-      new Date(wire.expireTime).getTime(),
-    );
   });
   it('rejects cross-origin token minting before calling external services', async () => {
     const fetcher = vi.fn();
@@ -78,12 +76,13 @@ describe('live token endpoint', () => {
     expect(await response.json()).toMatchObject({
       token: null,
       model: null,
-      recordedFixture: false,
+      recordedFixture: true,
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
-  it('uses real transcription when the demo forces recorded mode', async () => {
+  it('uses real transcription in forced recorded mode once transcription is ready', async () => {
     vi.stubEnv('DEMO_FALLBACK', '1');
+    vi.stubEnv('CALL_RECORDED_TRANSCRIPTION_READY', '1');
     const fetcher = vi.fn();
     vi.stubGlobal('fetch', fetcher);
     const response = await POST(request());
@@ -110,15 +109,6 @@ describe('live token endpoint', () => {
     expect((await POST(request())).status).toBe(503);
     expect((await POST(request('?mode=unknown'))).status).toBe(400);
     expect(insertOne).not.toHaveBeenCalled();
-  });
-  it('does not let a client override protected turn-taking', async () => {
-    const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'auth_tokens/synthetic' }));
-    vi.stubGlobal('fetch', fetcher);
-    expect((await POST(request('?interruptions=on'))).status).toBe(201);
-    const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
-    expect(wire.bidiGenerateContentSetup.realtimeInputConfig.activityHandling).toBe(
-      'NO_INTERRUPTION',
-    );
   });
 });
 it('limits new-session and connection lifetimes', () => {

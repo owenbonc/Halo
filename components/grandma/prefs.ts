@@ -95,7 +95,7 @@ export function setTextSize(size: TextSize) {
   write(SIZE_KEY, size);
 }
 
-/** Applies her text size while the calling screen is mounted. */
+/** Applies her text size while her app or setup is mounted. */
 export function useAppliedTextSize(): TextSize {
   const size = useTextSize();
   // Everything in her app is in rem, so one root size scales cards, pills, buttons and the tab bar together.

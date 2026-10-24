@@ -28,7 +28,7 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## Two densities
 
-- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Profile; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caretaker's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
+- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Settings; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caretaker's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
 - **Caretaker** (`/caretaker/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
 - Sizes are always rem, never px, so Grandma's text size reaches everything.
 

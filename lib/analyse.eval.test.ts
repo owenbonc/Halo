@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import cases from '../data/test-cases.json';
 import { analyse } from './analyse';
@@ -22,10 +22,8 @@ const TestCases = z.array(
 
 // Stop on the first service failure: RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts --bail=1
 describe.skipIf(!live)('analyse on the team-written cases', () => {
-  beforeAll(() => vi.stubEnv('DEMO_FALLBACK', '0'));
   afterEach(() => vi.restoreAllMocks());
   afterAll(async () => {
-    vi.unstubAllEnvs();
     await closeDb();
   });
 

@@ -12,6 +12,7 @@ import {
   UNCLEAR_SUMMARY,
   wordSignals,
 } from './rules';
+import { carriesNumberOrLink } from './scrub';
 import type { Pattern } from './types';
 
 const quiet: Signals = {
@@ -158,7 +159,7 @@ describe('decide', () => {
       [],
       'screener',
     );
-    expect(result.summary).not.toContain(destination);
+    expect(carriesNumberOrLink(result.summary)).toBe(false);
     expect(result.cues).toEqual([]);
   });
 

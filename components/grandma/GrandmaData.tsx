@@ -10,7 +10,6 @@ import { markOpened, useAppliedTextSize, useDone, useOpened } from './prefs';
 type GrandmaState = Deck & {
   calls: CallView[] | null;
   error: string | null;
-  settings: Settings | null;
   contact: string;
   paused: boolean;
   done: string[];
@@ -47,7 +46,6 @@ export function GrandmaShell({ children }: { children: ReactNode }) {
     ...deck,
     calls: calls.data,
     error: calls.error,
-    settings: settings.data,
     contact: settings.data?.contact.name ?? 'your person',
     paused: settings.data?.paused ?? false,
     done,

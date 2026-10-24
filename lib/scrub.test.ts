@@ -17,7 +17,6 @@ describe('scrub', () => {
     const text = `Visit ${destination} now`;
     expect(scrub(text)).toBe('Visit now');
     expect(carriesNumberOrLink(text)).toBe(true);
-    expect(carriesNumberOrLink(text)).toBe(true);
     expect(carriesNumberOrLink(scrub(text))).toBe(false);
   });
 

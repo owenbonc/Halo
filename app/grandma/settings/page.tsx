@@ -57,7 +57,7 @@ export default function SettingsPage() {
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 ${ABOVE_TAB_BAR.lg} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger text-surface' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 ${ABOVE_TAB_BAR.lg} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger-soft text-danger' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}
@@ -68,6 +68,11 @@ export default function SettingsPage() {
       <NameSection name={settings.elderName} onChange={(elderName) => update({ elderName })} />
 
       <ContactSection settings={settings} onChange={update} />
+
+      <BackupSection
+        name={settings.backupContact?.name ?? ''}
+        onChange={(name) => update({ backupContact: name ? { name } : null })}
+      />
 
       <AlertModeChoice
         contact={contact}
@@ -109,6 +114,40 @@ export default function SettingsPage() {
       {/* Room to scroll clear of the tab bar. */}
       <div aria-hidden="true" className="h-24" />
     </section>
+  );
+}
+
+function BackupSection({ name, onChange }: { name: string; onChange: (name: string) => void }) {
+  const [value, setValue] = useState(name);
+  const inputId = useId();
+  const trimmed = value.trim();
+
+  return (
+    <Card>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onChange(trimmed);
+        }}
+      >
+        <label htmlFor={inputId} className="block text-2xl font-bold">
+          Backup person (optional)
+        </label>
+        <input
+          id={inputId}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={40}
+          autoComplete="off"
+          placeholder="Their first name"
+          className="min-h-14 w-full rounded-chip border border-line-strong bg-surface px-4 text-xl placeholder:text-ink-2"
+        />
+        {trimmed !== name && (
+          <Button type="submit">{trimmed ? 'Save backup person' : 'Remove backup person'}</Button>
+        )}
+      </form>
+    </Card>
   );
 }
 

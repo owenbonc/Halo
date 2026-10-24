@@ -30,7 +30,7 @@ The UK scams that cost older people the most start with a phone call: someone pr
 All test data is synthetic: the scam scripts were written by the team.
 
 ## How it uses Gemini and MongoDB Atlas
-- **Gemini Live:** the screener's conversation. **Gemini 4 Argon:** judges the transcript (structured output; the transcript is treated as untrusted data). **Gemini Flash:** transcribes voice notes.
+- **Gemini Live:** the screener's conversation. **Gemini 4 Argon:** judges the transcript (structured output; the transcript is treated as untrusted data). **Gemini Flash:** transcribes voice notes and recorded messages.
 - **Atlas Vector Search with Automated Embedding plus Atlas Search,** fused with `$rankFusion`: finds the closest scam scripts. **Atlas collections** for calls, alerts (the audit log) and settings.
 
 ## Privacy

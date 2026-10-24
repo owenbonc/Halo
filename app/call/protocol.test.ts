@@ -32,7 +32,11 @@ it('encodes clipped little-endian PCM and decodes it for playback', () => {
 });
 it('rejects mixed fallback and live credentials at the boundary', () => {
   expect(
-    LiveTokenResponse.safeParse({ token: null, model: 'live', callSessionId: crypto.randomUUID() })
-      .success,
+    LiveTokenResponse.safeParse({
+      token: null,
+      model: 'live',
+      callSessionId: crypto.randomUUID(),
+      recordedFixture: false,
+    }).success,
   ).toBe(false);
 });

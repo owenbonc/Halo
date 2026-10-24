@@ -53,5 +53,7 @@ describe('toSamAlert', () => {
     expect(
       toSamAlert(alert, call, { ...SEED_SETTINGS, alertMode: 'ask_first' }).summary,
     ).toBeNull();
+    // A tap made under ask-first stays without a summary after she later turns on automatic alerts.
+    expect(toSamAlert({ ...alert, trigger: 'user_tap' }, call, SEED_SETTINGS).summary).toBeNull();
   });
 });

@@ -223,7 +223,8 @@ export default function CallPage() {
         );
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       const stream = await microphone(attempt);
-      const recording = new RecordedCall(stream, () => {
+      if (!attempt.id) throw new CallError('The call did not start. Please try again.');
+      const recording = new RecordedCall(stream, attempt.id, () => {
         void finish(attempt);
       });
       attempt.call = recording;

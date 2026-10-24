@@ -31,13 +31,3 @@ export function Pill({
     />
   );
 }
-
-// A panel that groups one chunk: white on a plain card, a deeper tint inside a warning card.
-export function Panel({ className = '', ...props }: ComponentProps<'div'>) {
-  return (
-    <div
-      {...props}
-      className={`space-y-3 rounded-card border border-inset-line bg-inset p-4 ${className}`}
-    />
-  );
-}

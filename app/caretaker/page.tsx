@@ -35,7 +35,7 @@ export default function AlertsPage() {
 
   const open = alerts.data?.find((a) => a.status !== 'acknowledged' && a.id !== done);
   const latest = alerts.data?.[0];
-  // The confirmation stays for an hour, like Grandma's warning card; after that the screen is calm again.
+  // The confirmation stays for an hour; after that the screen is calm again.
   const called =
     !open &&
     latest &&

@@ -1,7 +1,14 @@
+import { z } from 'zod';
 import { collections, noMongoId } from './db';
 import type { AlertRecord, CallRecord, SamAlert, Settings } from './types';
 
-const escalateAfterMs = () => Number(process.env.ESCALATE_AFTER_MIN ?? 3) * 60_000;
+// A typo in the env var would otherwise give NaN and silently disable escalation.
+const escalateAfterMs = () =>
+  z.coerce
+    .number()
+    .positive()
+    .catch(3)
+    .parse(process.env.ESCALATE_AFTER_MIN ?? 3) * 60_000;
 
 // Escalation is worked out on read, so there are no timers to fail.
 export function statusAt(alert: AlertRecord, now: number): AlertRecord['status'] {
@@ -13,7 +20,7 @@ export function withStatus(alert: AlertRecord, now = Date.now()): AlertRecord {
   return { ...alert, status: statusAt(alert, now) };
 }
 
-// The caretaker never sees the transcript or cues; the summary only if Grandma chose automatic alerts.
+// The caretaker never sees the transcript or cues; the summary only for an automatic alert she still allows.
 export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Settings): SamAlert {
   return {
     id: alert.id,
@@ -22,7 +29,10 @@ export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Setti
     elderName: settings.elderName,
     band: call.analysis.band,
     family: call.analysis.family,
-    summary: settings.alertMode === 'auto_strong' ? call.analysis.summary : null,
+    summary:
+      alert.trigger === 'auto_strong' && settings.alertMode === 'auto_strong'
+        ? call.analysis.summary
+        : null,
   };
 }
 

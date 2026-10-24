@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { useId } from 'react';
+import { type ReactNode, useId } from 'react';
 import { Button } from '@/components/ui/Button';
 import { BandBadge, Card } from '@/components/ui/band';
-import { Check } from '@/components/ui/icons';
-import { Panel, Pill } from '@/components/ui/Pill';
-import { GUIDANCE } from '@/lib/guidance';
+import { Check, ListChecks, Phone, Quote, Speaker } from '@/components/ui/icons';
+import { Pill } from '@/components/ui/Pill';
 import { FAMILY_LABEL } from '@/lib/labels';
 import type { CallView } from '@/lib/types';
+import { useGrandma } from './GrandmaData';
 import { markDone } from './prefs';
+import { SAM_LINE, SAM_STYLE, samState } from './sam';
 
 export function when(iso: string) {
   const date = new Date(iso);
@@ -29,79 +30,118 @@ export function reassurance(call: CallView) {
   return 'We answered this call for you. You did the right thing by not answering it yourself.';
 }
 
-// The facts of one call. Sam's status, the action and read-aloud float in CallDock so they never scroll away.
-export function CallCard({ call, done }: { call: CallView; done: boolean }) {
+// A big button on the card face: icon and words, so she knows what each one does before she taps.
+function Action({
+  href,
+  Icon,
+  label,
+  hint,
+  primary,
+  onOpen,
+}: {
+  href: string;
+  Icon: typeof Phone;
+  label: string;
+  hint?: string;
+  primary?: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onOpen}
+      className={`flex items-center rounded-card px-4 text-center font-bold leading-tight transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${primary ? 'glass-accent min-h-24 flex-col justify-center gap-2 py-3 text-xl text-on-accent' : 'glass min-h-14 justify-center gap-3 py-2 text-lg text-ink'}`}
+    >
+      <Icon className={primary ? 'size-9' : 'size-7'} />
+      <span>
+        {label}
+        {hint && <span className="block text-base font-semibold">{hint}</span>}
+      </span>
+    </Link>
+  );
+}
+
+/*
+ * The card in front of her: the verdict, the scam type and Sam's status, then big buttons that each open
+ * their own screen. Nothing to read past and no scrolling at Standard text.
+ */
+export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode }) {
+  const { contact, paused, done, open } = useGrandma();
   const { analysis } = call;
   const warning = analysis.band !== 'none';
-  const steps = analysis.nextSteps.map((id) => GUIDANCE[id]);
+  const sam = samState(call, paused);
+  const { box, Icon } = SAM_STYLE[sam];
+  const base = `/grandma/calls/${call.id}`;
   const titleId = useId();
+  const onOpen = () => open(call.id);
 
   // Entrances move but never fade: if a browser stops drawing frames, the card must still be readable.
   return (
-    <Card
-      tone={analysis.band}
-      aria-labelledby={titleId}
-      className="space-y-5 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
-    >
-      <div className="flex flex-wrap gap-2">
-        <Pill>{call.callerLabel}</Pill>
-        <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
-      </div>
-      <div className="space-y-3">
+    <div className="space-y-3">
+      <Card
+        key={call.id}
+        tone={analysis.band}
+        aria-labelledby={titleId}
+        className="space-y-3 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
+      >
+        <div className="flex flex-wrap gap-2">
+          <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
+          {call.source === 'voice_note' && <Pill>Your voice note</Pill>}
+        </div>
         <h2 id={titleId}>
           <BandBadge band={analysis.band} />
         </h2>
         {warning && <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>}
-        {warning && analysis.summary && <p>{analysis.summary}</p>}
-      </div>
-      <p>{reassurance(call)}</p>
+        {warning ? (
+          <p
+            aria-live="polite"
+            className={`flex items-start gap-3 rounded-chip border px-4 py-2 font-bold ${box}`}
+          >
+            <Icon className="mt-1 size-[1.1em]" />
+            {SAM_LINE[sam](contact)}
+          </p>
+        ) : (
+          <p>{reassurance(call)}</p>
+        )}
+      </Card>
 
-      {steps.length > 0 && (
-        <Panel>
-          <h3 className="font-bold">What to do now</h3>
-          <ol className="space-y-4">
-            {steps.map((step, i) => (
-              <li key={step.title} className="flex gap-3">
-                <span
-                  aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-inset-2 font-bold text-ink tabular-nums"
-                >
-                  {i + 1}
-                </span>
-                <span>
-                  <strong>{step.title}.</strong> {step.body}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </Panel>
-      )}
+      <nav aria-label="What you can do" className="grid grid-cols-2 gap-3">
+        {warning && (
+          <>
+            <Action
+              primary
+              href={`${base}/sam`}
+              Icon={Phone}
+              label={`Get ${contact}`}
+              onOpen={onOpen}
+            />
+            <Action
+              primary
+              href={`${base}/help`}
+              Icon={ListChecks}
+              label="What to do"
+              hint={analysis.band === 'strong' ? 'Call 159' : undefined}
+              onOpen={onOpen}
+            />
+          </>
+        )}
+        <Action href={`${base}/said`} Icon={Quote} label="What they said" onOpen={onOpen} />
+        <Action href={`${base}/read`} Icon={Speaker} label="Read it to me" onOpen={onOpen} />
+      </nav>
 
-      {analysis.cues.length > 0 && (
-        <Panel>
-          <h3 className="font-bold">What the caller said that worried us</h3>
-          <ul className="space-y-2">
-            {analysis.cues.map((cue) => (
-              <li key={cue} className="break-words rounded-chip bg-inset-2 px-4 py-2">
-                “{cue}”
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      )}
-
-      {done ? (
+      {done.includes(call.id) ? (
         <Pill tone="accent">
           <Check />
           You've dealt with this
         </Pill>
       ) : (
-        <Button variant="secondary" onClick={() => markDone(call.id)}>
+        <Button variant="secondary" size="md" onClick={() => markDone(call.id)}>
           <Check />
           I've dealt with this
         </Button>
       )}
-    </Card>
+      {footer}
+    </div>
   );
 }
 

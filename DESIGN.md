@@ -55,16 +55,17 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 ## Tabs
 
 - Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
-- Grandma: **New** (`/grandma`, calls she hasn't dealt with), **Past calls** (`/grandma/past`, every warning call with filters), **Profile** (`/grandma/profile`, her name, her person, consent, text size, switch role). A call opens at `/grandma/calls/[id]`.
-- A call leaves New only when she taps "I've dealt with this" (remembered on her phone). Green calls show in New for 5 minutes so she sees the call was screened, then clear themselves and are never kept in Past calls.
+- Grandma: **Alerts** (`/grandma`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/grandma/past`, the calls she has dealt with, with filters), **Settings** (`/grandma/settings`, her name, her person, consent, text size, switch role; mostly used by the caretaker).
+- The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" moves a call to Past calls, and a green call moves there as soon as she opens it.
 - Caretaker: **Alerts**, **History**, **Profile** (read-only: Grandma controls consent).
 
-## Floating, not scrolling
+## One card, big buttons
 
-- What must always be reachable floats above the tab bar, in thumb reach, like bulk's controls. Grandma: the **Sam dock** (`CallDock`: Sam's status, the one action that matters, Ask Sam or Call 159, and "Read it to me" beside it). Caretaker: "I'm calling her now". The rest scrolls under them. Position floating layers with `ABOVE_TAB_BAR`.
-- The dock is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender).
-- Top bars (`TopBar`) are sticky `material` with a glass pill link on the right.
-- Leave room at the end of the page for floating layers so the last item can scroll clear of them.
+- Grandma's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). The card holds only the verdict (`BandBadge`), the scam type, the time and Sam's status line; everything else sits one tap away.
+- Under the card, big buttons that each carry an icon and words: **Get Sam** and **What to do** are tall lavender `glass-accent` tiles (warning calls only); **What they said** and **Read it to me** are shorter `glass` tiles. Below them a quiet "I've dealt with this", then **Next call** and **Other calls**.
+- Each button opens its own screen at `/grandma/calls/[id]/{sam,help,said,read}` with a glass **Back** pill at the top (`TopBar back`). "What they said" leads on to the whole call (`/transcript`), with every number and link removed on the server.
+- Sam's status is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender). The caretaker's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
+- Top bars (`TopBar`) are sticky `material`. Leave room at the end of each page so the last item scrolls clear of the tab bar.
 
 ## Glass (from bulk)
 

@@ -64,14 +64,26 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - `/setup`, on her phone: her name, the caretaker's name, an optional backup, and text size. Then "Now hand the phone to Margaret", and she picks how Sam is told herself. It saves settings and opens her app.
   - Profile has "Your name". Text sizes are now Standard (18.75px, just above the caretaker's 17px), Large (the old 20px), Larger and Largest.
 
+- **Alerts deck (Owen's call, 24 Oct):** Grandma's tabs are now **Alerts**, **Past calls** and **Settings** (`/grandma/settings`, was Profile).
+  - Alerts shows one call at a time, with no scrolling at Standard text on a 375px phone. The card face is the verdict, scam type, time and Sam's status. Under it: big **Get Sam** and **What to do** tiles, smaller **What they said** and **Read it to me**, then "I've dealt with this", **Next call** and **Other calls**. Each tile opens `/grandma/calls/[id]/{sam,help,said,read}` with a Back button.
+  - Deck order is strong, then some, then green, newest first within a band (`components/grandma/deck.ts`, tested). Opening means tapping any button; the deck holds unopened calls, then refills with opened ones not dealt with. Green calls move to Past once opened. The floating Sam dock is gone.
+  - "What they said" leads on to the whole call: new `GET /api/calls/:id/transcript` returns it with every digit, spoken number and link removed (`lib/scrub.ts`, B's scrubber with the same tests, plus a line-by-line `scrubTranscript`).
+  - The voice note lives on Other calls and on the empty Alerts screen; after sending, the new card opens in Alerts.
+  - SPEC.md ("Mum's app", API table) and DESIGN.md (Tabs, One card, big buttons) updated. Clicked through locally on synthetic calls; verify.sh READY.
+
 ## Doing
 
 ## Next
 
 - Check on the stage phone that the card's fade-in plays. The browser pane draws no frames, so it couldn't be tested there.
 - Retest against B's real `analyse` (long summaries, four cues) and on a real phone with a real microphone.
+- Check the Alerts screen at Larger and Largest text on the stage phone, and that "Read it to me" starts speaking on arrival (the browser pane can't play speech).
 
 ## Needs from others
+
+- **A (keeper):** the alerts-deck PR adds `GET /api/calls/:id/transcript` (shared route). It has the same missing access control as the other routes; please review it with your P1.
+- **B:** `scrub` now lives in `lib/scrub.ts` on main, copied from your `lib/rules.ts` with its tests. When the brain lands, import it from there and delete your copy, so there's one scrubber.
+- **Notion:** the Specification page needs the new "Mum's app" bullet from SPEC.md (Notion is the source of truth).
 
 - A: the screener's fixed opening says "you've reached Grandma's call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its Kokoro clip). Her name is now set at setup, so the line should drop the fixed name ("you've reached a call assistant"), or Owen and A agree on a demo persona name and the seed uses it too.
 

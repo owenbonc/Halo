@@ -1,25 +1,25 @@
 'use client';
-import { createContext, type ReactNode, useContext } from 'react';
-import { Clock, Inbox, User } from '@/components/ui/icons';
+import { createContext, type ReactNode, useContext, useState } from 'react';
+import { Bell, Clock, Gear } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
 import type { CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
-import { useAppliedTextSize, useDone } from './prefs';
+import { buildDeck, type Deck, passCurrent } from './deck';
+import { markOpened, useAppliedTextSize, useDone, useOpened } from './prefs';
 
-// A green call is shown briefly so she sees it was screened, then clears itself and is never kept.
-export const GREEN_SHOWN_MS = 5 * 60_000;
-
-type GrandmaState = {
+type GrandmaState = Deck & {
   calls: CallView[] | null;
   error: string | null;
   settings: Settings | null;
   contact: string;
   paused: boolean;
-  /** Calls she hasn't dealt with yet: warnings first, newest first. */
-  untouched: CallView[];
-  /** Every warning call, newest first: her history. Green calls are never kept. */
-  past: CallView[];
   done: string[];
+  /** She tapped a button on this call: it counts as opened and stays in front of her. */
+  open: (id: string) => void;
+  /** Put this call in front of her without opening it (a voice note she just sent). */
+  focus: (id: string) => void;
+  /** "Next call": move past the card in front of her. */
+  next: () => void;
 };
 
 const Ctx = createContext<GrandmaState | null>(null);
@@ -30,30 +30,38 @@ export function useGrandma(): GrandmaState {
   return state;
 }
 
-/** Polls once for every Grandma screen, applies her text size, and draws the tab bar. */
+/** Polls once for every Grandma screen, keeps her deck of calls, applies her text size, and draws the tab bar. */
 export function GrandmaShell({ children }: { children: ReactNode }) {
   const calls = usePoll<CallView[]>('/api/calls');
   const settings = usePoll<Settings>('/api/settings', 10_000);
   const done = useDone();
+  const opened = useOpened();
+  // This visit only: where she is in the deck. A reload starts again from the most important call.
+  const [passed, setPassed] = useState<string[]>([]);
+  const [held, setHeld] = useState<string | null>(null);
   useAppliedTextSize();
 
-  const now = Date.now();
-  const all = calls.data ?? [];
-  const warnings = all.filter((c) => c.analysis.band !== 'none');
-  const freshGreen = all.filter(
-    (c) => c.analysis.band === 'none' && now - Date.parse(c.createdAt) < GREEN_SHOWN_MS,
-  );
-  const untouched = [...warnings, ...freshGreen].filter((c) => !done.includes(c.id));
+  const deck = buildDeck(calls.data ?? [], { done, opened, passed, held });
 
   const state: GrandmaState = {
+    ...deck,
     calls: calls.data,
     error: calls.error,
     settings: settings.data,
     contact: settings.data?.contact.name ?? 'your person',
     paused: settings.data?.paused ?? false,
-    untouched,
-    past: warnings,
     done,
+    open: (id) => {
+      markOpened(id);
+      setHeld(id);
+    },
+    focus: setHeld,
+    next: () => {
+      if (!deck.current) return;
+      markOpened(deck.current.id);
+      setPassed(passCurrent(deck, passed));
+      setHeld(null);
+    },
   };
 
   return (
@@ -61,9 +69,15 @@ export function GrandmaShell({ children }: { children: ReactNode }) {
       {children}
       <TabBar
         tabs={[
-          { href: '/grandma', label: 'New', Icon: Inbox, badge: untouched.length },
-          { href: '/grandma/past', label: 'Past calls', Icon: Clock, match: ['/grandma/calls/'] },
-          { href: '/grandma/profile', label: 'Profile', Icon: User },
+          {
+            href: '/grandma',
+            label: 'Alerts',
+            Icon: Bell,
+            badge: deck.unopened,
+            match: ['/grandma/calls/', '/grandma/others'],
+          },
+          { href: '/grandma/past', label: 'Past calls', Icon: Clock },
+          { href: '/grandma/settings', label: 'Settings', Icon: Gear },
         ]}
       />
     </Ctx.Provider>

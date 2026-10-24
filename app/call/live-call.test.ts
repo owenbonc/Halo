@@ -123,7 +123,7 @@ async function nativeListening() {
 async function exchange(text: string) {
   await nativeListening();
   Socket.current.message(nativeResponse(text));
-  await vi.advanceTimersByTimeAsync(0);
+  await vi.advanceTimersByTimeAsync(300);
 }
 
 it('automatic voice uses a local opening and waits for validation before generated playback', async () => {
@@ -183,7 +183,7 @@ it.each([
   const call = await connect('automatic', check);
   await nativeListening();
   Socket.current.message(reply);
-  await vi.advanceTimersByTimeAsync(0);
+  await vi.advanceTimersByTimeAsync(300);
   expect(ended).toHaveBeenCalledOnce();
   expect(check).not.toHaveBeenCalled();
   expect(sources).toHaveLength(1);
@@ -228,18 +228,25 @@ it('automatic voice never falls back to a prerecorded line when the closing fail
   call.dispose();
 });
 
-it('closes every call on its time and reported-token limits', async () => {
-  const call = await connect();
+it('stops at the reported-token limit, still sending a call that heard the caller', async () => {
+  const silent = await connect();
   Socket.current.message({ usageMetadata: { totalTokenCount: 4001, responseTokenCount: 200 } });
   await vi.advanceTimersByTimeAsync(0);
   expect(ended).toHaveBeenCalledOnce();
-  expect(call.usage.totalTokenCount).toBe(4001);
-  call.dispose();
+  expect(silent.usage.totalTokenCount).toBe(4001);
+  const failed = silent.finish();
+  const failure = expect(failed).rejects.toThrow('usage limit');
+  await vi.advanceTimersByTimeAsync(2000);
+  await failure;
   ended.mockClear();
-  const timed = await connect();
-  await vi.advanceTimersByTimeAsync(45_001);
+  const heard = await connect();
+  await nativeListening();
+  Socket.current.message({ usageMetadata: { totalTokenCount: 4001 } });
+  await vi.advanceTimersByTimeAsync(0);
   expect(ended).toHaveBeenCalledOnce();
-  timed.dispose();
+  const sent = heard.finish();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await sent).toContain('Caller:');
 });
 
 it('english plays a checked tailored follow-up and records its text', async () => {
@@ -272,6 +279,51 @@ it('english plays the prerecorded follow-up and the prerecorded closing when the
   expect(text).toContain(`Assistant: ${clips.closing.text}`);
   expect(text).not.toContain('transfer money');
   expect(check).toHaveBeenCalledOnce();
+  call.dispose();
+});
+
+it('english falls back instead of ending when Gemini is interrupted, at follow-up or closing', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect('english', check);
+  await nativeListening();
+  Socket.current.message({
+    serverContent: { interrupted: true, outputTranscription: { text: 'Which' } },
+  });
+  Socket.current.message(nativeResponse('Which bank are you calling from?'));
+  await vi.advanceTimersByTimeAsync(300);
+  expect(check).not.toHaveBeenCalled();
+  expect(ended).not.toHaveBeenCalled();
+  await nativeListening();
+  Socket.current.message({
+    serverContent: { interrupted: true, outputTranscription: { text: 'Which' } },
+  });
+  Socket.current.message(nativeResponse('Thank you.'));
+  await vi.advanceTimersByTimeAsync(300);
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  const text = call.transcript.text();
+  expect(text).toContain(`Assistant: ${clips.followup.text}`);
+  expect(text).toContain(`Assistant: ${clips.closing.text}`);
+  call.dispose();
+});
+
+it('english plays the prerecorded follow-up when Gemini keeps talking during its check', async () => {
+  let allow: () => void = () => {};
+  const check = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        allow = resolve;
+      }),
+  );
+  const call = await connect('english', check);
+  await exchange('Which bank are you calling from?');
+  Socket.current.message({ serverContent: { outputTranscription: { text: ' Ring 0800.' } } });
+  allow();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).not.toHaveBeenCalled();
+  sources[1]?.onended?.();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.followup.text}`);
+  expect(call.transcript.text()).not.toContain('0800');
   call.dispose();
 });
 
@@ -498,7 +550,7 @@ it('preserves the first failure when late messages arrive', async () => {
   Socket.current.onerror?.();
   Socket.current.onmessage?.({ data: 'malformed late provider message' });
   Socket.current.message(nativeResponse('Could you tell me more?'));
-  await vi.advanceTimersByTimeAsync(0);
+  await vi.advanceTimersByTimeAsync(300);
   const result = expect(call.finish()).rejects.toThrow('interrupted');
   await vi.advanceTimersByTimeAsync(2000);
   await result;

@@ -17,7 +17,7 @@ it.each([
 ])('buffers Unicode transcription without pretending to detect its language: %s', (text) => {
   const reply = new NativeReply();
   reply.add(response(text));
-  expect(reply.take()).toEqual({ stage: 'followup', text, pcm: 'AAABAA==' });
+  expect(reply.advance()).toEqual({ stage: 'followup', text, pcm: 'AAABAA==' });
 });
 
 it('is ready at turnComplete, then limits the call to two replies', () => {
@@ -26,17 +26,17 @@ it('is ready at turnComplete, then limits the call to two replies', () => {
   expect(reply.ready).toBe(false);
   reply.add({ turnComplete: true });
   expect(reply.ready).toBe(true);
-  expect(reply.take().stage).toBe('followup');
+  expect(reply.advance().stage).toBe('followup');
   reply.add(response('Thank you.'));
-  expect(reply.take().stage).toBe('closing');
+  expect(reply.advance().stage).toBe('closing');
   reply.add(response('Another question.'));
-  expect(() => reply.take()).toThrow('incomplete');
+  expect(() => reply.advance()).toThrow('incomplete');
 });
 
 it('moves to the next stage even when a reply fails, and skips one unparsed', () => {
   const reply = new NativeReply();
   reply.add(response('Ring 0800 now?'));
-  expect(() => reply.take()).toThrow('could not be checked');
+  expect(() => reply.advance()).toThrow('could not be checked');
   expect(reply.stage).toBe('closing');
   reply.add(response('Call 0800 123.'));
   reply.skip();
@@ -48,19 +48,20 @@ it.each(['Ring ０８００', 'Use bank.example', 'visit https://evil.test', 'x@
   (text) => {
     const reply = new NativeReply();
     reply.add(response(text));
-    expect(() => reply.take()).toThrow('could not be checked');
+    expect(() => reply.advance()).toThrow('could not be checked');
   },
 );
 
-it('bounds combined chunks, text and audio format before playback', () => {
+it('records an over-long, wrongly formatted or interrupted reply and fails it at its turn', () => {
   const long = new NativeReply();
-  expect(() => long.add(response('a'.repeat(501)))).toThrow('too long');
+  long.add(response('a'.repeat(501)));
+  expect(() => long.advance()).toThrow('too long');
   const format = new NativeReply();
-  expect(() =>
-    format.add({
-      modelTurn: { parts: [{ inlineData: { mimeType: 'audio/mp3', data: 'AAABAA==' } }] },
-    }),
-  ).toThrow('format');
+  format.add({
+    modelTurn: { parts: [{ inlineData: { mimeType: 'audio/mp3', data: 'AAABAA==' } }] },
+    turnComplete: true,
+  });
+  expect(() => format.advance()).toThrow('format');
   const audio = new NativeReply();
   const chunk = {
     modelTurn: {
@@ -69,8 +70,14 @@ it('bounds combined chunks, text and audio format before playback', () => {
   };
   audio.add(chunk);
   audio.add(chunk);
-  expect(() => audio.add(chunk)).toThrow('too long');
-  expect(() => new NativeReply().add({ interrupted: true })).toThrow('interrupted');
+  audio.add({ ...chunk, turnComplete: true });
+  expect(audio.ready).toBe(true);
+  expect(() => audio.advance()).toThrow('too long');
+  const interrupted = new NativeReply();
+  interrupted.add({ interrupted: true });
+  interrupted.add(response('Which bank are you calling from?'));
+  expect(() => interrupted.advance()).toThrow('interrupted');
+  expect(interrupted.stage).toBe('closing');
 });
 
 it('requires an explicit positive checker response and never uploads buffered audio', async () => {

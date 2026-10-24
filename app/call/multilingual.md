@@ -4,7 +4,7 @@ The default is the English screener: a prerecorded opening, one follow-up questi
 
 The pilot starts with the existing local English greeting. Gemini then infers the caller’s language from audio and generates only a clarification and closing in that language. Both complete replies are buffered and their finished output transcriptions are checked before playback. A separate bounded Flash request judges whether each proposed reply means only the fixed screening sentence. It sees the proposed assistant text, not the raw caller transcript. A schema, same-origin/access-code checks, a fresh unused call session and an atomic two-stage record protect that endpoint. Consumed stages are not retried after failure. Native audio is limited to 10 seconds and text to 500 characters per response; malformed, incomplete, destination-bearing or unapproved replies stop the call.
 
-Microphone capture remains paused during generation, checking and playback. Completed speech enters the transcript only after playback; cancellation aborts checks and discards late approval. The ordinary 45-second limit remains, with an independent native-controller limit. Gemini Live sends no end-of-transcription marker, so a reply is complete at `turnComplete`.
+Microphone capture remains paused during generation, checking and playback. Completed speech enters the transcript only after playback; cancellation aborts checks and discards late approval. The call page's 45-second limit ends every call gracefully. Gemini Live sends no end-of-transcription marker, so a reply is taken 300 ms after `turnComplete`; English plays its prerecorded line if more output arrives during the check or the reply is malformed, while automatic language stops.
 
 ## Cost controls, not a savings claim
 

@@ -15,23 +15,39 @@ export const NativeText = z
   );
 export type NativeTurn = { stage: NativeStage; text: string; pcm: string };
 
+type ReplyContent = {
+  outputTranscription?: { text?: string };
+  modelTurn?: { parts: { inlineData?: { data: string; mimeType: string } }[] };
+  turnComplete?: boolean;
+  interrupted?: boolean;
+};
+
 export class NativeReply {
   private text = '';
   private chunks: Uint8Array[] = [];
   private bytes = 0;
   private complete = false;
+  private fault?: CallError;
   private turns = 0;
 
-  add(content: {
-    outputTranscription?: { text?: string };
-    modelTurn?: { parts: { inlineData?: { data: string; mimeType: string } }[] };
-    turnComplete?: boolean;
-    interrupted?: boolean;
-  }) {
+  // A bad reply is recorded rather than thrown, so the call decides at turnComplete whether to fall back.
+  add(content: ReplyContent) {
+    this.complete ||= content.turnComplete === true;
+    if (this.fault) return;
+    try {
+      this.collect(content);
+    } catch (error) {
+      this.fault =
+        error instanceof CallError ? error : new CallError('Unexpected screening response.');
+      this.text = '';
+      this.chunks = [];
+    }
+  }
+
+  private collect(content: ReplyContent) {
     if (content.interrupted) throw new CallError('The screening reply was interrupted. Try again.');
     this.text += content.outputTranscription?.text ?? '';
     if (this.text.length > 500) throw new CallError('The screening reply was too long.');
-    this.complete ||= content.turnComplete === true;
     for (const part of content.modelTurn?.parts ?? []) {
       if (!part.inlineData) continue;
       if (!/^audio\/pcm;rate=24000$/i.test(part.inlineData.mimeType))
@@ -44,7 +60,7 @@ export class NativeReply {
     }
   }
 
-  // Gemini Live sends no end-of-transcription marker; its output transcription has arrived by turnComplete.
+  // Gemini Live sends no end-of-transcription marker; the call drains briefly after turnComplete.
   get ready() {
     return this.complete;
   }
@@ -53,10 +69,10 @@ export class NativeReply {
     return this.turns === 0 ? 'followup' : 'closing';
   }
 
-  // Every reply moves the call to its next stage, even one that fails here.
-  take(): NativeTurn {
-    const { text, bytes, complete, stage } = this;
+  advance(): NativeTurn {
+    const { text, bytes, complete, fault, stage } = this;
     const chunks = this.skip();
+    if (fault) throw fault;
     if (!complete || !bytes) throw new CallError('The screening reply was incomplete. Try again.');
     const parsed = NativeText.safeParse(text);
     if (!parsed.success) throw new CallError('The screening reply could not be checked.');
@@ -80,6 +96,7 @@ export class NativeReply {
     this.chunks = [];
     this.bytes = 0;
     this.complete = false;
+    this.fault = undefined;
     return chunks;
   }
 }

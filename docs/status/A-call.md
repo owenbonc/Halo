@@ -1,9 +1,15 @@
 # A. The call
 
 Owner: call slice on `The-call`
-Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
+Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday keeper scope from `docs/HANDOVER.md`: shared routes and database integration. Public `lib/types.ts` remains unchanged.
 
 ## Done
+
+- Integrated B finish `04cfb58` and D `fdfa29d` into `The-call` without conflicts. B adds the shared destination scrubber, transcription tests and Atlas readiness checks; D adds alert arrival/chime controls and demo material. `origin/main` remains `82f32f8`; no PRs were merged into main.
+- Shared reliability fixes: transcription failures return a plain 502; a failed initial MongoDB connection is cleared and can reconnect on the next request; call submission atomically rejects sessions older than five minutes or dated in the future; caller labels are assigned server-side so caller-provided destinations cannot reach cards. Submission failures remain explicitly uncertain; no automatic retry or fabricated receipt.
+- Integration validation: 73 targeted tests passed, and full `scripts/verify.sh` printed READY after regenerating duplicated Next.js cache files. No build configuration or public API shape changed.
+- Exercised the actual production build against isolated local MongoDB with synthetic transcripts and the existing degraded word rules: courier and trick produce strong cards, GP remains amber with no alert while Argon is unavailable, automatic alerts arrive, a caretaker browser moves from History to Alerts, acknowledgement persists, paused/manual-consent behavior holds, caretaker responses omit transcripts/cues, replay and expired/future sessions fail, and transcript display removes caller numbers. Gemini and Atlas were deliberately unavailable in this local check: this is database/UI integration evidence, not live AI or deployed acceptance.
+- The Notion source was inaccessible from this session; the fetched repository SPEC, DESIGN, HANDOVER and all four status files were reviewed. No product-spec changes were invented.
 
 - Codex with ChatGPT independently reviewed the code and execution outputs in two iterations and accepted this local milestone. Review corrections preserve the first terminal outcome against late malformed messages and cover delayed/late recorder events. Live end-to-end acceptance and PR remain blocked on provider billing.
 
@@ -40,12 +46,12 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 ## Doing
 
 
-- Today’s synthetic LiveCall smoke obtained a token (201), then Gemini disconnected before completion (close code 1011; the provider reason identifies billing). No new end-to-end milestone is claimed and no new PR is opened. Diagnose provider availability, then repeat the real app demo.
+- Codex with ChatGPT independently accepted the merged local integration milestone after reviewing the diff, merged implementation and all four execution records. Full live-demo certification and PR remain gated on real end-to-end evidence. Current key was retried at the user’s request: both Argon and Flash still report the monthly spending cap. The user is arranging billing/a working local key. Prior live-controller check minted a token but disconnected with a billing error. No full live-demo or deployed acceptance is claimed.
 - Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.
 
 ## Next
 
-- Set a random production `CALL_DEMO_ACCESS_CODE` (16+ characters) privately. Do not put it in a `NEXT_PUBLIC_` variable. Without it, production calls intentionally return 503. Configure provider spending limits and deployment access protection for the entire demo.
+- Deployed readiness probe (24 Oct): `/api/live-token?mode=recorded` returns 503, “Demo calling is not configured yet”, before any provider call. Set a random production `CALL_DEMO_ACCESS_CODE` (16+ characters) privately. Do not put it in a `NEXT_PUBLIC_` variable. Without it, production calls intentionally return 503. Configure provider spending limits and deployment access protection for the entire demo.
 - Verify real recorded transcription with the event account. B reports its billing account exceeded its monthly cap; provider availability is still a demo blocker. `DEMO_FALLBACK=1` currently forces recorded input but does not supply recorded analysis fixtures.
 - Test physical phone permissions, Kokoro audibility, turn-taking, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
 - Run all three synthetic scenarios three times on the deployed build after shared blockers are fixed.
@@ -54,8 +60,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 - **P1 shared API protection:** `/api/transcribe`, `/api/calls`, `/api/settings` and alert routes need the shared owner's access-control review. Token gating does not secure those routes. Main now includes slice C’s voice-note size/rate guard; its in-memory limit and access control still need review before real users. Authenticate/rate-limit billable transcription and bound uploads before buffering.
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
-- **P1 transcription errors:** shared `/api/transcribe` needs a bounded, authenticated request and a plain 502 when B’s provider call fails. B’s real analysis/transcription is integrated; live provider verification and rehearsed recorded-response fallback remain outstanding.
-- **P2 expiry/privacy:** enforce call-session expiry on consumption and define transcript retention/access. Session records currently have no expiry check. This demo must use synthetic data only.
+- **P1 transcription protection:** controlled 502 responses now work. Authentication/rate limits and request-size enforcement before buffering remain unresolved; live provider verification and captured-response fallback remain outstanding.
+- **P2 retention/privacy:** sessions now expire on consumption after five minutes. Define transcript/session retention and shared-route access before real users; this demo must use synthetic data only.
 - Spoken responses are now deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
 - Stage-phone and HTTPS deployment access are still needed for final acceptance. Local full verification is READY; physical microphone/speaker checks and three deployed scenario runs remain outstanding.
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
@@ -63,7 +69,9 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 ## Contract change requests
 
 - `recordedFixture: boolean` is already in `lib/types.ts`; no outstanding A type change for this step. It remains false while recorded messages use real transcription.
-- Shared keeper: idempotent submission lifecycle, session expiry, and authenticated/bounded transcription as described above.
+- Shared keeper: idempotent submission lifecycle and authenticated/bounded transcription as described above. Session expiry is implemented without a public type change.
+- B/D script alignment: the current opening is “Hello, you've reached a call assistant. Who's calling, and what's it about?” and follow-up is “Could you tell me a little more about why you're calling?” Update owned demo/test scripts to match; current scripted caller turns remain unchanged.
+- Deployment owner: B reports the seeded target is now `cluster0.lhbq6vr.mongodb.net` / `hangup`, while HANDOVER and D still name the old cluster. Confirm the production URI targets the seeded cluster; never commit its credentials.
 
 ## Research references
 

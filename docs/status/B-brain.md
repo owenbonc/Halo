@@ -9,21 +9,18 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 - The finish branch is based on an authenticated HTTPS pull of current main. Node 24.11.1 / pnpm 9.15.9 frozen installation completed without manifest or lockfile changes. The original B baseline passed: 4 files, 61 tests.
 - One shared scrubber protects summaries, verbatim cues and displayed transcripts. It removes typed and spoken destinations including `dot io`, `dot xyz` and `dot co dot uk`; duplicate rule-module code/tests are removed. Regressions cover full-width digits, spoken numbers, ordinary wording, repeated detection, summaries, cues and preserved transcript turns.
 - The opt-in live evaluator forces `DEMO_FALLBACK=0` and rejects either Atlas or Argon degradation. A local negative probe with both credentials deliberately blank failed on the first case, as expected, without calling external services.
-- The seed script checks 30 unique patterns before replacement, checks stored count and searchable text, and requires a relevant courier/police smoke-query result after both search indexes become queryable.
+- The seed script checks 30 unique patterns before replacement, checks stored count and searchable text, and waits for both READY indexes and a relevant courier/police smoke result. Actual seeding exposed a propagation delay after indexes became queryable; bounded retries now handle it. Behavior tests cover recovery and the five-minute deadline.
 - Added transcription behavior tests for WAV and browser WebM/Opus MIME parameters, submitted audio, provider-error propagation, bounded output and silence. These mock the provider; they are not live audio acceptance.
-- Current B verification: 5 test files / 87 tests passed; the 15 opt-in live cases are skipped by default. Full verification passes typecheck, lint, offline tests and the history secret scan. `pnpm exec next build --webpack` compiles all routes and passes TypeScript.
+- Current B verification: 6 test files / 89 tests passed. Full repository offline suite: 18 files / 143 tests passed; the 15 opt-in live cases are skipped by default. Typecheck and lint pass with the readiness fix. The history secret scan passed on push; `pnpm exec next build --webpack` compiles all routes and passes TypeScript.
 - GitHub CI ran unchanged `scripts/verify.sh` on code commit `ced411f` and printed **READY**, including the default production build: https://github.com/owenbonc/grandma-s-phone/actions/runs/40103517909. Local Turbopack CSS-worker setup reports `binding to a port: Operation not permitted`; local webpack and CI default builds pass, so no shared build change is needed.
 - Draft PR: https://github.com/owenbonc/grandma-s-phone/pull/12. A is tagged for review; C received the green-summary handoff on issue #4 and D received all three exact synthetic caller scripts plus evidence requirements on issue #5.
 - The user approved shared demo target `cluster0.lhbq6vr.mongodb.net`, database `hangup`. This replaces the older handover target. Credentials stay in `.env`; the application uses URI credentials, not `MONGODB_API_KEY`.
+- **Atlas acceptance passed after the user added the current IP:** ping succeeds; `pnpm seed:patterns` exits successfully; an independent read-back validates all 30 stored pattern schemas and all 30 searchable `text` fields. `patterns_semantic` is READY/queryable with Automated Embedding on `text` using `voyage-4`; `patterns_phrases` is READY/queryable with `lucene.english` on title, description and phrases.
+- The successful seed smoke returned `courier-police-cash-collection`, `courier-foreign-currency`, and `police-ongoing-investigation-secrecy`. Independent read-back returned `courier-police-cash-collection`, `courier-foreign-currency`, and `courier-bank-card-collection`. Both are relevant courier/police retrievals. Only the synthetic `patterns` collection and its search indexes were changed; calls, alerts and settings were untouched.
 
 ## Doing
 
-- Draft PR #12 remains open pending Atlas acceptance and deferred Gemini/fallback work.
-- Helping configure Atlas Network Access for this laptop before retrying the database ping and seed.
-
-## Blocked
-
-- **Atlas connectivity:** the configured hostname/database were checked before any write. DNS resolves three members, but ping and a read-only retry fail with `ReplicaSetNoPrimary`; every member reports `MongoNetworkError` / `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR`. The user has instructions to add their current IP in Atlas and wait for Active. No seed or other database write was performed, and there is no new Atlas smoke-query evidence.
+- Delivering the successful Atlas acceptance checkpoint and readiness regression fix in draft PR #12. Gemini/fallback acceptance remains explicitly deferred.
 
 ## Deferred at the user's request
 
@@ -32,7 +29,7 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 
 ## Next
 
-1. Once the current IP is Active, repeat sanitized Mongo ping and run `pnpm seed:patterns` against the approved `hangup` database. Require 30 stored patterns, non-empty search text, queryable `patterns_semantic` (Automated Embedding, `voyage-4`) and `patterns_phrases` (English text search), plus a relevant courier/police result.
+1. A reviews the database/readiness checkpoint and checks the deployed app targets the same approved cluster/database; the older `docs/HANDOVER.md` hostname is stale relative to the user's confirmed target. D can show the stored documents, two READY indexes and matched patterns in Atlas.
 2. After the Gemini cap is resolved, run both minimal model probes, then `RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts --bail=1`: 15 cases, three runs each. Fix actual prompt/rule defects without weakening expected cases.
 3. Exercise temporary synthetic WAV and browser-recorded WebM/Opus through `transcribe()` and normal analysis; do not commit recordings.
 4. Capture the first valid police/courier analysis after its three runs pass. Store exactly `{ transcript, analysis }` in `data/demo-fallback.json`, parse once with Zod, and return independent copies only for screener calls under `DEMO_FALLBACK=1`. Test no provider calls and voice-note exclusion.
@@ -41,10 +38,11 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 ## Needs from others
 
 - **A / keeper (`ish24cho`):** review draft PR #12; code CI is READY. Vercel's preview check asks for the branch author's project access. This branch does not modify shared build configuration, routes or `lib/types.ts`.
+- **A / keeper:** confirm production uses `cluster0.lhbq6vr.mongodb.net` / `hangup` so A/C/D consume the seeded shared patterns. B does not change Vercel's environment variables.
 - **A / keeper:** once B's captured fixture exists, return its transcript from `/api/transcribe` when `DEMO_FALLBACK=1`, before calling Gemini. Preserve upload validation; return a plain `502` on normal transcription failure. Keep `recordedFixture=true` whenever fixed fallback is active, even if `CALL_RECORDED_TRANSCRIPTION_READY=1`.
 - **A / keeper:** update the Notion source of truth to merged two-argument `analyse(transcript, source)` and the agreed one-scenario fallback. `SPEC.md` already contains the source argument. Shared access control, submission recovery and session expiry remain A's responsibilities.
 - **C (`owenbonc`):** existing green summaries say what the call was about, but the read screen and read-aloud script still hide them. Display/read them when ready; B does not edit C's screens.
-- **D:** exact stage wording is in `data/test-cases.json`: `demo-police-courier` (strong; police/courier), `demo-gp` (none; no alert), `demo-trick` (strong; no caller number/link shown). Use those caller turns. Atlas evidence and three-run live acceptance are pending connectivity/billing recovery.
+- **D:** exact stage wording is in `data/test-cases.json`: `demo-police-courier` (strong; police/courier), `demo-gp` (none; no alert), `demo-trick` (strong; no caller number/link shown). Use those caller turns. Atlas evidence is verified above; three-run Gemini acceptance remains deferred.
 
 ## Contract change requests
 

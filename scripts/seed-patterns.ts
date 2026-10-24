@@ -68,28 +68,37 @@ for (const index of wanted) {
   else await patterns.createSearchIndex(index);
 }
 
-// Atlas builds indexes in the background; wait so the smoke query below means something.
+// Queryable indexes can still lag newly seeded documents, so require a relevant search result too.
 for (let tries = 0; ; tries++) {
   // The driver types index rows as {name} only; Atlas also returns `queryable`.
   const states = (await patterns.listSearchIndexes().toArray()) as {
     name: string;
     queryable: boolean;
+    status: string;
   }[];
-  if (wanted.every((index) => states.find((state) => state.name === index.name)?.queryable)) break;
+  if (
+    wanted.every((index) =>
+      states.some(
+        (state) => state.name === index.name && state.queryable && state.status === 'READY',
+      ),
+    )
+  ) {
+    const sample = await findPatterns(
+      'A police officer said a courier will collect my cash and not to tell my family.',
+      3,
+    );
+    if (
+      sample.some(
+        (pattern) => pattern.family === 'courier' || pattern.family === 'police_impersonation',
+      )
+    ) {
+      console.log('Smoke query:', sample.map((p) => `${p.id} (${p.family})`).join(', '));
+      break;
+    }
+  }
   if (tries === 60)
-    throw new Error('Search indexes not queryable after 5 minutes; check the Atlas UI.');
+    throw new Error('Search indexes did not serve a relevant result after 5 minutes; check Atlas.');
   await new Promise((resolve) => setTimeout(resolve, 5_000));
 }
 
-const sample = await findPatterns(
-  'A police officer said a courier will collect my cash and not to tell my family.',
-  3,
-);
-assert.ok(
-  sample.some(
-    (pattern) => pattern.family === 'courier' || pattern.family === 'police_impersonation',
-  ),
-  'The smoke query did not retrieve a relevant courier or police pattern.',
-);
-console.log('Smoke query:', sample.map((p) => `${p.id} (${p.family})`).join(', '));
 await closeDb();

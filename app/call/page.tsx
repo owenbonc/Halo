@@ -2,13 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { SCREENER_OPENING } from '@/lib/screener-prompt';
-import { CallRecord, PostCallBody } from '@/lib/types';
 import { testSpeaker } from './audio-player';
 import { LiveCall } from './live-call';
 import { LiveTokenResponse } from './protocol';
 import { RecordedCall } from './recorded-call';
 import { AccessCodeError, CallError, callRequest } from './request';
 import { loadVoice, type VoiceClips } from './scripted-voice';
+import { submitCall } from './submit-call';
 
 type Phase = 'idle' | 'connecting' | 'prompting' | 'listening' | 'sending' | 'done' | 'error';
 type Attempt = {
@@ -92,28 +92,7 @@ export default function CallPage() {
     try {
       if (!attempt.call || !attempt.id)
         throw new CallError('The call did not connect. Please try again.');
-      const transcript = await attempt.call.finish();
-      if (attempt.cancelled) return;
-      const body = PostCallBody.parse({
-        callSessionId: attempt.id,
-        transcript,
-        callerLabel: 'Unknown caller (demo)',
-      });
-      const response = await callRequest(
-        '/api/calls',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        },
-        30_000,
-        attempt.abort.signal,
-      );
-      if (!response.ok)
-        throw new CallError(
-          'We could not confirm delivery. Check the recipient’s Alerts screen before making another call.',
-        );
-      CallRecord.parse(response.data);
+      await submitCall(attempt.call, attempt.id, attempt.abort.signal);
       if (!attempt.cancelled) setPhase('done');
     } catch (e) {
       if (!attempt.cancelled) {

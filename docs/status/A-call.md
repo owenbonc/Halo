@@ -5,6 +5,13 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Done
 
+- Codex with ChatGPT independently reviewed the code and execution outputs in two iterations and accepted this local milestone. Review corrections preserve the first terminal outcome against late malformed messages and cover delayed/late recorder events. Live end-to-end acceptance and PR remain blocked on provider billing.
+
+- Call-flow reliability milestone: unexpected WebSocket closure/error, provider go-away and audio backpressure stop capture immediately and reject partial calls before submission. Deliberate hang-up and completed Kokoro closing still drain final transcript fragments and may submit normally.
+- Recorded messages collect timed chunks, enforce the shared 10 MiB audio-blob ceiling before upload, release the microphone on failure, and reject stalled finalisation after five seconds. Cancellation settles pending recording work; no oversized recording reaches transcription.
+- Submission is a tested plain module: only a finished, valid transcript can be posted; a valid server receipt is required for success. Failed/malformed delivery responses remain uncertain and are never automatically retried.
+- Validation for this milestone: 49 targeted call tests passed, then full `scripts/verify.sh` printed READY. Browser checks on the real local app covered production calling-disabled failure, a repeat attempt, explicit recorded-message setup, and cancellation back to ready. No personal microphone audio was captured. These local checks do not establish deployed/physical-phone or live-provider acceptance.
+
 - PR #7 is merged. Pulled main through `82f32f8`: shared phone frame, Halo setup/Alerts screens, real B transcription/analysis, and the `recordedFixture` contract are integrated.
 - `/call` now uses DESIGN semantic colours and shared Button controls, including the red hang-up exception and 48px radio-label targets. The root layout already pads with `var(--safe-top)` / `var(--safe-bottom)`; no duplicate inset or window scrolling. Checked the actual phone-frame UI, speaker control, recorded prompt and cancellation in Chrome.
 - Name-free opening regenerated with Kokoro (`bf_emma`, 4.01 seconds), with matching locked prompt and clip text. Call-page wording no longer assumes the recipient is named Grandma.
@@ -31,6 +38,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - Chrome UI reviewed in the laptop phone frame. Speaker test, recorded prompt and cancellation exercised without collecting personal microphone audio.
 
 ## Doing
+
 
 - Today’s synthetic LiveCall smoke obtained a token (201), then Gemini disconnected before completion (close code 1011; the provider reason identifies billing). No new end-to-end milestone is claimed and no new PR is opened. Diagnose provider availability, then repeat the real app demo.
 - Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.

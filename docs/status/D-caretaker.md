@@ -10,13 +10,14 @@ Owns: `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/a
 - Alert chimes, vibrates and jumps to a large Alerts card. Exercised: typecheck, lint, unit tests and verify.sh READY. Checked in the browser: jumps from History to Alerts, vibrates and chimes, 34px headline, acknowledgement reaches her app, no chime on reload, fits 375px.
 - Escalation and audit record checked locally (escalation window 1 minute): both phones show the escalation, and the alert document holds trigger, createdAt and acknowledgedAt. Atlas shots for the video in `demo/video-plan.md`.
 - Wording pass: changed 5 strings in D's files (straight apostrophes made curly, matching “I’m calling her now”) and passed 3 items to others (A, keeper A); Grandma's screens, setup, role picker and components/ui had nothing to fix.
+- README, video plan and pitch: `README.md`, `demo/video-plan.md` (shot list added above the Atlas shots) and `demo/pitch.md`.
 
 ## Doing
-- README, video plan and pitch.
+- Rehearsal and video (Sunday 08:00–09:30).
 
 ## Next
 - Check the Atlas shots on the team cluster `cluster0.revh6w` once Owen's invite arrives (needs B's brain merged and `pnpm seed:patterns` there for matchedPatternIds).
-- README, video plan, pitch.
+- Before submitting: take demo/screenshot.png from a deployed run and add it to README; confirm the team names; check README's 'Real' column against the deployed app (Argon and Atlas only count once B's brain is live).
 
 ## Needs from others
 - **B:** add the voice-note script in `demo/scripts.md` as a `demo-voice-note` case.

@@ -5,7 +5,7 @@ Owns: `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/a
 
 ## Done
 - Branch `slice/d-caretaker` from main. Caretaker screens, `lib/alerts.ts` and the alert routes were built by C on main; I build on them.
-- `demo/scripts.md`: stage lines for the three screener calls (word for word B's `demo-*` cases), the voice note and the escalation.
+- `demo/scripts.md`: stage lines for the three screener calls (caller lines word for word B's `demo-*` cases), the voice note and the escalation.
 - Detect new alerts: `arrivals()` in components/caretaker, 4 behaviour tests.
 - Alert chimes, vibrates and jumps to a large Alerts card. Exercised: typecheck, lint, unit tests and verify.sh READY. Checked in the browser: jumps from History to Alerts, vibrates and chimes, 34px headline, acknowledgement reaches her app, no chime on reload, fits 375px.
 - Escalation and audit record checked locally (escalation window 1 minute): both phones show the escalation, and the alert document holds trigger, createdAt and acknowledgedAt. Atlas shots for the video in `demo/video-plan.md`.
@@ -16,10 +16,12 @@ Owns: `app/caretaker/**`, `components/caretaker/**`, `app/api/alerts/**`, `lib/a
 - Rehearsal and video (Sunday 08:00–09:30).
 
 ## Next
-- Check the Atlas shots on the team cluster `cluster0.revh6w` once Owen's invite arrives (needs B's brain merged and `pnpm seed:patterns` there for matchedPatternIds).
-- Before submitting: take demo/screenshot.png from a deployed run and add it to README; confirm the team names; check README's 'Real' column against the deployed app (Argon and Atlas only count once B's brain is live).
+- **Gate before submitting (Josh, by Sun 11:30):** on the deployed URL, run one courier call and check Atlas shows a non-empty `analysis.matchedPatternIds`. If Argon or Gemini Live isn't live, edit README's Real list and pitch.md's DeepMind paragraph to say so.
+- Check the Atlas shots on the team cluster `cluster0.revh6w` once Owen's invite arrives (needs B's brain merged and `pnpm seed:patterns` there).
+- Before submitting: take demo/screenshot.png from a deployed run and add it to README; confirm the team names.
 
 ## Needs from others
+- **B:** in `data/test-cases.json`, `demo-police-courier`'s `Assistant: What do you need from her?` should read `Assistant: Could you tell me a little more about why you're calling?` (the real follow-up clip).
 - **B:** add the voice-note script in `demo/scripts.md` as a `demo-voice-note` case.
 - **A:** the screener's opening clip says "Grandma's call assistant" (also in B's demo cases). If it changes, tell me and B so the scripts stay in step.
 - **A (keeper):** the caretaker app uses only `BAND_LABEL[band].title` (in `BandLine`), never `.icon` or `.tone`, so C's request to delete those two fields from `lib/labels.ts` is unblocked on D's side.

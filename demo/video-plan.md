@@ -11,9 +11,15 @@ Three minutes at most. Run `pnpm demo:reset` first. The caller's lines are in [s
 | 1:05–1:30 | Her phone: the red card, the caller's phrases, the fixed steps. Tap "Read it to me". | "She gets a plain card: what they said and what to do. Don't call back. Call 159." |
 | 1:30–1:50 | Her person's phone chimes and shows the alert. Tap "I'm calling her now"; her card updates. | "Her person is alerted on its own, because she chose that. They tap that they're calling her." |
 | 1:50–2:05 | Script 2 (GP surgery): green card, no alert. Then script 3 (the trick): the card stays red and no number appears. | "A GP call comes back green, with no alert. A caller who tries to steer the assistant stays red, and no number from the call is shown." |
-| 2:05–2:20 | Voice note (script 4), then escalation (script 5): her person doesn't tap, her phone says to call 159. | "If she answered a call herself, a voice note gets the same check. If her person doesn't reply, she's told to call 159." |
+| 2:05–2:20 | Voice note (script 4), then escalation (script 5): her person doesn't tap, her phone says to call 159. Record this run with `ESCALATE_AFTER_MIN=1` and cut the wait; the default is 3 minutes. | "If she answered a call herself, a voice note gets the same check. If her person doesn't reply, she's told to call 159." |
 | 2:20–2:45 | Atlas shots below. | "Thirty scam scripts, searched by meaning and by words at once. Every alert is on record." |
-| 2:45–3:00 | Closing card with the honest limits. | "Tested on scripts we wrote. It doesn't stop spoofed numbers she has saved, landline calls, or a call she has already answered. Apple's screener asks who's calling. Ours works out whether to believe them, and Mum decides who hears about it." |
+| 2:45–3:00 | Closing card with the honest limits. | "Tested on scripts we wrote. It doesn't stop spoofed numbers she has saved, landline calls, or a call she has already answered. Apple's screener asks who's calling. Ours works out whether to believe them, and Grandma decides who hears about it." |
+
+## Before recording / on stage: Sam's phone
+
+- Ringer switch on and volume up. Auto-lock off, so the screen stays awake.
+- After opening the app, tap "Turn on alert sound". If the button comes back, tap it again.
+- iPhones don't vibrate from the web, so the chime is the only signal.
 
 ## Atlas shots (demo step 7)
 

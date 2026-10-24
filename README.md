@@ -15,12 +15,17 @@ The UK scams that cost older people the most start with a phone call: someone pr
 5. If she answered a call herself, a voice note gets the same check.
 
 ## What's real and what's faked
-| Real | Faked, and why |
-|---|---|
-| The screener's live voice conversation (Gemini Live) | Calls come through the `/call` web page, not the phone network. Production would forward silenced calls through a paid telephony provider such as Twilio |
-| Argon's analysis and the Atlas pattern search | One seeded household. Sam's verification code shows on screen instead of by SMS |
-| The alert, acknowledgement and escalation, stored in Atlas | Both phones keep the web app open and poll every 2 seconds. Production would push or text |
-| Voice-note transcription | A recorded fallback analysis and caller audio exist for a failed live call (`DEMO_FALLBACK=1`), used only then |
+**Real**
+- The screener's live voice conversation (Gemini Live)
+- Argon's analysis and the Atlas pattern search
+- The alert, acknowledgement and escalation, stored in Atlas
+- Voice-note transcription
+
+**Faked, and why**
+- Calls come through the `/call` web page, not the phone network. Production would forward silenced calls through a paid telephony provider such as Twilio.
+- One seeded household. Sam's verification code shows on screen instead of by SMS.
+- Both phones keep the web app open and poll every 2 seconds. Production would push or text.
+- A recorded fallback analysis and caller audio exist for a failed live call (`DEMO_FALLBACK=1`), used only then.
 
 All test data is synthetic: the scam scripts were written by the team.
 

@@ -1,6 +1,6 @@
 # Demo scripts
 
-The caller reads these lines on the stage phone at `/call`. They match B's `demo-*` cases in `data/test-cases.json` word for word: change both or neither. Run `pnpm demo:reset` before every run.
+The caller reads these lines on the stage phone at `/call`. The caller lines match B's `demo-*` cases in `data/test-cases.json` word for word: change both or neither. The screener lines follow the real clips. Run `pnpm demo:reset` before every run.
 
 ## 1. Fake police and courier (demo steps 2–4): expect a red card and Sam's phone lighting up
 
@@ -50,4 +50,4 @@ Expected: Strong warning signs, fake bank. B: please add this as a `demo-voice-n
 
 ## 5. Escalation (video only)
 
-After call 1, Sam doesn't tap. After `ESCALATE_AFTER_MIN` minutes (3 by default), her phone shows "Sam hasn't replied. Call 159." and Sam's alert says she's been told.
+After call 1, Sam doesn't tap. The recording run sets `ESCALATE_AFTER_MIN=1` and cuts the wait; the default is 3 minutes. After `ESCALATE_AFTER_MIN` minutes (3 by default), her phone shows "Sam hasn't replied. Call 159." and Sam's alert says she's been told.

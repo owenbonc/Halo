@@ -88,7 +88,7 @@ export default function AlertsPage() {
             {open.summary && <p>{open.summary}</p>}
             {open.status === 'escalated' && (
               <p className="rounded-chip border border-inset-line bg-inset px-3 py-2 text-[0.9375rem] font-semibold">
-                {open.elderName} has been told you haven't replied yet.
+                {open.elderName} has been told you haven’t replied yet.
               </p>
             )}
           </Card>
@@ -96,10 +96,10 @@ export default function AlertsPage() {
           <Card key={called.id} className={`space-y-1 ${ENTER} starting:translate-y-3`}>
             <h2 className="flex items-center gap-2 text-[1.0625rem] font-bold">
               <Check className="size-5 text-accent-ink" />
-              You told {called.elderName} you're calling.
+              You told {called.elderName} you’re calling.
             </h2>
             <p className="text-[0.9375rem] text-ink-2">
-              Her phone now says you're calling her. Alert from {when(called.createdAt)}.
+              Her phone now says you’re calling her. Alert from {when(called.createdAt)}.
             </p>
           </Card>
         ) : (
@@ -107,7 +107,7 @@ export default function AlertsPage() {
             <Card className="space-y-1">
               <h2 className="text-[1.0625rem] font-bold">No alerts right now</h2>
               <p className="text-[0.9375rem] text-ink-2">
-                If a call to her looks like a scam, you'll see it here straight away.
+                If a call to her looks like a scam, you’ll see it here straight away.
               </p>
             </Card>
           )
@@ -124,7 +124,7 @@ export default function AlertsPage() {
               role="alert"
               className="rounded-chip bg-danger-soft px-4 py-2 text-[0.9375rem] font-semibold text-danger shadow-float"
             >
-              That didn't send. Check your connection and try again.
+              That didn’t send. Check your connection and try again.
             </p>
           )}
           <Button size="md" disabled={sending} onClick={() => call(open.id)}>

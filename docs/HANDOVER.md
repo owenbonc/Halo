@@ -20,13 +20,14 @@ Owen is at another hackathon all Saturday and replies to messages slowly, if at 
 | Environment variable | Production |
 |---|---|
 | `MONGODB_URI` | Set (Atlas) |
-| `GEMINI_API_KEY` | **Missing**: the live call and real transcription won't work |
-| `CALL_DEMO_ACCESS_CODE` | **Missing**: `/call` refuses every call (503) until it's set |
+| `GEMINI_API_KEY` | Set (Secret) |
+| `CALL_DEMO_ACCESS_CODE` | Set (Secret) |
 | `MONGODB_DB`, `ESCALATE_AFTER_MIN`, `DEMO_FALLBACK` | Not needed: the code defaults to `hangup`, 3 minutes and off |
 
 ### Owen's checklist (Saturday morning, before he leaves)
 
-- [ ] Add `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE` to Vercel production (as Secrets), then push or redeploy. Send the access code privately to whoever plays the caller.
+- [x] Add `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE` to Vercel production (as Secrets), then push or redeploy.
+- [ ] Send the access code privately to whoever plays the caller.
 - [ ] Invite the team to the Atlas project (Project → Access Manager → Invite).
 - [x] Invite D as a GitHub collaborator. **D: accept the invite email** (or go to github.com/owenbonc/grandma-s-phone/invitations); until then you can't push.
 

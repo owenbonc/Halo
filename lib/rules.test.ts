@@ -9,7 +9,6 @@ import {
   NONE_FALLBACK_SUMMARY,
   quotedCues,
   type Signals,
-  scrub,
   UNCLEAR_SUMMARY,
   wordSignals,
 } from './rules';
@@ -87,32 +86,6 @@ describe('bandFor', () => {
   });
 });
 
-describe('scrub', () => {
-  it('removes digit runs, links and spoken phone numbers', () => {
-    const out = scrub(
-      'Ring 0808 157 0192 or visit www.safe-help.com, or ring oh eight hundred, one two three now.',
-    );
-    expect(out).not.toMatch(/\p{Nd}/u);
-    expect(out).not.toMatch(/www|\.com/i);
-    expect(out).not.toMatch(/eight hundred/i);
-  });
-
-  it('removes spoken numbers built from teens and tens', () => {
-    expect(scrub('Ring eighteen hundred, twenty two, fifty nine now')).toBe('Ring now');
-    expect(scrub('Call oh eight hundred and fifty seven now')).toBe('Call now');
-  });
-
-  it('removes full-width digits, uncommon domains and spoken domains', () => {
-    expect(scrub('Ring ０８０８ １５７ ０１９２ now')).toBe('Ring now');
-    const out = scrub('Visit barclays-secure.help or hmrc-refund.info or safe help dot co dot uk');
-    expect(out).not.toMatch(/\.help|\.info|dot co dot uk/i);
-  });
-
-  it('leaves ordinary words alone', () => {
-    expect(scrub('One of the two officers called.')).toBe('One of the two officers called.');
-  });
-});
-
 describe('quotedCues', () => {
   it('keeps phrases the caller really said, ignoring case and curly quotes', () => {
     expect(quotedCues(["don't tell your family"], 'Caller: Don’t tell your family.')).toEqual([
@@ -132,6 +105,14 @@ describe('quotedCues', () => {
     expect(quotedCues(['twenty two fifty nine'], 'Caller: twenty two fifty nine')).toEqual([]);
     expect(quotedCues(['ring ０８０８'], 'Caller: ring ０８０８ now')).toEqual([]);
   });
+
+  it.each(['bank dot io', 'bank dot xyz', 'bank dot co dot uk', 'bank.example'])(
+    'drops a verbatim cue containing %s',
+    (address) => {
+      const cue = `visit ${address}`;
+      expect(quotedCues([cue], `Caller: ${cue}`)).toEqual([]);
+    },
+  );
 
   it("never quotes the screener's own words", () => {
     const transcript = 'Assistant: Who is calling?\nCaller: A courier will collect it.';
@@ -162,6 +143,25 @@ describe('wordSignals', () => {
 });
 
 describe('decide', () => {
+  it.each([
+    '0800 123 456',
+    '０８００',
+    'oh eight hundred',
+    'bank.example',
+    'bank dot io',
+    'bank dot xyz',
+  ])('removes %s from summaries and rejects it in cues', (destination) => {
+    const summary = `The caller asked her to visit ${destination} now.`;
+    const result = decide(
+      `Caller: ${summary}`,
+      verdict({ family: 'other', cues: [summary], summary }),
+      [],
+      'screener',
+    );
+    expect(result.summary).not.toContain(destination);
+    expect(result.cues).toEqual([]);
+  });
+
   it('a fooled model cannot lower the band or leak a number', () => {
     const result = decide(
       TRICK,

@@ -2,12 +2,18 @@
 const NUMBER_TOKEN =
   'zero|oh|nought|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|double|triple';
 const URL = /\b(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b\S*/giu;
-const SPOKEN_DOMAIN = /(?:\b[\w-]+\s+)?(?:\bdot\s+(?:com|co|uk|org|net|info|help|app)\b\s*)+/gi;
+const SPOKEN_DOMAIN = /(?:\b[\w-]+\s+)?\bdot\s+[a-z]{2,63}\b(?:\s+dot\s+[a-z]{2,63}\b)*/gi;
 const DIGITS = /\p{Nd}[\p{Nd}\s().-]*/gu;
 const NUMBER_WORDS = new RegExp(
   `\\b(?:${NUMBER_TOKEN})\\b(?:(?:[\\s,.-]+|\\s+and\\s+)(?:${NUMBER_TOKEN})\\b)+`,
   'gi',
 );
+
+export const carriesNumberOrLink = (text: string): boolean =>
+  text.search(URL) !== -1 ||
+  text.search(SPOKEN_DOMAIN) !== -1 ||
+  /\p{Nd}/u.test(text) ||
+  text.search(NUMBER_WORDS) !== -1;
 
 /** Removes every digit run, link and spoken phone number, leaving `mark` where each was. */
 export function scrub(text: string, mark = ' '): string {

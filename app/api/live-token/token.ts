@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { SCREENER_INSTRUCTIONS } from '@/lib/screener-prompt';
+import { MULTILINGUAL_INSTRUCTIONS, SCREENER_INSTRUCTIONS } from '@/lib/screener-prompt';
 
 export const LIVE_MODEL = 'gemini-3.8-live';
 const TokenResponse = z.object({ name: z.string().startsWith('auth_tokens/') });
 
-export function tokenRequest(now = Date.now()) {
+export function tokenRequest(now = Date.now(), multilingual = false) {
   return {
     uses: 1,
     expireTime: new Date(now + 2 * 60_000).toISOString(),
@@ -14,9 +14,13 @@ export function tokenRequest(now = Date.now()) {
       model: `models/${LIVE_MODEL}`,
       generationConfig: {
         responseModalities: ['AUDIO'],
+        ...(multilingual ? { maxOutputTokens: 256 } : {}),
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
-      systemInstruction: { parts: [{ text: SCREENER_INSTRUCTIONS }], role: 'user' },
+      systemInstruction: {
+        parts: [{ text: multilingual ? MULTILINGUAL_INSTRUCTIONS : SCREENER_INSTRUCTIONS }],
+        role: 'user',
+      },
       inputAudioTranscription: {},
       outputAudioTranscription: {},
       realtimeInputConfig: {
@@ -32,13 +36,13 @@ export function tokenRequest(now = Date.now()) {
   };
 }
 
-export async function mintLiveToken() {
+export async function mintLiveToken(multilingual = false) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error('Live service unavailable');
   const response = await fetch('https://generativelanguage.googleapis.com/v1alpha/auth_tokens', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify(tokenRequest()),
+    body: JSON.stringify(tokenRequest(Date.now(), multilingual)),
     signal: AbortSignal.timeout(10_000),
     cache: 'no-store',
   });

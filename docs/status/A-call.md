@@ -5,6 +5,10 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Done
 
+- Synced the multilingual branch with main `2d8bf76` without conflicts, including merged backup PR #19 and the shared font fix. HANDOVER now confirms the production Gemini key and access code are set; no local working key or multilingual live acceptance is established.
+
+- Separate `call/multilingual` pilot requested by the user: automatic spoken-language adaptation for the provider’s supported languages, including exploratory Cantonese. No working local key is available; user explicitly requested offline implementation. The default stays English Kokoro, with an environment-gated native mode, bounded full-turn buffering and authenticated semantic approval before playback. Offline implementation is complete: full Webpack verification prints READY; the actual production app and local MongoDB reject expired/future/non-native sessions, bad origin/code and replay. Twenty concurrent requests admit one claim and reject nineteen; missing-key checks fail closed. Native-mode browser controls were inspected in the phone frame. Independent Codex with ChatGPT review accepted the offline milestone after inspecting all 19 files and four execution records; no live-language or token-savings claim. PR #19 is merged into main; the multilingual pilot remains separate.
+
 - PR milestone: merged current main `193bd68` (including the action-ring UI) into `The-call` without conflicts. On the combined branch, `IS_WEBPACK_TEST=1 scripts/verify.sh` prints READY and all six Python boundary tests pass. The first typecheck hit a duplicated generated Next route type; the production build regenerated it and the full rerun passed. No tracked build configuration changed.
 - Re-exercised six real GPU WAV/WebM submissions through the combined production build against a fresh local database: saved cards, automatic/manual/paused alerts, acknowledgement, replay protection and transcript scrubbing pass. Browser navigation from the new action ring to Their words works. This PR makes the local recorded-call backup usable; Gemini remains default, and production still needs no GPU configuration. Owen can review/merge; no new public contract is requested.
 
@@ -62,9 +66,13 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Doing
 
+- Multilingual live acceptance is pending a working key: keep the pilot off in production and English Kokoro as default. Offline implementation is independently accepted. The user requested a draft PR for review; keep it draft until real speech and analysis gates pass.
+
 - Local rehearsal has returned to Gemini mode, with GPU transcription disabled and the existing private environment left intact. Physical microphone and live Gemini acceptance remain outstanding; the teammate’s working key has not been copied or verified here.
 
 ## Next
+
+- Multilingual pilot: real Korean/Cantonese/Mandarin/Japanese/English and mixed-language audio, safety attempts, stage-phone checks and combined Live/checker token measurements after a key is available. See `app/call/multilingual.md`. This is not a new merge-ready milestone yet.
 
 - Production now asks for the access code (401). Owen owns production settings and provider availability; no successful production Gemini inference is established. The private GPU setup supports local Halo only: Vercel cannot use this Mac’s loopback forwarding.
 - Verify real recorded transcription with the event account. B reports its billing account exceeded its monthly cap; provider availability is still a demo blocker. `DEMO_FALLBACK=1` currently forces recorded input but does not supply recorded analysis fixtures.
@@ -77,11 +85,13 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
 - **P1 transcription protection:** main now requires one transcription per unused call session, issued behind the access-code/budget gate. Pre-buffer request limits and transcription-session expiry remain follow-ups; general shared-route access control remains unresolved.
 - **P2 retention/privacy:** sessions now expire on consumption after five minutes. Define transcript/session retention and shared-route access before real users; this demo must use synthetic data only.
-- Spoken responses are now deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
+- In fixed English mode, spoken responses are deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
 - Stage-phone and HTTPS deployment access are still needed for final acceptance. Local full verification is READY; physical microphone/speaker checks and three deployed scenario runs remain outstanding.
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
 
 ## Contract change requests
+
+- No new shared type requested for the multilingual pilot. Spec owner: user has explicitly expanded the English-only scope to automatic supported-language screening; update the canonical spec before release. B: validate non-English analysis/retrieval, translated destinations and fallback behavior before claiming multilingual scam detection. The English-only Whisper backup is unchanged.
 
 - `recordedFixture: boolean` is already in `lib/types.ts`; no outstanding A type change for this step. It remains false while recorded messages use real transcription.
 - Shared keeper: idempotent submission lifecycle and authenticated/bounded transcription as described above. Session expiry is implemented without a public type change.

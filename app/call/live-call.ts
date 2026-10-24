@@ -1,4 +1,5 @@
 import { AudioPlayer } from './audio-player';
+import { NativeReply, type NativeTurn } from './native-speech';
 import { LiveMessage, pcm16, Transcript } from './protocol';
 import { CallError } from './request';
 import { ScriptedReply, type VoiceClips } from './scripted-voice';
@@ -25,6 +26,12 @@ export class LiveCall {
   private speaking = false;
   private awaitingReply = false;
   private lateCompletion = false;
+  private nativeReply = new NativeReply();
+  private checkingNative = false;
+  private nativeAbort = new AbortController();
+  private nativeCallerBaseline = 0;
+  private sessionLimit?: ReturnType<typeof setTimeout>;
+  usage: { totalTokenCount?: number; promptTokenCount?: number; responseTokenCount?: number } = {};
 
   constructor(
     private context: AudioContext,
@@ -32,6 +39,7 @@ export class LiveCall {
     private ended: () => void,
     private clips: VoiceClips,
     private activity: (state: 'waiting' | 'speaking' | 'listening') => void = () => {},
+    private validateNative?: (turn: NativeTurn, signal: AbortSignal) => Promise<void>,
   ) {
     this.player = new AudioPlayer(context);
   }
@@ -59,6 +67,11 @@ export class LiveCall {
             const raw = event.data instanceof Blob ? await event.data.text() : event.data;
             if (this.closed) return;
             const message = LiveMessage.parse(JSON.parse(raw));
+            if (message.usageMetadata) {
+              this.usage = message.usageMetadata;
+              if (this.validateNative && (this.usage.totalTokenCount ?? 0) > 4000)
+                throw new CallError('The practice call reached its usage limit. Please try again.');
+            }
             if (message.setupComplete) {
               clearTimeout(timeout);
               this.ready = true;
@@ -67,7 +80,27 @@ export class LiveCall {
             const content = message.serverContent;
             if (content) {
               this.transcript.add('Caller', content.inputTranscription?.text);
-              if (!this.finishing && !this.terminated) {
+              if (!this.finishing && !this.terminated && this.validateNative) {
+                const hasOutput =
+                  !!content.outputTranscription || !!content.modelTurn?.parts.length;
+                if (hasOutput && (this.speaking || this.checkingNative))
+                  throw new CallError('The assistant spoke out of turn. Please try again.');
+                if (!this.speaking && !this.checkingNative && (hasOutput || content.turnComplete)) {
+                  if (this.listening) {
+                    this.send({ realtimeInput: { audioStreamEnd: true } });
+                    this.setListening(false);
+                    this.activity('waiting');
+                  }
+                  this.nativeReply.add(content);
+                  if (content.turnComplete && !this.replyTimer)
+                    this.replyTimer = setTimeout(
+                      () =>
+                        this.end(new CallError('The screening reply was incomplete. Try again.')),
+                      3000,
+                    );
+                  if (this.nativeReply.ready) void this.playNativeReply();
+                }
+              } else if (!this.finishing && !this.terminated) {
                 if (content.modelTurn?.parts.length) this.lateCompletion = false;
                 if (content.turnComplete && !this.speaking) this.lateCompletion = true;
                 if (content.outputTranscription?.text || content.modelTurn?.parts.length) {
@@ -146,6 +179,21 @@ export class LiveCall {
     };
     this.source.connect(this.capture);
     this.capture.connect(this.context.destination);
+    if (this.validateNative) {
+      this.sessionLimit = setTimeout(
+        () =>
+          this.end(new CallError('The practice call reached its time limit. Please try again.')),
+        45_000,
+      );
+      this.send({
+        clientContent: {
+          turns: [{ role: 'model', parts: [{ text: this.clips.opening.text }] }],
+          turnComplete: false,
+        },
+      });
+      this.playClip(this.clips.opening.pcm, this.clips.opening.text, false);
+      return;
+    }
     this.send({
       clientContent: {
         turns: [
@@ -171,33 +219,66 @@ export class LiveCall {
       this.lateCompletion = false;
       this.reply = '';
       const clip = this.clips[id];
-      if (this.listening) this.send({ realtimeInput: { audioStreamEnd: true } });
-      this.setListening(false);
-      this.speaking = true;
-      this.activity('speaking');
-      // Generated Gemini audio is never played; only these allowlisted Kokoro clips are audible.
-      this.player.play(clip.pcm, () => {
-        if (this.closed || this.finishing) return;
-        try {
-          this.transcript.add('Assistant', clip.text);
-        } catch {
-          this.end(new CallError('The call transcript is too long. Nothing was sent.'));
-          return;
-        }
-        this.speaking = false;
-        if (id === 'closing') {
-          this.end();
-          return;
-        }
-        this.activityTimer = setTimeout(() => {
-          if (this.closed || this.finishing) return;
-          this.setListening(true);
-          this.activity('listening');
-        }, 150);
-      });
+      this.playClip(clip.pcm, clip.text, id === 'closing');
     } catch (error) {
       this.end(error instanceof CallError ? error : new CallError('The voice could not play.'));
     }
+  }
+  private async playNativeReply() {
+    if (
+      !this.validateNative ||
+      this.checkingNative ||
+      this.closed ||
+      this.finishing ||
+      this.terminated
+    )
+      return;
+    this.checkingNative = true;
+    clearTimeout(this.replyTimer);
+    this.replyTimer = undefined;
+    try {
+      if (this.transcript.text().length <= this.nativeCallerBaseline)
+        throw new CallError('No caller speech was captured. Please try again.');
+      const turn = this.nativeReply.take();
+      await this.validateNative(turn, this.nativeAbort.signal);
+      if (this.closed || this.finishing || this.terminated) return;
+      this.playClip(turn.pcm, turn.text, turn.stage === 'closing');
+    } catch (error) {
+      if (!this.closed && !this.finishing && !this.terminated)
+        this.end(
+          error instanceof CallError
+            ? error
+            : new CallError('The assistant’s reply could not be checked. Try the English voice.'),
+        );
+    } finally {
+      this.checkingNative = false;
+    }
+  }
+  private playClip(pcm: string, text: string, closing: boolean) {
+    if (this.listening) this.send({ realtimeInput: { audioStreamEnd: true } });
+    this.setListening(false);
+    this.speaking = true;
+    this.activity('speaking');
+    this.player.play(pcm, () => {
+      if (this.closed || this.finishing) return;
+      try {
+        this.transcript.add('Assistant', text);
+        this.nativeCallerBaseline = this.transcript.text().length;
+      } catch {
+        this.end(new CallError('The call transcript is too long. Nothing was sent.'));
+        return;
+      }
+      this.speaking = false;
+      if (closing) {
+        this.end();
+        return;
+      }
+      this.activityTimer = setTimeout(() => {
+        if (this.closed || this.finishing) return;
+        this.setListening(true);
+        this.activity('listening');
+      }, 150);
+    });
   }
   private interrupted() {
     return new CallError('The call was interrupted. Nothing was sent. Please start a new call.');
@@ -205,6 +286,8 @@ export class LiveCall {
   private end(error?: CallError) {
     if (this.closed || this.terminated || this.finishing) return;
     this.terminated = true;
+    this.nativeAbort.abort();
+    clearTimeout(this.sessionLimit);
     this.fatal = error;
     this.stopMic();
     this.player.stop();
@@ -233,6 +316,8 @@ export class LiveCall {
   }
   finish(): Promise<string> {
     this.finishing ??= (async () => {
+      this.nativeAbort.abort();
+      clearTimeout(this.sessionLimit);
       this.stopMic();
       this.player.stop();
       clearTimeout(this.replyTimer);
@@ -252,6 +337,8 @@ export class LiveCall {
   dispose() {
     if (this.closed) return;
     this.closed = true;
+    this.nativeAbort.abort();
+    clearTimeout(this.sessionLimit);
     this.cancelStart?.();
     clearTimeout(this.activityTimer);
     clearTimeout(this.replyTimer);

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { SCREENER_OPENING } from '@/lib/screener-prompt';
 import { testSpeaker } from './audio-player';
 import { LiveCall } from './live-call';
+import { validateNativeReply } from './native-speech';
 import { LiveTokenResponse } from './protocol';
 import { RecordedCall } from './recorded-call';
 import { AccessCodeError, CallError, callRequest } from './request';
@@ -46,10 +47,17 @@ function errorMessage(error: unknown, delivery = false) {
     ? 'We could not confirm delivery. Check the recipient’s Alerts screen before making another call.'
     : 'The call could not start. Check your connection or browser settings and try again.';
 }
-export default function CallScreen({ localTranscription }: { localTranscription: boolean }) {
+export default function CallScreen({
+  localTranscription,
+  multilingualPilot,
+}: {
+  localTranscription: boolean;
+  multilingualPilot: boolean;
+}) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [mode, setMode] = useState<'live' | 'recorded'>(localTranscription ? 'recorded' : 'live');
   const [actualMode, setActualMode] = useState(mode);
+  const [voice, setVoice] = useState<'fixed' | 'automatic'>('fixed');
   const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
@@ -167,7 +175,7 @@ export default function CallScreen({ localTranscription }: { localTranscription:
         await microphone(attempt);
       }
       const response = await callRequest(
-        `/api/live-token?mode=${mode}`,
+        `/api/live-token?mode=${mode}&voice=${mode === 'live' ? voice : 'fixed'}`,
         { method: 'POST', headers: { 'x-call-demo-code': code } },
         20_000,
         attempt.abort.signal,
@@ -198,6 +206,9 @@ export default function CallScreen({ localTranscription }: { localTranscription:
           },
           attempt.clips,
           setActivity,
+          voice === 'automatic'
+            ? (turn, signal) => validateNativeReply(token.callSessionId, code, turn, signal)
+            : undefined,
         );
         attempt.call = live;
         live.setVolume(volume / 100);
@@ -314,9 +325,40 @@ export default function CallScreen({ localTranscription }: { localTranscription:
       </fieldset>
       {mode === 'live' && (
         <p className="text-base text-ink-2">
-          The assistant uses prerecorded questions. Wait for “Listening” before you speak;
-          background sounds won’t cut off a question.
+          {voice === 'automatic'
+            ? 'After an English greeting, the assistant tries to follow your spoken language. This is an experimental mode; language and dialect coverage varies.'
+            : 'The assistant uses prerecorded English questions.'}{' '}
+          Wait for “Listening” before you speak; background sounds won’t cut off a question.
         </p>
+      )}
+      {mode === 'live' && multilingualPilot && (
+        <fieldset disabled={busy} className="space-y-1 text-left text-base">
+          <legend className="font-semibold">Assistant voice</legend>
+          <label className="flex min-h-12 items-center gap-3">
+            <input
+              type="radio"
+              name="voice"
+              checked={voice === 'fixed'}
+              onChange={() => setVoice('fixed')}
+            />
+            English · fixed questions
+          </label>
+          <label className="flex min-h-12 items-center gap-3">
+            <input
+              type="radio"
+              name="voice"
+              checked={voice === 'automatic'}
+              onChange={() => setVoice('automatic')}
+            />
+            Automatic language · experimental
+          </label>
+          {voice === 'automatic' && (
+            <p className="text-ink-2">
+              Uses generated speech. Replies are checked before playback, which may add a short
+              pause. Practice with made-up calls only.
+            </p>
+          )}
+        </fieldset>
       )}
       {localTranscription && mode === 'recorded' && (
         <p className="rounded-chip bg-accent-soft p-3 text-base text-ink">

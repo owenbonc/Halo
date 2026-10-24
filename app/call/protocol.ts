@@ -18,10 +18,19 @@ export const TranscriptResponse = z.object({ transcript: z.string().trim().min(1
 export const LiveMessage = z.object({
   setupComplete: z.object({}).optional(),
   goAway: z.object({}).optional(),
+  usageMetadata: z
+    .object({
+      totalTokenCount: z.number().int().nonnegative().optional(),
+      promptTokenCount: z.number().int().nonnegative().optional(),
+      responseTokenCount: z.number().int().nonnegative().optional(),
+    })
+    .optional(),
   serverContent: z
     .object({
       inputTranscription: z.object({ text: z.string().optional() }).optional(),
-      outputTranscription: z.object({ text: z.string().optional() }).optional(),
+      outputTranscription: z
+        .object({ text: z.string().optional(), finished: z.boolean().optional() })
+        .optional(),
       interrupted: z.boolean().optional(),
       turnComplete: z.boolean().optional(),
       modelTurn: z

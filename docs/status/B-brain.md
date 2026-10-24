@@ -4,6 +4,7 @@ Owner: Josh Lim
 Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (new), `lib/gemini.ts` (new), `data/**`, `scripts/seed-patterns.ts`, `lib/*.test.ts`
 
 ## Done
+- Completion branch `slice/b-brain-finish` starts from merged main `82f32f8`; authenticated HTTPS pull confirmed it is current. Node 24.11.1 / pnpm 9.15.9 frozen installation completed without manifest or lockfile changes. Baseline: `pnpm exec vitest run lib/patterns.test.ts lib/rules.test.ts lib/analyse.test.ts lib/scrub.test.ts` — 4 files, 61 tests passed.
 - Added `@google/genai` to package.json (A needs it too).
 - Branch `slice/b-brain` created.
 - Scam pattern library: 30 synthetic UK patterns in `data/patterns/` (courier, police, bank, remote access, investment), schema-checked by `lib/patterns.test.ts`.
@@ -19,7 +20,8 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
   - A green summary now says what the call was about (Argon is asked for it). If Argon's line is empty, claims the call is safe, or talks about warning signs, it falls back to "The caller didn't ask for money, bank details or access to a device." It never repeats the card title.
 
 ## Doing
-- Brain PR open for A to review. Josh is handing the live steps to a teammate (see "Handover" below).
+- Finishing the merged brain on `slice/b-brain-finish`: service probes, approved shared Atlas seeding, one shared scrubber, strict live evaluation, then the captured police/courier fallback.
+- The user confirmed `cluster0.lhbq6vr.mongodb.net`, database `hangup`, is the approved shared demo target. Local credentials remain in `.env`; `MONGODB_API_KEY` is not used by the application's MongoDB driver.
 
 ## Blocked
 - **Gemini billing (24 Oct, 14:12).** Two different keys (an `AQ.` key and an `AIza` key) both get `429 RESOURCE_EXHAUSTED: Your billing account has exceeded its monthly spending cap` on `gemini-4-argon` and `gemini-3.8-flash`. The keys are valid (a bad key gives 401/403); the billing account behind them is capped. Raising the cap or linking the event credits didn't clear it yet. Check in AI Studio which project each key belongs to and that the project's billing account holds the DeepMind credits with a cap above this month's spend.

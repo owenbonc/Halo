@@ -1,4 +1,4 @@
-# Hang Up & Check
+# Halo
 
 An AI call screener for older people: it answers unknown callers, works out whether their story matches a UK scam script, gives Grandma a plain card telling her what to do, and lets her chosen person know when it matters.
 
@@ -17,6 +17,7 @@ Built at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London tim
    cd grandma-s-phone
    git config user.name "Your Name"
    git config user.email "you@example.com"
+   git config core.hooksPath .githooks   # scans for keys before every push
    pnpm install
    cp .env.example .env
    ```
@@ -43,7 +44,7 @@ Built at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London tim
 
 6. **Start your AI agent** with:
 
-   > You are working on slice X of Hang Up & Check. Read AGENTS.md, SPEC.md, docs/briefs/README.md, docs/briefs/X-….md and every file in docs/status/ before doing anything.
+   > You are working on slice X of Halo. Read AGENTS.md, SPEC.md, docs/briefs/README.md, docs/briefs/X-….md and every file in docs/status/ before doing anything.
 
 7. **After each finished step:** update your own file in `docs/status/`, commit, and push your branch. Owen merges into `main` once `scripts/verify.sh` prints READY.
 

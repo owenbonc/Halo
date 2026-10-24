@@ -1,4 +1,4 @@
-# Hang Up & Check
+# Halo
 
 > Source of truth: the [Specification page in Notion](https://app.notion.com/p/14297080891e838fae6c01ef02aa20d8) (Encode London 2026 → Resources). Edit there; this file is refreshed from it before building.
 
@@ -75,7 +75,7 @@ Close with: tested on synthetic scripts written by the team; it doesn't stop spo
 ## Stack and deploy
 
 - **Web app** (Mum's and Sam's views, all API routes): Next.js 16, TypeScript, Tailwind, pnpm, Biome, Vitest, `zod` at every boundary. Deployed on Vercel. HTTPS is required for the microphone.
-- **One app, two roles.** `/` asks "Who are you?" with two big buttons, **Grandma** and **Caretaker**. The choice is remembered on that device (localStorage), and both views have a small "Switch role" link. `/grandma` is the older person's view, `/caretaker` the caretaker's. `/call` is the demo caller's page and isn't offered on the picker.
+- **One app, two roles.** `/` asks "What would you like to do?" with two big buttons: **Set up a phone for someone** and **I look out for someone**. The caretaker sets up her phone with her at `/setup`: her name, the caretaker's name, an optional backup, and her text size; then they hand her the phone and she makes the consent choice herself. Setup ends in her view, and each phone remembers its role (localStorage); both views have a small "Switch role" link. `/grandma` is the older person's view (her name comes from settings, never a fixed "Grandma"), `/caretaker` the caretaker's. `/call` is the demo caller's page and isn't offered on the picker.
 - **Screener** (Plan C, inside the same Next.js app): the caller's phone opens `/call`. The browser gets a short-lived Gemini Live token from `POST /api/live-token`, streams the microphone straight to Gemini Live, plays the AI's voice back, and posts the transcript to `POST /api/calls` when the call ends. No separate server and no phone network. The API key never reaches the browser; only the short-lived token does.
 - **AI:** `@google/genai`. `gemini-4-argon` does the analysis (required for the DeepMind bounty). A Gemini Live model handles the spoken conversation; `gemini-3.8-flash` transcribes voice notes and recordings if Argon doesn't take audio.
 - **Data:** MongoDB Atlas via the `mongodb` driver. Collections `patterns` (with a Vector Search index), `calls`, `alerts`, `settings`.
@@ -147,7 +147,7 @@ HTTP (Next.js route handlers):
 | Route | Body → response | Caller |
 |---|---|---|
 | `POST /api/calls` | `{ callSessionId, transcript, callerLabel }` → `CallRecord` (`callSessionId` must come from `/api/live-token` and is single-use; runs `analyse`, saves, auto-alerts if `alertMode` is `auto_strong`, band is `strong` and not paused) | call page |
-| `POST /api/live-token` | → `{ token, callSessionId, model }` (short-lived Gemini Live token, screener instructions locked server-side) | call page |
+| `POST /api/live-token` | → `{ token, callSessionId, model, recordedFixture }` (short-lived Gemini Live token, screener instructions locked server-side; `recordedFixture` is true when the recorded fallback returns a preset sample) | call page |
 | `POST /api/transcribe` | multipart `audio` → `{ transcript }` | call page (recorded line) |
 | `POST /api/voice-note` | multipart `audio` → `CallRecord` | Mum's app |
 | `GET /api/calls` | → `CallRecord[]` without `transcript`, newest first, each with its latest alert status | Mum's app (polls every 2 s) |

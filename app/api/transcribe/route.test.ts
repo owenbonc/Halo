@@ -33,13 +33,14 @@ it('refuses audio without an unused call session, before calling Gemini', async 
   expect(transcribe).not.toHaveBeenCalled();
 });
 
-it('rejects missing or oversized audio before contacting the provider', async () => {
+it('rejects missing or oversized audio before using up the session or calling the provider', async () => {
   findOneAndUpdate.mockResolvedValue({ id: 's', used: false, recordedFixture: false });
   expect((await POST(request('s', null))).status).toBe(400);
   expect((await POST(request('s', new Blob([new Uint8Array(10 * 1024 * 1024 + 1)])))).status).toBe(
     400,
   );
   expect(transcribe).not.toHaveBeenCalled();
+  expect(findOneAndUpdate).not.toHaveBeenCalled();
 });
 
 it('serves the preset police call for a fixture session without calling Gemini', async () => {

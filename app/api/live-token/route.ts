@@ -35,10 +35,11 @@ export async function POST(request: Request) {
         { error: 'Call limit reached. Please try again later.' },
         { status: 429, headers: { ...headers, 'Retry-After': String(retryAfter) } },
       );
-    const recorded = mode.data === 'recorded' || process.env.DEMO_FALLBACK === '1';
+    // The fallback serves the preset sample instead of a live call or a real transcription.
+    const recordedFixture = process.env.DEMO_FALLBACK === '1';
+    const recorded = mode.data === 'recorded' || recordedFixture;
     const token = recorded ? null : await mintLiveToken();
     const callSessionId = crypto.randomUUID();
-    const recordedFixture = recorded && process.env.CALL_RECORDED_TRANSCRIPTION_READY !== '1';
     await callSessions.insertOne({
       id: callSessionId,
       used: false,

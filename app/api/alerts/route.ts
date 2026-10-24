@@ -14,6 +14,9 @@ export async function POST(request: Request) {
   const { calls } = await collections();
   if (!(await calls.findOne({ id: body.data.callId }))) return fail(404, 'No such call.');
   // Pause is Grandma's consent choice: while paused, nobody is told, whoever asks.
-  if ((await getSettings()).paused) return fail(409, 'Messages are paused.');
-  return Response.json(await createAlert(body.data.callId, 'user_tap'), { status: 201 });
+  const settings = await getSettings();
+  if (settings.paused) return fail(409, 'Messages are paused.');
+  return Response.json(await createAlert(body.data.callId, 'user_tap', settings.alertMode), {
+    status: 201,
+  });
 }

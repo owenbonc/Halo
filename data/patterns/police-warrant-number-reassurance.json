@@ -1,0 +1,8 @@
+{
+  "id": "police-warrant-number-reassurance",
+  "family": "police_impersonation",
+  "title": "Name and warrant number for reassurance",
+  "description": "The caller gives an officer name, a warrant number and a police station to sound real. They may even invite her to check them out. These details are invented or copied, and they only make the call seem believable.",
+  "phrases": ["my warrant number is", "you can check I'm real", "I'm from the fraud squad"],
+  "source": "https://planetradio.co.uk/greatest-hits/harrogate-yorkshire-dales/news/fraudsters-impersonating-police-officers-in-north-yorkshire/"
+}

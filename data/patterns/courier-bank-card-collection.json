@@ -1,0 +1,13 @@
+{
+  "id": "courier-bank-card-collection",
+  "family": "courier",
+  "title": "Courier collects a \"compromised\" bank card",
+  "description": "The caller says her bank card has been cloned and asks her to read out or key in her PIN. She is then told to put the card in an envelope, and a courier arrives at her door to collect it. The scammers can then spend her money using the card and the PIN they were given.",
+  "phrases": [
+    "put your card in an envelope",
+    "a courier will pick up your card",
+    "key in your PIN",
+    "we'll send you a new one"
+  ],
+  "source": "https://www.which.co.uk/news/article/courier-scams-fraudsters-stole-over-28.7m-last-year-ajDnq2L4vpqM"
+}

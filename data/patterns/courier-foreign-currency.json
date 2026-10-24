@@ -1,0 +1,13 @@
+{
+  "id": "courier-foreign-currency",
+  "family": "courier",
+  "title": "Withdraw foreign currency for a courier",
+  "description": "The caller tells her that her bank is handing out counterfeit notes. She is asked to withdraw cash and change it into euros or dollars, and an \"officer\" then comes to collect it. She is told not to explain to the cashier why she wants the money.",
+  "phrases": [
+    "change it into euros",
+    "counterfeit notes",
+    "our officer will collect it",
+    "do not tell the cashier"
+  ],
+  "source": "https://www.which.co.uk/news/article/courier-scams-fraudsters-stole-over-28.7m-last-year-ajDnq2L4vpqM"
+}

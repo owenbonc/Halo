@@ -1,0 +1,8 @@
+{
+  "id": "remote-anydesk-install",
+  "family": "remote_access",
+  "title": "Install AnyDesk or TeamViewer",
+  "description": "The caller talks her through downloading a remote-control app and then asks her to read out the access code on her screen. Once she does, they can see and control her computer as if they were sitting in front of it.",
+  "phrases": ["download AnyDesk", "read me the code on the screen", "I can see your screen now"],
+  "source": "https://www.which.co.uk/news/article/beware-whatsapp-screen-sharing-scams-ak3d32L0Zd5D"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "bank-one-time-code",
+  "family": "bank_impersonation",
+  "title": "Read out the one-time code",
+  "description": "The caller asks her to read out the code that has just arrived by text message. They say it is needed to cancel a suspicious payment, but the code actually approves a payment or a new login for the scammer.",
+  "phrases": ["read me the code we just sent", "to stop the payment", "verification code"],
+  "source": "https://www.lloydsbank.com/media-centre/2026/seven-words-reveal-youre-talking-to-a-scammer.html"
+}

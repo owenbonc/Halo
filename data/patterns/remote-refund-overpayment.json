@@ -1,0 +1,12 @@
+{
+  "id": "remote-refund-overpayment",
+  "family": "remote_access",
+  "title": "Refund overpayment while connected",
+  "description": "The caller promises her a refund and gets her to log in to her bank while they are connected to her computer. They then claim that too much was refunded by mistake and ask her to send the difference back.",
+  "phrases": [
+    "we owe you a refund",
+    "log in to your online banking",
+    "we refunded too much, send it back"
+  ],
+  "source": "https://www.actionfraud.police.uk/news/victims-still-being-targeted-by-computer-software-service-fraud"
+}

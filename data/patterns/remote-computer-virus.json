@@ -1,0 +1,8 @@
+{
+  "id": "remote-computer-virus",
+  "family": "remote_access",
+  "title": "\"Your computer has a virus\"",
+  "description": "The caller claims to be from a big software company and says her computer is infected with a virus. They offer to fix it remotely, which gives them control of her computer and a way to see her private details.",
+  "phrases": ["your computer has a virus", "I'm calling from Microsoft", "let me fix it remotely"],
+  "source": "https://www.actionfraud.police.uk/news/victims-still-being-targeted-by-computer-software-service-fraud"
+}

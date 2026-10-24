@@ -1,0 +1,12 @@
+{
+  "id": "bank-coached-past-warnings",
+  "family": "bank_impersonation",
+  "title": "Coached past the bank's warnings",
+  "description": "The caller tells her what to answer when her banking app or a member of bank staff asks whether anyone is telling her what to do. This is done to get around the checks that exist to protect her.",
+  "phrases": [
+    "if it asks, say you know this person",
+    "ignore the warning",
+    "say nobody told you to do this"
+  ],
+  "source": "https://www.ukfinance.org.uk/news-and-insight/press-release/fraud-report-2026-press-release"
+}

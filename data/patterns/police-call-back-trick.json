@@ -1,0 +1,8 @@
+{
+  "id": "police-call-back-trick",
+  "family": "police_impersonation",
+  "title": "Call-back trick: \"hang up and ring the police\"",
+  "description": "The caller invites her to hang up and phone the police to check who they are. The scammer keeps the line open, so when she picks up the phone again she is still connected to them. A second scammer may then answer and pretend to be the police.",
+  "phrases": ["hang up and call the police to check", "ring the number on your card", "I'll hold"],
+  "source": "https://www.which.co.uk/news/article/courier-scams-fraudsters-stole-over-28.7m-last-year-ajDnq2L4vpqM"
+}

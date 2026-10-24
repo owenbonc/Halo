@@ -1,0 +1,12 @@
+{
+  "id": "remote-broadband-hacked",
+  "family": "remote_access",
+  "title": "\"Engineer\": your broadband is hacked",
+  "description": "The caller says they are from her broadband or phone company, and that hackers have got into her internet connection. She is told to install software on her computer today or her service will be cut off.",
+  "phrases": [
+    "your broadband is being hacked",
+    "your internet will be cut off",
+    "install this app"
+  ],
+  "source": "https://www.actionfraud.police.uk/news/victims-still-being-targeted-by-computer-software-service-fraud"
+}

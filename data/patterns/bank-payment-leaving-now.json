@@ -1,0 +1,12 @@
+{
+  "id": "bank-payment-leaving-now",
+  "family": "bank_impersonation",
+  "title": "\"Money is leaving your account right now\"",
+  "description": "The caller creates panic by saying a payment is leaving her account at this moment. She feels she has no time to think or to check, and is pushed to act immediately on whatever they say.",
+  "phrases": [
+    "someone is taking money right now",
+    "we need to act immediately",
+    "approve this to block it"
+  ],
+  "source": "https://www.lloydsbank.com/media-centre/2026/seven-words-reveal-youre-talking-to-a-scammer.html"
+}

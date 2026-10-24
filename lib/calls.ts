@@ -29,7 +29,7 @@ export async function recordCall(
     createdAt: new Date().toISOString(),
     callerLabel,
     transcript,
-    analysis: await analyse(transcript),
+    analysis: await analyse(transcript, source),
   };
   const { calls } = await collections();
   await calls.insertOne({ ...call });

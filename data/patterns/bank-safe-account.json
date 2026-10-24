@@ -1,0 +1,13 @@
+{
+  "id": "bank-safe-account",
+  "family": "bank_impersonation",
+  "title": "Move your money to a safe account",
+  "description": "The caller claims to be from her bank's fraud team and says her account has been compromised. To protect her money she must transfer it to a new safe account they have set up, often while they stay on the line and tell her what to say if the bank asks.",
+  "phrases": [
+    "move your money to a safe account",
+    "your account has been compromised",
+    "we've set up a new account for you",
+    "stay on the line"
+  ],
+  "source": "https://www.financial-ombudsman.org.uk/decisions-case-studies/case-studies/helped-complaint-safe-account-scam"
+}

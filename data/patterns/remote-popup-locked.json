@@ -1,0 +1,12 @@
+{
+  "id": "remote-popup-locked",
+  "family": "remote_access",
+  "title": "Pop-up says the computer is locked",
+  "description": "A message pops up on her screen saying the computer is locked and telling her to phone for help. The \"technician\" who answers then asks for remote access to unlock it, and uses that access to steal from her.",
+  "phrases": [
+    "a warning came up on your screen",
+    "your computer is locked",
+    "we'll unlock it for you"
+  ],
+  "source": "https://www.actionfraud.police.uk/news/victims-still-being-targeted-by-computer-software-service-fraud"
+}

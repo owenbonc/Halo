@@ -9,7 +9,9 @@ import { Card } from '@/components/ui/band';
 import { Check, Phone, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
+import { sessionFetch } from '@/lib/client-session';
 import { FAMILY_LABEL } from '@/lib/labels';
+import { AlertRecord } from '@/lib/types';
 
 const HOUR = 60 * 60_000;
 const ENTER = 'transition-transform duration-200 ease-out motion-reduce:transition-none';
@@ -47,8 +49,9 @@ export default function AlertsPage() {
 
   const call = async (id: string) => {
     setAck({ id, failed: false });
-    const res = await fetch(`/api/alerts/${id}/ack`, { method: 'POST' }).catch(() => null);
+    const res = await sessionFetch(`/api/alerts/${id}/ack`, { method: 'POST' }).catch(() => null);
     if (res?.ok) {
+      AlertRecord.parse(await res.json());
       setDone(id);
       setAck(null);
     } else setAck({ id, failed: true });

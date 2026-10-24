@@ -1,8 +1,13 @@
-import { fail, readAudio } from '@/lib/http';
-import { transcribe } from '@/lib/transcribe';
+import { api } from '@/lib/auth';
+import { HttpError, json, readAudio } from '@/lib/http';
+import { ownedSession, transcribeCall } from '@/lib/submissions';
 
 export async function POST(request: Request) {
-  const audio = await readAudio(request);
-  if (typeof audio === 'string') return fail(400, audio);
-  return Response.json({ transcript: await transcribe(audio) });
+  return api(request, ['caller'], async (device) => {
+    const id = request.headers.get('x-call-session-id');
+    if (!id || id.length > 100) throw new HttpError(400, 'Start a recorded call first.');
+    await ownedSession(id, device.id);
+    const audio = await readAudio(request);
+    return json({ transcript: await transcribeCall(id, device.id, audio) });
+  });
 }

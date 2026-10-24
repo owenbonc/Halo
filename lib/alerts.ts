@@ -1,5 +1,10 @@
-import { collections, noMongoId } from './db';
+import type { ClientSession } from 'mongodb';
+import { collections, transaction } from './db';
+import { HttpError } from './http';
+import type { StoredAlert, StoredSettings } from './server-schemas';
+import { household } from './settings-store';
 import type { AlertRecord, CallRecord, SamAlert, Settings } from './types';
+import { AlertRecord as AlertSchema, CallRecord as CallSchema } from './types';
 
 const escalateAfterMs = () => Number(process.env.ESCALATE_AFTER_MIN ?? 3) * 60_000;
 
@@ -14,7 +19,11 @@ export function withStatus(alert: AlertRecord, now = Date.now()): AlertRecord {
 }
 
 // The caretaker never sees the transcript or cues; the summary only if Grandma chose automatic alerts.
-export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Settings): SamAlert {
+export function toSamAlert(
+  alert: AlertRecord & { sharedSummary?: string | null },
+  call: CallRecord,
+  settings: Settings,
+): SamAlert {
   return {
     id: alert.id,
     createdAt: alert.createdAt,
@@ -22,36 +31,79 @@ export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Setti
     elderName: settings.elderName,
     band: call.analysis.band,
     family: call.analysis.family,
-    summary: settings.alertMode === 'auto_strong' ? call.analysis.summary : null,
+    summary:
+      settings.alertMode === 'auto_strong' && !settings.paused
+        ? (alert.sharedSummary ?? null)
+        : null,
   };
 }
 
-// One alert per call: a second tap returns the existing alert.
-export async function createAlert(
-  callId: string,
+export async function insertAlert(
+  call: CallRecord,
   trigger: AlertRecord['trigger'],
-): Promise<AlertRecord> {
-  const { alerts } = await collections();
-  const existing = await alerts.findOne({ callId }, noMongoId);
-  if (existing) return withStatus(existing);
-  const alert: AlertRecord = {
+  current: StoredSettings,
+  session: ClientSession,
+): Promise<AlertRecord | null> {
+  const { alerts, devices } = await collections();
+  const connected = await devices.countDocuments(
+    { role: 'caretaker', recipientId: current.recipientId, expiresAt: { $gt: new Date() } },
+    { session },
+  );
+  if (current.paused || !current.contact.verified || !connected) {
+    if (trigger === 'user_tap')
+      throw new HttpError(
+        409,
+        current.paused ? 'Messages are paused.' : 'Connect your person’s phone first.',
+      );
+    return null;
+  }
+  const existing = await alerts.findOne({ callId: call.id }, { session });
+  if (existing) {
+    if (existing.recipientId !== current.recipientId)
+      throw new HttpError(409, 'This call was shared with your previous person.');
+    return withStatus(AlertSchema.parse(existing));
+  }
+  const alert: StoredAlert = {
     id: crypto.randomUUID(),
-    callId,
+    callId: call.id,
     createdAt: new Date().toISOString(),
     trigger,
     status: 'sent',
     acknowledgedAt: null,
+    recipientId: current.recipientId,
+    sharedSummary: current.alertMode === 'auto_strong' ? call.analysis.summary : null,
   };
-  await alerts.insertOne({ ...alert });
-  return alert;
+  await alerts.insertOne({ ...alert }, { session });
+  return AlertSchema.parse(alert);
 }
 
-export async function acknowledge(id: string): Promise<AlertRecord | null> {
-  const { alerts } = await collections();
-  const alert = await alerts.findOneAndUpdate(
-    { id },
-    { $set: { acknowledgedAt: new Date().toISOString(), status: 'acknowledged' } },
-    { ...noMongoId, returnDocument: 'after' },
-  );
-  return alert ? withStatus(alert) : null;
+// Settings and alert creation share a write, so a concurrent pause is respected on retry.
+export async function createAlert(
+  callId: string,
+  trigger: AlertRecord['trigger'],
+): Promise<AlertRecord> {
+  return transaction(async (session) => {
+    const current = await household(session, true);
+    const call = await (await collections()).calls.findOne({ id: callId }, { session });
+    if (!call) throw new HttpError(404, 'No such call.');
+    const alert = await insertAlert(CallSchema.parse(call), trigger, current, session);
+    if (!alert) throw new HttpError(409, 'Messages are unavailable.');
+    return alert;
+  });
+}
+
+export async function acknowledge(id: string, recipientId: string): Promise<AlertRecord | null> {
+  return transaction(async (session) => {
+    const { alerts } = await collections();
+    const current = await household(session, true);
+    if (current.recipientId !== recipientId)
+      throw new HttpError(403, 'This alert is not shared with you.');
+    await alerts.updateOne(
+      { id, recipientId, acknowledgedAt: null },
+      { $set: { acknowledgedAt: new Date().toISOString(), status: 'acknowledged' } },
+      { session },
+    );
+    const alert = await alerts.findOne({ id, recipientId }, { session });
+    return alert ? withStatus(AlertSchema.parse(alert)) : null;
+  });
 }

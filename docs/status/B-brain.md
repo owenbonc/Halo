@@ -20,7 +20,9 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, 
 
 ## Doing
 
-- Atlas setup, output-safety changes and validation improvements are delivered in draft PR #12 for A's review. Gemini/fallback acceptance remains explicitly deferred.
+- PR #12 is merged. User-approved cross-slice security completion is on `security/demo-hardening`, based on authenticated HTTPS main `20ad174`; only this status file and no shared types are changed.
+- Added server role sessions, one-time caretaker invitations/revocation, recipient isolation, consent snapshots, settings ETags, atomic call/alert/receipt persistence, upload and durable provider limits, recoverable submissions, recording cleanup, Unicode destination protection and guarded destructive scripts. See `docs/security.md` for contracts and deployment requirements.
+- Security checkpoint: **21 files / 194 tests passed; 15 live cases skipped**. Typecheck, lint and the production webpack build pass. Security tests use an isolated local MongoDB replica set; no Atlas writes or Gemini calls. Browser review and unchanged full verification remain in progress.
 
 ## Deferred at the user's request
 

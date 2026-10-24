@@ -27,7 +27,7 @@ export const EMBED_MODEL = 'voyage-4';
 // scam phrases (Atlas Search), so "safe account" ranks even when the story around it is new.
 export async function findPatterns(transcript: string, k: number): Promise<Pattern[]> {
   const { patterns } = await collections();
-  return patterns
+  const matches = await patterns
     .aggregate<Pattern>([
       {
         $rankFusion: {
@@ -63,4 +63,5 @@ export async function findPatterns(transcript: string, k: number): Promise<Patte
       { $project: { _id: 0, id: 1, family: 1, title: 1, description: 1, phrases: 1, source: 1 } },
     ])
     .toArray();
+  return z.array(PatternFile).parse(matches);
 }

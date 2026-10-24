@@ -2,8 +2,9 @@
 import { createContext, type ReactNode, useContext, useState } from 'react';
 import { Bell, Clock, Gear } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
-import type { CallView, Settings } from '@/lib/types';
+import { type CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
+import { CallViews } from '@/lib/view-schemas';
 import { buildDeck, type Deck, passCurrent } from './deck';
 import { markOpened, useAppliedTextSize, useDone, useOpened } from './prefs';
 
@@ -32,8 +33,8 @@ export function useGrandma(): GrandmaState {
 
 /** Polls once for every Grandma screen, keeps her deck of calls, applies her text size, and draws the tab bar. */
 export function GrandmaShell({ children }: { children: ReactNode }) {
-  const calls = usePoll<CallView[]>('/api/calls');
-  const settings = usePoll<Settings>('/api/settings', 10_000);
+  const calls = usePoll('/api/calls', CallViews);
+  const settings = usePoll('/api/settings', Settings, 10_000);
   const done = useDone();
   const opened = useOpened();
   // This visit only: where she is in the deck. A reload starts again from the most important call.

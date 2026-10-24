@@ -58,12 +58,12 @@ export async function analyseWith(
   source: CallRecord['source'],
   deps: AnalyseDeps,
 ): Promise<Analysis> {
-  const patterns = await deps.findPatterns(transcript, 5).catch((error: unknown) => {
-    console.error('Pattern search failed; judging without the library.', error);
+  const patterns = await deps.findPatterns(transcript, 5).catch(() => {
+    console.error('Pattern search failed; judging without the library.');
     return [];
   });
-  const verdict = await deps.judge(transcript, patterns).catch((error: unknown) => {
-    console.error('Argon failed; falling back to word rules.', error);
+  const verdict = await deps.judge(transcript, patterns).catch(() => {
+    console.error('Argon failed; falling back to word rules.');
     return null;
   });
   return decide(transcript, verdict, patterns, source);

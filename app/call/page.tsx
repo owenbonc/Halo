@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { Disconnect } from '@/components/Disconnect';
+import { Button } from '@/components/ui/Button';
 import { SCREENER_OPENING } from '@/lib/screener-prompt';
 import { CallRecord, PostCallBody } from '@/lib/types';
 import { testSpeaker } from './audio-player';
 import { LiveCall } from './live-call';
 import { LiveTokenResponse } from './protocol';
 import { RecordedCall } from './recorded-call';
-import { AccessCodeError, CallError, callRequest } from './request';
+import { CallError, callRequest } from './request';
 import { loadVoice, type VoiceClips } from './scripted-voice';
 
 type Phase = 'idle' | 'connecting' | 'prompting' | 'listening' | 'sending' | 'done' | 'error';
@@ -49,14 +51,13 @@ export default function CallPage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [mode, setMode] = useState<'live' | 'recorded'>('live');
   const [actualMode, setActualMode] = useState(mode);
-  const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(85);
   const [speakerTesting, setSpeakerTesting] = useState(false);
-  const [codeRequired, setCodeRequired] = useState(false);
-  const [code, setCode] = useState('');
+  const [pending, setPending] = useState<ReturnType<typeof PostCallBody.parse> | null>(null);
+  const retrying = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const current = useRef<Attempt | null>(null);
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function CallPage() {
     const hide = () => {
       stop();
       setPhase('idle');
-      setFixture(false);
+      setPending(null);
       setMuted(false);
     };
     window.addEventListener('pagehide', hide);
@@ -100,6 +101,7 @@ export default function CallPage() {
         transcript,
         callerLabel: 'Unknown caller (demo)',
       });
+      setPending(body);
       const response = await callRequest(
         '/api/calls',
         {
@@ -115,7 +117,10 @@ export default function CallPage() {
           'We could not confirm delivery. Check Grandma’s page before making another call.',
         );
       CallRecord.parse(response.data);
-      if (!attempt.cancelled) setPhase('done');
+      if (!attempt.cancelled) {
+        setPending(null);
+        setPhase('done');
+      }
     } catch (e) {
       if (!attempt.cancelled) {
         setError(errorMessage(e, true));
@@ -160,7 +165,7 @@ export default function CallPage() {
     setMuted(false);
     setActivity('waiting');
     setError(null);
-    setFixture(false);
+    setPending(null);
     try {
       if (!navigator.mediaDevices?.getUserMedia)
         throw new CallError(
@@ -189,14 +194,10 @@ export default function CallPage() {
       }
       const response = await callRequest(
         `/api/live-token?mode=${mode}`,
-        { method: 'POST', headers: { 'x-call-demo-code': code } },
+        { method: 'POST' },
         20_000,
         attempt.abort.signal,
       );
-      if (response.status === 401) {
-        setCodeRequired(true);
-        throw new AccessCodeError('Enter the event demo code, then try again.');
-      }
       if (response.status === 429)
         throw new CallError(
           'The demo’s call limit has been reached. Please wait and try again later.',
@@ -208,7 +209,6 @@ export default function CallPage() {
       const token = LiveTokenResponse.parse(response.data);
       if (attempt.cancelled) return;
       attempt.id = token.callSessionId;
-      setFixture(token.recordedFixture);
       if (token.token && token.model && attempt.context && attempt.stream && attempt.clips) {
         setActualMode('live');
         const live = new LiveCall(
@@ -247,9 +247,13 @@ export default function CallPage() {
         );
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       const stream = await microphone(attempt);
-      const recording = new RecordedCall(stream, () => {
-        void finish(attempt);
-      });
+      const recording = new RecordedCall(
+        stream,
+        () => {
+          void finish(attempt);
+        },
+        attempt.id as string,
+      );
       attempt.call = recording;
       recording.start();
       listening(attempt);
@@ -291,9 +295,7 @@ export default function CallPage() {
           : phase === 'sending'
             ? 'Microphone off. Passing the conversation to Grandma…'
             : phase === 'done'
-              ? fixture
-                ? 'Sample result passed to Grandma.'
-                : 'Passed to Grandma.'
+              ? 'Passed on.'
               : phase === 'error'
                 ? 'Call stopped. Your microphone is off.'
                 : 'Ready for a practice call.';
@@ -336,20 +338,6 @@ export default function CallPage() {
           cut off a question. Gemini listens when the assistant finishes.
         </p>
       )}
-      {codeRequired && (
-        <label className="block text-left text-base">
-          Event demo code
-          <input
-            type="password"
-            autoComplete="off"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            disabled={busy}
-            maxLength={256}
-            className="mt-2 block w-full rounded-xl border-2 border-stone-500 p-3"
-          />
-        </label>
-      )}
       {!busy && (
         <button
           type="button"
@@ -372,12 +360,6 @@ export default function CallPage() {
       <p role="status" aria-live="polite" className="min-h-14">
         {status}
       </p>
-      {fixture && (
-        <p className="rounded-xl border-2 border-amber-600 bg-amber-50 p-4 text-lg">
-          Sample-result demo: this recording is not transcribed. Grandma will receive a preset scam
-          warning, regardless of what you say.
-        </p>
-      )}
       {phase === 'prompting' && (
         <div className="space-y-3 rounded-xl bg-stone-100 p-4">
           <p>{SCREENER_OPENING}</p>
@@ -389,7 +371,7 @@ export default function CallPage() {
             onClick={record}
             className="w-full rounded-full bg-green-800 p-5 font-semibold text-white"
           >
-            {fixture ? 'Start sample demo recording' : 'Start recording'}
+            Start recording
           </button>
         </div>
       )}
@@ -465,7 +447,6 @@ export default function CallPage() {
             current.current = null;
             if ('speechSynthesis' in window) speechSynthesis.cancel();
             setPhase('idle');
-            setFixture(false);
           }}
         >
           Cancel
@@ -476,6 +457,42 @@ export default function CallPage() {
           {error}
         </p>
       )}
+      {pending && !busy && (
+        <Button
+          onClick={async () => {
+            if (retrying.current) return;
+            retrying.current = true;
+            setPhase('sending');
+            setError(null);
+            try {
+              const response = await callRequest(
+                '/api/calls',
+                {
+                  method: 'POST',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify(pending),
+                },
+                45_000,
+              );
+              if (!response.ok)
+                throw new CallError(
+                  'The call is not confirmed yet. Wait a moment and retry this conversation.',
+                );
+              CallRecord.parse(response.data);
+              setPending(null);
+              setPhase('done');
+            } catch (error) {
+              setError(errorMessage(error, true));
+              setPhase('error');
+            } finally {
+              retrying.current = false;
+            }
+          }}
+        >
+          Retry this conversation
+        </Button>
+      )}
+      <Disconnect />
       <p className="text-base text-stone-600">
         Use a made-up caller and story. Calls last up to 45 seconds. Live audio is processed by
         Google; the transcript is saved for analysis. Grandma receives a summary card.

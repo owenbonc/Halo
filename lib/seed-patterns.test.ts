@@ -19,6 +19,7 @@ vi.mock('./patterns', async (original) => ({
 }));
 
 beforeEach(() => {
+  vi.stubEnv('MONGODB_URI', 'mongodb://127.0.0.1:27017');
   vi.resetModules();
   vi.resetAllMocks();
   vi.useFakeTimers();
@@ -32,6 +33,7 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  vi.unstubAllEnvs();
   vi.useRealTimers();
   vi.restoreAllMocks();
 });

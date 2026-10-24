@@ -2,10 +2,11 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { LargeTitle } from '@/components/caretaker/Shell';
+import { Disconnect } from '@/components/Disconnect';
 import { Card } from '@/components/ui/band';
 import { Check, Cross } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
-import type { Settings } from '@/lib/types';
+import { Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
 
 const MODE: Record<Settings['alertMode'], string> = {
@@ -15,7 +16,7 @@ const MODE: Record<Settings['alertMode'], string> = {
 
 export default function ProfilePage() {
   // Grandma controls consent, so this page only reads; the poll picks up her changes.
-  const settings = usePoll<Settings>('/api/settings', 10_000);
+  const settings = usePoll('/api/settings', Settings, 10_000);
   const s = settings.data;
 
   return (
@@ -85,6 +86,7 @@ export default function ProfilePage() {
           </Card>
         </>
       )}
+      <Disconnect />
       <Link
         href="/?switch"
         className="glass inline-flex min-h-11 items-center rounded-full px-4 text-[0.9375rem] font-semibold text-ink-2 transition-transform duration-100 ease-out active:scale-[0.97]"

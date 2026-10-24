@@ -16,7 +16,7 @@ function GetSam({ call }: { call: CallView }) {
 
   const ask = async () => {
     setAsked('sending');
-    const res = await fetch('/api/alerts', {
+    const res = await sessionFetch('/api/alerts', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ callId: call.id }),
@@ -69,3 +69,5 @@ export default function SamPage() {
   const { contact } = useGrandma();
   return <CallScreen title={`Get ${contact}`}>{(call) => <GetSam call={call} />}</CallScreen>;
 }
+
+import { sessionFetch } from '@/lib/client-session';

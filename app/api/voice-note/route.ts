@@ -1,27 +1,44 @@
-import { recordCall } from '@/lib/calls';
-import { fail, readAudio } from '@/lib/http';
-import { transcribe } from '@/lib/transcribe';
-import { allowVoiceNote, clientKey, uploadSizeError } from './guard';
+import { z } from 'zod';
+import { api, hash } from '@/lib/auth';
+import { collections, ensureIndexes } from '@/lib/db';
+import { fail, json, readAudio } from '@/lib/http';
+import { ownedSession, submitCall, transcribeCall } from '@/lib/submissions';
+import { CallRecord } from '@/lib/types';
 
 export async function POST(request: Request) {
-  const tooBig = uploadSizeError(request.headers.get('content-length'));
-  if (tooBig) return fail(tooBig.status, tooBig.error);
-  // Transcription is billable, so cap how often one phone can send notes.
-  if (!allowVoiceNote(clientKey(request)))
-    return fail(
-      429,
-      "That's a lot of notes in a row. Wait a minute, or call 159 if you're worried.",
+  return api(request, ['grandma'], async (device) => {
+    const key = z.uuid().safeParse(request.headers.get('x-voice-note-id'));
+    if (!key.success) return fail(400, 'Start a voice note first.');
+    const audio = await readAudio(request);
+    await ensureIndexes();
+    const id = hash(`${device.id}:${key.data}`);
+    const { callSessions, calls } = await collections();
+    await callSessions.updateOne(
+      { id },
+      {
+        $setOnInsert: {
+          id,
+          ownerId: device.id,
+          status: 'open',
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 10 * 60_000),
+          cleanupAt: new Date(Date.now() + 10 * 60_000),
+        },
+      },
+      { upsert: true },
     );
-  const audio = await readAudio(request);
-  if (typeof audio === 'string') return fail(400, audio);
-  try {
-    const transcript = (await transcribe(audio)).trim();
+    const current = await ownedSession(id, device.id);
+    if (current.status === 'completed')
+      return json(CallRecord.parse(await calls.findOne({ id: current.resultId })), { status: 201 });
+    const transcript = await transcribeCall(id, device.id, audio);
     if (transcript.length < 10) return fail(422, "We didn't catch that. Try again, or call 159.");
-    return Response.json(await recordCall('voice_note', transcript, 'Your voice note'), {
-      status: 201,
-    });
-  } catch (error) {
-    console.error('voice note failed', error);
-    return fail(502, "We couldn't check that just now. Try again, or call 159 if you're worried.");
-  }
+    return json(
+      await submitCall(
+        { callSessionId: id, transcript, callerLabel: 'Your voice note' },
+        device.id,
+        'voice_note',
+      ),
+      { status: 201 },
+    );
+  });
 }

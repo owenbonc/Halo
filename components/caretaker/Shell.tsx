@@ -5,6 +5,7 @@ import { Bell, Clock, User } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
 import type { SamAlert } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
+import { SamAlerts } from '@/lib/view-schemas';
 import { ring } from './alert-signal';
 import { arrivals } from './arrivals';
 
@@ -16,7 +17,7 @@ const AlertsContext = createContext<Alerts>({ data: null, error: null });
 export const useAlerts = () => useContext(AlertsContext);
 
 export function CaretakerShell({ children }: { children: ReactNode }) {
-  const alerts = usePoll<SamAlert[]>('/api/alerts');
+  const alerts = usePoll('/api/alerts', SamAlerts);
   const router = useRouter();
   const pathname = usePathname();
   const previous = useRef<SamAlert[] | null>(null);

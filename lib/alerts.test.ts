@@ -49,9 +49,20 @@ describe('toSamAlert', () => {
   });
 
   it('shares the summary only when Grandma chose automatic alerts', () => {
-    expect(toSamAlert(alert, call, SEED_SETTINGS).summary).toBe(call.analysis.summary);
+    const authorized = { ...alert, sharedSummary: call.analysis.summary };
+    expect(toSamAlert(authorized, call, SEED_SETTINGS).summary).toBe(call.analysis.summary);
     expect(
-      toSamAlert(alert, call, { ...SEED_SETTINGS, alertMode: 'ask_first' }).summary,
+      toSamAlert(authorized, call, { ...SEED_SETTINGS, alertMode: 'ask_first' }).summary,
+    ).toBeNull();
+  });
+  it('withholds legacy summaries and does not grant access retroactively', () => {
+    expect(toSamAlert(alert, call, SEED_SETTINGS).summary).toBeNull();
+    expect(toSamAlert({ ...alert, sharedSummary: null }, call, SEED_SETTINGS).summary).toBeNull();
+    expect(
+      toSamAlert({ ...alert, sharedSummary: call.analysis.summary }, call, {
+        ...SEED_SETTINGS,
+        paused: true,
+      }).summary,
     ).toBeNull();
   });
 });

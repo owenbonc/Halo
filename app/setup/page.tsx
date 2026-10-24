@@ -17,8 +17,8 @@ import {
   useAppliedTextSize,
 } from '@/components/grandma/prefs';
 import { Button } from '@/components/ui/Button';
-import { saveRole } from '@/lib/role';
-import type { Settings } from '@/lib/types';
+import { sessionFetch } from '@/lib/client-session';
+import { Settings } from '@/lib/types';
 
 // The caretaker fills in the first four steps on her phone; the last step is hers alone.
 const STEPS = ['her', 'you', 'backup', 'size', 'handover', 'consent'] as const;
@@ -53,23 +53,26 @@ export default function SetupPage() {
     setFailed(false);
     const settings: Settings = {
       elderName: her,
-      // The caretaker is holding her phone while setting up, so the contact is confirmed in person.
-      contact: { name: you, verified: true },
+      contact: { name: you, verified: false },
       backupContact: backupName.trim() ? { name: backupName.trim() } : null,
       alertMode,
       paused: false,
     };
-    const res = await fetch('/api/settings', {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(settings),
-    }).catch(() => null);
+    const current = await sessionFetch('/api/settings', { cache: 'no-store' }).catch(() => null);
+    const tag = current?.headers.get('etag');
+    const res = tag
+      ? await sessionFetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json', 'if-match': tag },
+          body: JSON.stringify(settings),
+        }).catch(() => null)
+      : null;
     if (!res?.ok) {
       setSaving(false);
       setFailed(true);
       return;
     }
-    saveRole('grandma');
+    Settings.parse(await res.json());
     router.replace('/grandma');
   };
 

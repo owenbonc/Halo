@@ -1,8 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { insertOne } = vi.hoisted(() => ({ insertOne: vi.fn() }));
-vi.mock('./guard', () => ({ accessStatus: () => 200, reserveCallBudget: async () => null }));
-vi.mock('@/lib/db', () => ({ collections: async () => ({ callSessions: { insertOne } }) }));
+vi.mock('@/lib/auth', async () => {
+  const { handle, sameOrigin } = await import('@/lib/http');
+  return {
+    api: (
+      request: Request,
+      _roles: string[],
+      work: (device: { id: string }) => Promise<Response>,
+    ) =>
+      handle(async () => {
+        sameOrigin(request);
+        return work({ id: 'synthetic-device' });
+      }),
+  };
+});
+vi.mock('@/lib/budget', () => ({ reserveBudget: async () => {} }));
+vi.mock('@/lib/db', () => ({
+  ensureIndexes: async () => {},
+  collections: async () => ({ callSessions: { insertOne } }),
+}));
 
 import { POST } from './route';
 import { tokenRequest } from './token';
@@ -34,8 +51,11 @@ describe('live token endpoint', () => {
     });
     expect(insertOne).toHaveBeenCalledWith({
       id: body.callSessionId,
-      used: false,
+      ownerId: 'synthetic-device',
+      status: 'open',
       createdAt: expect.any(String),
+      expiresAt: expect.any(Date),
+      cleanupAt: expect.any(Date),
     });
     const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
     expect(wire.uses).toBe(1);
@@ -77,6 +97,14 @@ describe('live token endpoint', () => {
     expect(response.status).toBe(201);
     expect(await response.json()).toMatchObject({ token: null, model: null });
     expect(fetcher).not.toHaveBeenCalled();
+  });
+  it('refuses the unavailable fixed fallback without provider calls', async () => {
+    vi.stubEnv('DEMO_FALLBACK', '1');
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    expect((await POST(request('?mode=recorded'))).status).toBe(503);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(insertOne).not.toHaveBeenCalled();
   });
   it('does not create a session or expose upstream errors when token creation fails', async () => {
     vi.stubGlobal(

@@ -1,7 +1,9 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { z } from 'zod';
 import { CallScreen } from '@/components/grandma/CallScreen';
+import { sessionFetch } from '@/lib/client-session';
 
 type Load =
   | { kind: 'loading' }
@@ -17,15 +19,28 @@ export default function TranscriptPage() {
   const [load, setLoad] = useState<Load>({ kind: 'loading' });
 
   useEffect(() => {
-    fetch(`/api/calls/${encodeURIComponent(id)}/transcript`, { cache: 'no-store' })
+    const controller = new AbortController();
+    setLoad({ kind: 'loading' });
+    sessionFetch(`/api/calls/${encodeURIComponent(id)}/transcript`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((body: { transcript: string }) =>
+      .then((body: unknown) => {
+        if (controller.signal.aborted) return;
         setLoad({
           kind: 'ready',
-          lines: body.transcript.split('\n').map((text, id) => ({ id, text })),
-        }),
-      )
-      .catch(() => setLoad({ kind: 'failed' }));
+          lines: z
+            .object({ transcript: z.string() })
+            .parse(body)
+            .transcript.split('\n')
+            .map((text, id) => ({ id, text })),
+        });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setLoad({ kind: 'failed' });
+      });
+    return () => controller.abort();
   }, [id]);
 
   return (

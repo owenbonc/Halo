@@ -2,16 +2,18 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { savedRole, saveRole } from '@/lib/role';
 
 // Her phone gets its role at the end of setup, so only the caretaker's choice is saved here.
 const CHOICES = [
-  { href: '/setup', label: 'Set up a phone for someone', hint: 'Do this on their phone, together' },
   {
-    href: '/caretaker',
+    href: '/pair?role=grandma&setup=1',
+    label: 'Set up a phone for someone',
+    hint: 'Do this on their phone, together',
+  },
+  {
+    href: '/pair?role=caretaker',
     label: 'I look out for someone',
     hint: 'Get told when a call worries them',
-    role: 'caretaker' as const,
   },
 ];
 
@@ -20,8 +22,21 @@ export default function RolePicker() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('switch')) return;
-    const role = savedRole();
-    if (role) router.replace(`/${role}`);
+    const abort = new AbortController();
+    fetch('/api/session', { signal: abort.signal })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const body: unknown = await response.json();
+        if (
+          body &&
+          typeof body === 'object' &&
+          'role' in body &&
+          (body.role === 'grandma' || body.role === 'caretaker' || body.role === 'caller')
+        )
+          router.replace(body.role === 'caller' ? '/call' : `/${body.role}`);
+      })
+      .catch(() => {});
+    return () => abort.abort();
   }, [router]);
 
   return (
@@ -34,11 +49,10 @@ export default function RolePicker() {
         <p className="text-ink-2">This phone will remember your answer.</p>
       </header>
       <div className="space-y-4">
-        {CHOICES.map(({ href, label, hint, role }) => (
+        {CHOICES.map(({ href, label, hint }) => (
           <Link
             key={href}
             href={href}
-            onClick={() => role && saveRole(role)}
             className="glass flex min-h-24 w-full flex-col items-start justify-center gap-1 rounded-card px-6 py-4 text-left transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
           >
             <span className="font-display text-3xl font-bold tracking-[-0.02em]">{label}</span>

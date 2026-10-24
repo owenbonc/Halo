@@ -150,6 +150,9 @@ describe('decide', () => {
     'bank.example',
     'bank dot io',
     'bank dot xyz',
+    '⓪⑧⓪⓪ ①②③ ④⑤⑥⑦',
+    'ｂａｎｋ．ｃｏｍ',
+    'bank\u200b.com',
   ])('removes %s from summaries and rejects it in cues', (destination) => {
     const summary = `The caller asked her to visit ${destination} now.`;
     const result = decide(

@@ -9,15 +9,22 @@ const NUMBER_WORDS = new RegExp(
   'gi',
 );
 
-export const carriesNumberOrLink = (text: string): boolean =>
-  text.search(URL) !== -1 ||
-  text.search(SPOKEN_DOMAIN) !== -1 ||
-  /\p{Nd}/u.test(text) ||
-  text.search(NUMBER_WORDS) !== -1;
+const normalized = (text: string) =>
+  text.normalize('NFKC').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '');
+
+export const carriesNumberOrLink = (input: string): boolean => {
+  const text = normalized(input);
+  return (
+    text.search(URL) !== -1 ||
+    text.search(SPOKEN_DOMAIN) !== -1 ||
+    /\p{Nd}/u.test(text) ||
+    text.search(NUMBER_WORDS) !== -1
+  );
+};
 
 /** Removes every digit run, link and spoken phone number, leaving `mark` where each was. */
 export function scrub(text: string, mark = ' '): string {
-  return text
+  return normalized(text)
     .replace(URL, ` ${mark} `)
     .replace(SPOKEN_DOMAIN, ` ${mark} `)
     .replace(DIGITS, ` ${mark} `)

@@ -1,5 +1,4 @@
 export class CallError extends Error {}
-export class AccessCodeError extends CallError {}
 
 export async function callRequest(
   url: string,
@@ -13,7 +12,7 @@ export async function callRequest(
   signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(abort, timeout);
   try {
-    const response = await fetch(url, { ...init, signal: controller.signal });
+    const response = await sessionFetch(url, { ...init, signal: controller.signal });
     // Keep cancellation and the deadline active until the response body is consumed.
     const data: unknown = response.ok ? await response.json() : null;
     return { ok: response.ok, status: response.status, data };
@@ -23,3 +22,5 @@ export async function callRequest(
     signal?.removeEventListener('abort', abort);
   }
 }
+
+import { sessionFetch } from '@/lib/client-session';

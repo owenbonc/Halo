@@ -23,13 +23,14 @@ it('records only after explicit start and submits once while releasing the micro
   const stream = { active: true, getTracks: () => [{ stop }] } as unknown as MediaStream;
   const fetcher = vi.fn().mockResolvedValue(Response.json({ transcript: 'A synthetic caller.' }));
   vi.stubGlobal('fetch', fetcher);
-  const call = new RecordedCall(stream, vi.fn());
+  const call = new RecordedCall(stream, vi.fn(), 'synthetic-session');
   call.start();
   const first = call.finish();
   expect(call.finish()).toBe(first);
   expect(await first).toBe('Caller: A synthetic caller.');
   expect(stop).toHaveBeenCalled();
   expect(fetcher).toHaveBeenCalledOnce();
+  expect(fetcher.mock.calls[0]?.[1].headers).toEqual({ 'x-call-session-id': 'synthetic-session' });
   call.dispose();
 });
 it('reports transcription errors without claiming delivery', async () => {
@@ -39,6 +40,7 @@ it('reports transcription errors without claiming delivery', async () => {
   const call = new RecordedCall(
     { active: true, getTracks: () => [{ stop() {} }] } as unknown as MediaStream,
     vi.fn(),
+    'synthetic-session',
   );
   call.start();
   await expect(call.finish()).rejects.toThrow('could not be transcribed');

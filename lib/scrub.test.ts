@@ -4,6 +4,9 @@ import { carriesNumberOrLink, REMOVED, scrub, scrubTranscript } from './scrub';
 const destinations = [
   '0800 123 456',
   '０８００',
+  '⓪⑧⓪⓪ ①②③ ④⑤⑥⑦',
+  'ｂａｎｋ．ｃｏｍ',
+  'bank\u200b.com',
   'oh eight hundred',
   'https://bank.example/path',
   'bank.example',

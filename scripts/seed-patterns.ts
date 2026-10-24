@@ -11,6 +11,7 @@ import {
   TEXT_INDEX,
   VECTOR_INDEX,
 } from '../lib/patterns';
+import { checkWriteTarget } from './write-target';
 
 const dir = path.join(import.meta.dirname, '..', 'data', 'patterns');
 const files = (await readdir(dir)).filter((file) => file.endsWith('.json')).sort();
@@ -27,6 +28,14 @@ assert.ok(
   'Every pattern must have searchable text.',
 );
 
+console.log(
+  'Pattern target:',
+  checkWriteTarget(
+    process.env.MONGODB_URI,
+    process.env.MONGODB_DB ?? 'hangup',
+    process.env.CONFIRM_DEMO_TARGET,
+  ),
+);
 const { patterns } = await collections();
 await patterns.deleteMany({});
 await patterns.insertMany(docs);

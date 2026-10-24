@@ -12,6 +12,7 @@ export class RecordedCall {
   constructor(
     private stream: MediaStream,
     private ended: () => void,
+    private callSessionId: string,
   ) {
     this.recorder = new MediaRecorder(stream);
     this.recording = new Promise((resolve, reject) => {
@@ -46,6 +47,7 @@ export class RecordedCall {
         '/api/transcribe',
         {
           method: 'POST',
+          headers: { 'x-call-session-id': this.callSessionId },
           body: form,
         },
         30_000,

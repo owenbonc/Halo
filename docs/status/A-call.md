@@ -32,7 +32,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Doing
 
-- Today’s synthetic LiveCall smoke obtained a token (201), then Gemini disconnected before completion. No new end-to-end milestone is claimed and no new PR is opened. Diagnose provider availability, then repeat the real app demo.
+- Today’s synthetic LiveCall smoke obtained a token (201), then Gemini disconnected before completion (close code 1011; the provider reason identifies billing). No new end-to-end milestone is claimed and no new PR is opened. Diagnose provider availability, then repeat the real app demo.
 - Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.
 
 ## Next

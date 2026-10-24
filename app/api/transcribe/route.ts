@@ -2,6 +2,7 @@ import cases from '@/data/test-cases.json';
 import { collections } from '@/lib/db';
 import { fail, readAudio } from '@/lib/http';
 import { transcribe } from '@/lib/transcribe';
+import { transcribeLocally } from './local-whisper';
 
 // The preset sample is the stage police call, so the fallback tells the same story as the live demo.
 const PRESET = (cases.find((c) => c.id === 'demo-police-courier')?.transcript ?? '')
@@ -23,7 +24,11 @@ export async function POST(request: Request) {
   if (!session) return fail(403, 'Unknown or already used call session.');
   try {
     return Response.json({
-      transcript: session.recordedFixture ? PRESET : await transcribe(audio),
+      transcript: session.recordedFixture
+        ? PRESET
+        : process.env.HALO_LOCAL_TRANSCRIPTION === '1'
+          ? await transcribeLocally(audio, request.signal)
+          : await transcribe(audio),
     });
   } catch (error) {
     console.error('transcription failed', error);

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (!body.success) return fail(400, 'Expected { callId }.');
   const { calls } = await collections();
   if (!(await calls.findOne({ id: body.data.callId }))) return fail(404, 'No such call.');
-  // Pause is Grandma's consent choice: while paused, nobody is told, whoever asks.
+  // Pause is the loved one's consent choice: while paused, nobody is told, whoever asks.
   const settings = await getSettings();
   if (settings.paused) return fail(409, 'Messages are paused.');
   return Response.json(await createAlert(body.data.callId, 'user_tap', settings.alertMode), {

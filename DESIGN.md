@@ -6,7 +6,7 @@ How Halo looks. Owner: slice C (Owen), who decides design for every screen. Chan
 
 - Use only the semantic colour names below and the components in `components/ui/`. No raw Tailwind colours (`stone-*`, `red-*`, `green-*`, `amber-*`, `white`, `black`), no hex in components.
 - Red, amber and green mean warning bands only, always with their icon and words (`BandBadge`). The one exception: an "End call" button may use `bg-danger text-surface`, because red hang-up is the phone convention.
-- Grandma's app: body text at least 20px (`text-xl`, the default), tap targets at least 48px. The caretaker's app is a standard iPhone app (see Two densities). Contrast at least WCAG AA everywhere. No percentages, never the word "safe".
+- The loved one's app: body text at least 20px (`text-xl`, the default), tap targets at least 48px. The caregiver's app is a standard iPhone app (see Two densities). Contrast at least WCAG AA everywhere. No percentages, never the word "safe".
 - Phone numbers only from `lib/guidance.ts`.
 
 ## Colour
@@ -28,9 +28,9 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## Two densities
 
-- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Settings; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caretaker's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
-- **Caretaker** (`/caretaker/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
-- Sizes are always rem, never px, so Grandma's text size reaches everything.
+- **Loved one** (`/loved-one/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Settings; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caregiver's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
+- **Caregiver** (`/caregiver/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
+- Sizes are always rem, never px, so the loved one's text size reaches everything.
 
 ## Type
 
@@ -55,16 +55,16 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 ## Tabs
 
 - Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
-- Grandma: **Alerts** (`/grandma`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/grandma/past`, the calls she has dealt with, with filters), **Settings** (`/grandma/settings`, her name, her person, consent, text size, switch role; mostly used by the caretaker).
+- Loved one: **Alerts** (`/loved-one`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/loved-one/past`, the calls she has dealt with, with filters), **Settings** (`/loved-one/settings`, her name, her person, consent, text size, switch role; mostly used by the caregiver).
 - The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" moves a call to Past calls, and a green call moves there as soon as she opens it.
-- Caretaker: **Alerts**, **History**, **Profile** (read-only: Grandma controls consent).
+- Caregiver: **Alerts**, **History**, **Profile** (read-only: the loved one controls consent).
 
 ## One card, big buttons
 
-- Grandma's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). Top to bottom: the time, the action ring, then the card with the full verdict (`BandBadge`), the scam type and Sam's status line; everything else sits one tap away.
+- The loved one's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). Top to bottom: the time, the action ring, then the card with the full verdict (`BandBadge`), the scam type and Sam's status line; everything else sits one tap away.
 - The action ring (`ActionRing`) is a circle of big buttons around a verdict circle. The verdict circle shows the band's icon and short word (`BAND_LABEL.circle`) on the band's tint. Each segment leads with a large icon and a short label, both inside the segment; the bottom quarters put the label above the icon so it clears the curve. Warning calls get four quarters: **Get Sam** and **What to do** on top in lavender `glass-accent`, **Their words** and **Read aloud** below in `glass` with a `border-line` hairline. The segments drop the glass float shadow so the wheel reads as one flat ring. Green calls get two halves, Their words and Read aloud. A gap of page background separates the segments from each other and from the centre. Below the card, a quiet "I've dealt with this", then **Next call** and **Other calls**.
-- Each button opens its own screen at `/grandma/calls/[id]/{sam,help,said,read}`, titled with the same words as its button, with a glass **Back** pill at the top (`TopBar back`). "Their words" leads on to the whole call (`/transcript`), with every number and link removed on the server.
-- Sam's status is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender). The caretaker's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
+- Each button opens its own screen at `/loved-one/calls/[id]/{sam,help,said,read}`, titled with the same words as its button, with a glass **Back** pill at the top (`TopBar back`). "Their words" leads on to the whole call (`/transcript`), with every number and link removed on the server.
+- Sam's status is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender). The caregiver's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
 - Top bars (`TopBar`) are sticky `material`. Leave room at the end of each page so the last item scrolls clear of the tab bar.
 
 ## Glass (from bulk)

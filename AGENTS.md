@@ -40,12 +40,12 @@ Four people, each with their own agent, build one app. The repo is how you know 
 ## Layout
 
 ```
-app/page.tsx      role picker: "Who are you?" Grandma or Caretaker
-app/grandma/      Grandma's view: cards, voice note, setup and consent
-app/caretaker/    caretaker's view: alerts, acknowledge, history
+app/page.tsx      role picker: "Who are you?" Loved one or Caregiver
+app/loved-one/    Loved one's view: cards, voice note, setup and consent
+app/caregiver/    Caregiver's view: alerts, acknowledge, history
 app/call/         the caller's call page: Gemini Live screener in the browser
 app/api/          route handlers (contracts in SPEC.md)
-components/       shared ui/, plus grandma/ and caretaker/
+components/       shared ui/, plus loved-one/ and caregiver/
 lib/              types, db, guidance, analyse, patterns, transcribe, alerts, screener-prompt
 data/             synthetic scam patterns and test cases
 scripts/          demo-reset, seed-patterns, verify.sh, agent-setup.sh

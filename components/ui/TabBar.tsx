@@ -13,7 +13,7 @@ export type Tab = {
 };
 
 const SIZE = {
-  // Grows with Grandma's text size up to 20px, then stops, so three labels always fit on one line.
+  // Grows with the loved one's text size up to 20px, then stops, so three labels always fit on one line.
   lg: {
     tab: 'min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold',
     icon: 'size-[min(1.75rem,30px)]',

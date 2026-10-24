@@ -40,7 +40,7 @@ jobs:
           sleep 60
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             failed=''
-            for path in / /setup /grandma /caretaker /call /api/settings /api/calls /api/alerts; do
+            for path in / /setup /loved-one /caregiver /call /api/settings /api/calls /api/alerts; do
               code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://hang-up-and-check.vercel.app$path")"
               echo "$path $code"
               [ "$code" = 200 ] || failed="$failed $path"

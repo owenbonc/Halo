@@ -2,7 +2,7 @@ import { collections } from '@/lib/db';
 import { fail } from '@/lib/http';
 import { scrubTranscript } from '@/lib/scrub';
 
-// Mum's "Their words": the whole call, with every number and link the caller gave taken out.
+// The loved one's "Their words": the whole call, with every number and link the caller gave taken out.
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { calls } = await collections();
   const call = await calls.findOne(

@@ -25,7 +25,8 @@ export async function POST(request: Request) {
     return Response.json({
       transcript: session.recordedFixture ? PRESET : await transcribe(audio),
     });
-  } catch {
+  } catch (error) {
+    console.error('transcription failed', error);
     return fail(502, 'The recording could not be transcribed. Please try again.');
   }
 }

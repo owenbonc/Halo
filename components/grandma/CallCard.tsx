@@ -32,20 +32,21 @@ export function reassurance(call: CallView) {
 
 type Segment = { href: string; Icon: typeof Phone; label: string; primary?: boolean };
 
-// Each segment's icon and words sit in the middle of the segment, nudged clear of the verdict circle.
-// The bottom quarters put their words above the icon, so the wider line stays clear of the ring's curve.
+// Each segment's icon and words sit across the middle of the segment, nudged up or down clear of the verdict
+// circle. The bottom quarters put their words above the icon, so the wider line sits where there is room.
 const QUARTER = [
-  'flex-col rounded-tl-[100%] pr-[10%] pb-[14%]',
-  'flex-col rounded-tr-[100%] pl-[10%] pb-[14%]',
-  'flex-col-reverse rounded-bl-[100%] pr-[10%] pt-[16%]',
-  'flex-col-reverse rounded-br-[100%] pl-[10%] pt-[16%]',
+  'flex-col rounded-tl-[100%] pb-[20%]',
+  'flex-col rounded-tr-[100%] pb-[20%]',
+  'flex-col-reverse rounded-bl-[100%] pt-[22%]',
+  'flex-col-reverse rounded-br-[100%] pt-[22%]',
 ];
 const HALF = ['flex-col rounded-l-[100%_50%] pr-[44%]', 'flex-col rounded-r-[100%_50%] pl-[44%]'];
 
 /*
  * Her buttons as a ring around the verdict: four quarters on a warning call, two halves on a green one.
  * The ring grows with her text size until it fills the screen's width. Icons and the centre word scale with
- * the ring (cqw) so they stay inside it; labels never drop below her text size.
+ * the ring (cqw) so they stay inside it; labels never drop below her text size, and wrap rather than run past
+ * the ring's edge.
  */
 function ActionRing({
   band,
@@ -74,7 +75,9 @@ function ActionRing({
             className={`flex items-center justify-center gap-[1cqw] text-center font-bold leading-tight transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${(quarters ? QUARTER : HALF)[i]} focus-visible:-outline-offset-4 ${primary ? 'glass-accent text-on-accent' : 'glass text-ink'}`}
           >
             <SegmentIcon className="size-[14cqw]" />
-            <span className="text-[max(5.6cqw,1.05rem)]">{label}</span>
+            <span className="block max-w-[34cqw] text-balance text-[max(5.6cqw,1.05rem)]">
+              {label}
+            </span>
           </Link>
         ))}
       </div>

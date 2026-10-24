@@ -1,6 +1,6 @@
 # C. Grandma's app and role picker
 
-Owner: Owen
+Owner: Owen, away all Saturday. The slice and design are open to the team; see `docs/HANDOVER.md`.
 Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `components/ui/**`, `app/api/voice-note/**`, shared UI look (`app/globals.css` tokens, the font in `app/layout.tsx`), `DESIGN.md` (design decisions for every screen)
 
 ## Done

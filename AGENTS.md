@@ -10,7 +10,7 @@ The [Specification page in Notion](https://app.notion.com/p/14297080891e838fae6c
 
 Four people, each with their own agent, build one app. The repo is how you know what the others are doing.
 
-- Before starting a task, run `git pull` and read every file in `docs/status/`.
+- Before starting a task, run `git pull`, read `docs/HANDOVER.md` (Owen is away on Saturday; A is keeper) and every file in `docs/status/`.
 - Edit only the files your slice owns (the Slices table in SPEC.md, repeated at the top of your status file).
 - After each finished step, update **your own** status file (Done, Doing, Next, Needs from others), then commit and push your branch. Never edit another slice's status file.
 - `lib/types.ts` holds the contracts between slices and has one keeper. Never edit it yourself: write the change under "Contract change requests" in your status file and tell the team, and the keeper applies it once for everyone.

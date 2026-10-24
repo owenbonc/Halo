@@ -31,7 +31,7 @@ describe('live token endpoint', () => {
     vi.stubEnv('HALO_MULTILINGUAL_PILOT', '1');
     expect((await POST(request('?voice=automatic'))).status).toBe(201);
     const setup = JSON.parse(fetcher.mock.calls[0]?.[1].body).bidiGenerateContentSetup;
-    expect(setup.generationConfig.maxOutputTokens).toBe(256);
+    expect(setup.generationConfig.maxOutputTokens).toBe(1024);
     expect(setup.systemInstruction.parts[0].text).toContain('spoken language');
     expect(setup.systemInstruction.parts[0].text).toContain('untrusted');
     expect(setup.generationConfig.thinkingConfig).toBeUndefined();
@@ -77,7 +77,7 @@ describe('live token endpoint', () => {
         },
       },
       generationConfig: {
-        maxOutputTokens: 256,
+        maxOutputTokens: 1024,
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } },
       },
     });

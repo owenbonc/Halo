@@ -44,7 +44,7 @@ it('checks an English follow-up as one clarifying question, not a fixed sentence
     ),
   ).toBe(true);
   const instruction = generate.mock.calls[0]?.[0].config.systemInstruction;
-  expect(instruction).toContain('one short English question');
+  expect(instruction).toContain('one complete, short English question');
   expect(instruction).toContain('numbers (including spoken numbers)');
   expect(instruction).not.toContain('Could you tell me a little more');
 });

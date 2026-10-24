@@ -9,7 +9,7 @@ Microphone capture remains paused during generation, checking and playback. Comp
 ## Cost controls, not a savings claim
 
 - The local opening avoids requesting another generated greeting.
-- The native prompt is shorter; native output is capped at 256 tokens per response, with at most two replies.
+- The native prompt is shorter; native output is capped at 1024 tokens per response, with at most two replies. A 256-token cap cut longer questions off mid-sentence, in both the audio and its transcription.
 - The model is the existing non-extended-thinking Live model; no unsupported thinking configuration is added.
 - Only caller listening periods send microphone audio. No separate translation or language-detection API call is made.
 - Each checked reply adds one semantic check on `gemini-3.8-flash` at low thinking, capped at 512 output tokens including its thoughts; English sessions check only the follow-up, automatic sessions at most two replies. This is extra billed work, not free validation.

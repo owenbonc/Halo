@@ -5,9 +5,10 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Done
 
-- PR milestone: SPEC demo step 2, the simulated browser call from microphone through Gemini screening to transcript submission. Live caller speech and fixed Kokoro screening lines are implemented; downstream analysis is still slice B’s placeholder in this checkout.
-- Merged `origin/main` (f44524e), read `DESIGN.md`, and checked the laptop phone frame. The shared root layout already pads `/call` with `var(--safe-top)` / `var(--safe-bottom)`; the call page adds no duplicate inset and uses no window scrolling. Colour/token migration is left to Owen as explicitly requested.
-- Full `scripts/verify.sh` now prints READY on the merged branch, including the default Turbopack build. Stale generated route types from the pre-merge dev server were cleared and regenerated; no shared build configuration was changed.
+- PR #7 is merged. Pulled main through `82f32f8`: shared phone frame, Halo setup/Alerts screens, real B transcription/analysis, and the `recordedFixture` contract are integrated.
+- `/call` now uses DESIGN semantic colours and shared Button controls, including the red hang-up exception and 48px radio-label targets. The root layout already pads with `var(--safe-top)` / `var(--safe-bottom)`; no duplicate inset or window scrolling. Checked the actual phone-frame UI, speaker control, recorded prompt and cancellation in Chrome.
+- Name-free opening regenerated with Kokoro (`bf_emma`, 4.01 seconds), with matching locked prompt and clip text. Call-page wording no longer assumes the recipient is named Grandma.
+- Full `scripts/verify.sh` prints READY (24 Oct): typecheck, lint, tests, production build and history secret scan. Stale generated route types were cleared and regenerated; no shared build configuration changed. Independent review found no substantive regression in this diff.
 
 - Integrated live Gemini calls: microphone AudioWorklet, PCM audio, input/output transcription, 45-second limit, manual/assistant hang-up and guarded transcript submission.
 - Independent security/usability review completed, followed by fixes and a second review. Verdict: suitable for further controlled synthetic-demo testing, not unrestricted public or real-user deployment.
@@ -16,7 +17,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - Live token lifetime reduced to 2 minutes, one use, with a 1-minute new-session window. Model, voice, instructions and both transcriptions remain locked server-side. Credentials are never included in browser assets.
 - Fixed capture-after-finish startup race, cancellation of requests/body parsing, stalled response bodies, stale Blob callbacks, old speaking/listening timers, and browser back-navigation state restoration. Disposal is idempotent.
 - Replaced browser reliance on `AbortSignal.timeout` with a bounded AbortController request helper. Explicit capability checks explain unsupported microphone, AudioWorklet and MediaRecorder paths; no deprecated ScriptProcessor implementation was added.
-- Recorded fallback requires a separate recording tap after the visible question. Optional read-aloud is initiated directly by a user tap. Until `CALL_RECORDED_TRANSCRIPTION_READY=1`, a prominent warning explains that the recording produces a preset sample scam result; completion is also labelled as a sample.
+- Recorded messages require a separate recording tap after the visible question. Optional read-aloud is initiated directly by a user tap. Since B now supplies real transcription, live and recorded token responses set `recordedFixture: false`; obsolete preset-result messaging and the readiness environment flag are removed. Behaviour tests cover explicit recorded mode and forced recorded mode.
 - Call UI now includes microphone mute, assistant volume, speaking/listening status, a gentle two-tone speaker test, readable failures, wrapped mobile controls, and pre-call audio/transcript privacy information.
 - Live screening now uses three bundled clips generated locally with open-source/open-weight Kokoro-82M, British voice `bf_emma` at speed 0.98. The user explicitly selected fixed lines without an extra server. UI discloses prerecorded questions. Gemini still handles live caller audio and turn selection; its generated audio is discarded (but remains billable). No new deployed dependency or inference server. Reproduction instructions and model hashes are in `app/call/voice/README.md`; licenses are included.
 - Client allows only the exact opening, optional fixed follow-up and closing, in order. Unexpected model wording fails closed. Canonical assistant text enters the transcript only after its Kokoro clip completes; cancelled clips are omitted.
@@ -27,16 +28,17 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 - Validation: automated tests cover credentials, rate windows, PCM, transcript limits, startup races, late fragments, silence, cancellation, stalled bodies, fallback errors, audio scheduling, fixed-line sequence, real bundled audio, completed-vs-cancelled speech, capture gating and stale frames. Typecheck, lint and webpack production build pass.
 - Actual LiveCall controller exercised against real Gemini with synthetic caller audio and bundled Kokoro clips: transcript saved successfully. 216 synthetic noise frames injected during protected playback, 50 caller frames sent while listening. AudioContext playback timing was simulated; physical phone testing is still needed.
 - Production dependency audit reports no known vulnerabilities. This is an advisory check, not proof of application security.
-- Chrome UI reviewed at a 390-pixel phone viewport. Speaker test, explicit sample disclosure and cancellation exercised without collecting personal microphone audio.
+- Chrome UI reviewed in the laptop phone frame. Speaker test, recorded prompt and cancellation exercised without collecting personal microphone audio.
 
 ## Doing
 
+- Today’s synthetic LiveCall smoke obtained a token (201), then Gemini disconnected before completion. No new end-to-end milestone is claimed and no new PR is opened. Diagnose provider availability, then repeat the real app demo.
 - Actual stage-phone microphone/speaker testing and three consecutive deployed scenario runs remain outstanding.
 
 ## Next
 
 - Set a random production `CALL_DEMO_ACCESS_CODE` (16+ characters) privately. Do not put it in a `NEXT_PUBLIC_` variable. Without it, production calls intentionally return 503. Configure provider spending limits and deployment access protection for the entire demo.
-- Only set `CALL_RECORDED_TRANSCRIPTION_READY=1` after slice B's real transcription is integrated and validated. The current checkout's transcription is a fixture.
+- Verify real recorded transcription with the event account. B reports its billing account exceeded its monthly cap; provider availability is still a demo blocker. `DEMO_FALLBACK=1` currently forces recorded input but does not supply recorded analysis fixtures.
 - Test physical phone permissions, Kokoro audibility, turn-taking, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
 - Run all three synthetic scenarios three times on the deployed build after shared blockers are fixed.
 
@@ -44,7 +46,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 - **P1 shared API protection:** `/api/transcribe`, `/api/calls`, `/api/settings` and alert routes need the shared owner's access-control review. Token gating does not secure those routes. Main now includes slice C’s voice-note size/rate guard; its in-memory limit and access control still need review before real users. Authenticate/rate-limit billable transcription and bound uploads before buffering.
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
-- **P1 truthfulness/analysis:** slice B's transcription and analysis are still placeholders here. A's recorded sample disclosure is explicit, but it is not a working real-transcription fallback.
+- **P1 transcription errors:** shared `/api/transcribe` needs a bounded, authenticated request and a plain 502 when B’s provider call fails. B’s real analysis/transcription is integrated; live provider verification and rehearsed recorded-response fallback remain outstanding.
 - **P2 expiry/privacy:** enforce call-session expiry on consumption and define transcript retention/access. Session records currently have no expiry check. This demo must use synthetic data only.
 - Spoken responses are now deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
 - Stage-phone and HTTPS deployment access are still needed for final acceptance. Local full verification is READY; physical microphone/speaker checks and three deployed scenario runs remain outstanding.
@@ -52,7 +54,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`
 
 ## Contract change requests
 
-- Keeper request for this PR: add `recordedFixture: boolean` to `LiveToken` in `lib/types.ts`. It is true only for recorded/fallback mode while `CALL_RECORDED_TRANSCRIPTION_READY` is not `1`; live mode and validated real transcription return false. The API sends it and the slice-local schema requires it. Existing nullable token/model fields are unchanged. Owen requested this contract change in the same merge; this branch does not edit the keeper-owned file.
+- `recordedFixture: boolean` is already in `lib/types.ts`; no outstanding A type change for this step. It remains false while recorded messages use real transcription.
 - Shared keeper: idempotent submission lifecycle, session expiry, and authenticated/bounded transcription as described above.
 
 ## Research references

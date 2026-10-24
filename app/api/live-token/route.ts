@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       token,
       callSessionId,
       model: recorded ? null : LIVE_MODEL,
-      recordedFixture: recorded && process.env.CALL_RECORDED_TRANSCRIPTION_READY !== '1',
+      recordedFixture: false,
     };
     return Response.json(body, { status: 201, headers });
   } catch {

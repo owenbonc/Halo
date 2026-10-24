@@ -97,4 +97,9 @@ export const PostCallBody = z.object({
 
 export const PostAlertBody = z.object({ callId: z.string().min(1).max(100) });
 
-export type LiveToken = { token: string | null; callSessionId: string; model: string | null };
+export type LiveToken = {
+  token: string | null;
+  callSessionId: string;
+  model: string | null;
+  recordedFixture: boolean;
+};

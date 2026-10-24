@@ -35,7 +35,7 @@ export async function recordCall(
   await calls.insertOne({ ...call });
   const settings = await getSettings();
   if (settings.alertMode === 'auto_strong' && call.analysis.band === 'strong' && !settings.paused) {
-    await createAlert(call.id, 'auto_strong');
+    await createAlert(call.id, 'auto_strong', settings.alertMode);
   }
   return call;
 }

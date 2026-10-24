@@ -8,6 +8,7 @@ const alert: AlertRecord = {
   callId: 'c1',
   createdAt: '2026-10-24T10:00:00.000Z',
   trigger: 'auto_strong',
+  alertMode: 'auto_strong',
   status: 'sent',
   acknowledgedAt: null,
 };
@@ -48,12 +49,12 @@ describe('toSamAlert', () => {
     expect(shown).not.toContain('courier will collect your cash');
   });
 
-  it('shares the summary only when Grandma chose automatic alerts', () => {
+  it('shares the summary only when she had chosen automatic alerts at the time', () => {
     expect(toSamAlert(alert, call, SEED_SETTINGS).summary).toBe(call.analysis.summary);
-    expect(
-      toSamAlert(alert, call, { ...SEED_SETTINGS, alertMode: 'ask_first' }).summary,
-    ).toBeNull();
+    // A tap while on automatic alerts carries the summary too.
+    const tap = { ...alert, trigger: 'user_tap' as const };
+    expect(toSamAlert(tap, call, SEED_SETTINGS).summary).toBe(call.analysis.summary);
     // A tap made under ask-first stays without a summary after she later turns on automatic alerts.
-    expect(toSamAlert({ ...alert, trigger: 'user_tap' }, call, SEED_SETTINGS).summary).toBeNull();
+    expect(toSamAlert({ ...tap, alertMode: 'ask_first' }, call, SEED_SETTINGS).summary).toBeNull();
   });
 });

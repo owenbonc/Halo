@@ -20,7 +20,7 @@ export function withStatus(alert: AlertRecord, now = Date.now()): AlertRecord {
   return { ...alert, status: statusAt(alert, now) };
 }
 
-// The caretaker never sees the transcript or cues; the summary only for an automatic alert she still allows.
+// The caretaker never sees the transcript or cues; the summary only if she chose automatic alerts when it was sent.
 export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Settings): SamAlert {
   return {
     id: alert.id,
@@ -29,10 +29,7 @@ export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Setti
     elderName: settings.elderName,
     band: call.analysis.band,
     family: call.analysis.family,
-    summary:
-      alert.trigger === 'auto_strong' && settings.alertMode === 'auto_strong'
-        ? call.analysis.summary
-        : null,
+    summary: alert.alertMode === 'auto_strong' ? call.analysis.summary : null,
   };
 }
 
@@ -40,6 +37,7 @@ export function toSamAlert(alert: AlertRecord, call: CallRecord, settings: Setti
 export async function createAlert(
   callId: string,
   trigger: AlertRecord['trigger'],
+  alertMode: Settings['alertMode'],
 ): Promise<AlertRecord> {
   const { alerts } = await collections();
   const existing = await alerts.findOne({ callId }, noMongoId);
@@ -49,6 +47,7 @@ export async function createAlert(
     callId,
     createdAt: new Date().toISOString(),
     trigger,
+    alertMode,
     status: 'sent',
     acknowledgedAt: null,
   };

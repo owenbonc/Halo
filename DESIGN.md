@@ -61,9 +61,9 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## One card, big buttons
 
-- Grandma's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). The card holds only the verdict (`BandBadge`), the scam type, the time and Sam's status line; everything else sits one tap away.
-- Under the card, big buttons that each carry an icon and words: **Get Sam** and **What to do** are tall lavender `glass-accent` tiles (warning calls only); **What they said** and **Read it to me** are shorter `glass` tiles. Below them a quiet "I've dealt with this", then **Next call** and **Other calls**.
-- Each button opens its own screen at `/grandma/calls/[id]/{sam,help,said,read}` with a glass **Back** pill at the top (`TopBar back`). "What they said" leads on to the whole call (`/transcript`), with every number and link removed on the server.
+- Grandma's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). Top to bottom: the time, the action ring, then the card with the full verdict (`BandBadge`), the scam type and Sam's status line; everything else sits one tap away.
+- The action ring (`ActionRing`) is a circle of big buttons around a verdict circle. The verdict circle shows the band's icon and short word (`BAND_LABEL.short`) on the band's tint. Each segment leads with a large icon over a short label, both inside the segment. Warning calls get four quarters: **Get Sam** and **What to do** on top in lavender `glass-accent`, **Their words** and **Read aloud** below in `glass`. Green calls get two halves, Their words and Read aloud. A gap of page background separates the segments from each other and from the centre. Below the card, a quiet "I've dealt with this", then **Next call** and **Other calls**.
+- Each button opens its own screen at `/grandma/calls/[id]/{sam,help,said,read}`, titled with the same words as its button, with a glass **Back** pill at the top (`TopBar back`). "Their words" leads on to the whole call (`/transcript`), with every number and link removed on the server.
 - Sam's status is solid lavender while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on lavender). The caretaker's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
 - Top bars (`TopBar`) are sticky `material`. Leave room at the end of each page so the last item scrolls clear of the tab bar.
 

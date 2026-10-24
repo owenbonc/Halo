@@ -1,5 +1,5 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useContext, useEffect, useRef } from 'react';
 import { Bell, Clock, User } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
@@ -18,6 +18,7 @@ export const useAlerts = () => useContext(AlertsContext);
 export function CaretakerShell({ children }: { children: ReactNode }) {
   const alerts = usePoll<SamAlert[]>('/api/alerts');
   const router = useRouter();
+  const pathname = usePathname();
   const previous = useRef<SamAlert[] | null>(null);
 
   // Sam may be on any tab when an alert lands: ring, then bring the alert to the front.
@@ -27,8 +28,8 @@ export function CaretakerShell({ children }: { children: ReactNode }) {
     previous.current = alerts.data;
     if (fresh.length === 0) return;
     ring();
-    router.push('/caretaker');
-  }, [alerts.data, router]);
+    if (pathname !== '/caretaker') router.push('/caretaker');
+  }, [alerts.data, router, pathname]);
   const waiting = alerts.data?.filter((a) => a.status !== 'acknowledged').length ?? 0;
   return (
     <AlertsContext value={alerts}>

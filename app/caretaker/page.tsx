@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { soundOn, unlockSound } from '@/components/caretaker/alert-signal';
+import { useRef, useState, useSyncExternalStore } from 'react';
+import { onSoundChange, soundOn, unlockSound } from '@/components/caretaker/alert-signal';
 import { BandLine } from '@/components/caretaker/BandLine';
 import { LargeTitle, PollStatus, useAlerts } from '@/components/caretaker/Shell';
 import { when } from '@/components/grandma/CallCard';
@@ -14,13 +14,24 @@ import { FAMILY_LABEL } from '@/lib/labels';
 const HOUR = 60 * 60_000;
 const ENTER = 'transition-transform duration-200 ease-out motion-reduce:transition-none';
 
+// The context's own changes, plus coming back to the tab, when Safari may have suspended it.
+function subscribeSound(notify: () => void) {
+  const off = onSoundChange(notify);
+  document.addEventListener('visibilitychange', notify);
+  return () => {
+    off();
+    document.removeEventListener('visibilitychange', notify);
+  };
+}
+
 export default function AlertsPage() {
   const alerts = useAlerts();
   // Acknowledged here: shown as done straight away, before the next poll confirms it.
   const [done, setDone] = useState<string | null>(null);
   const [ack, setAck] = useState<{ id: string; failed: boolean } | null>(null);
-  // Starts from the shared audio context, so leaving the tab and coming back doesn't ask again.
-  const [sound, setSound] = useState(soundOn);
+  // Follows the shared audio context, which Safari can suspend, so the button returns when sound stops.
+  const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
+  const soundStatus = useRef<HTMLDivElement>(null);
 
   const open = alerts.data?.find((a) => a.status !== 'acknowledged' && a.id !== done);
   const latest = alerts.data?.[0];
@@ -47,25 +58,27 @@ export default function AlertsPage() {
     <section className={open ? 'pb-14' : undefined}>
       <LargeTitle>Alerts</LargeTitle>
       <PollStatus alerts={alerts} loading="Checking for alerts…" />
-      {sound ? (
-        <p role="status" className="mb-4 flex items-center gap-2 text-[0.9375rem] text-ink-2">
-          <Speaker className="size-5" />
-          Alert sound is on while this app is open.
-        </p>
-      ) : (
-        <Button
-          size="md"
-          variant="secondary"
-          className="mb-4"
-          onClick={() => {
-            unlockSound();
-            setSound(true);
-          }}
-        >
-          <Speaker className="size-5" />
-          Turn on alert sound
-        </Button>
-      )}
+      {/* One live region for both states, focused on tap, since the tapped button unmounts. */}
+      <div ref={soundStatus} role="status" tabIndex={-1} className="mb-4 outline-none">
+        {sound ? (
+          <p className="flex items-center gap-2 text-[0.9375rem] text-ink-2">
+            <Speaker className="size-5" />
+            Alert sound is on while this app is open.
+          </p>
+        ) : (
+          <Button
+            size="md"
+            variant="secondary"
+            onClick={() => {
+              soundStatus.current?.focus();
+              unlockSound();
+            }}
+          >
+            <Speaker className="size-5" />
+            Turn on alert sound
+          </Button>
+        )}
+      </div>
       <div aria-live="polite">
         {open ? (
           <Card

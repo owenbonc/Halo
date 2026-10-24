@@ -19,10 +19,24 @@ Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (
   - A green summary now says what the call was about (Argon is asked for it). If Argon's line is empty, claims the call is safe, or talks about warning signs, it falls back to "The caller didn't ask for money, bank details or access to a device." It never repeats the card title.
 
 ## Doing
-- Opening the brain PR for A to review.
+- Brain PR open for A to review. Josh is handing the live steps to a teammate (see "Handover" below).
+
+## Blocked
+- **Gemini billing (24 Oct, 14:12).** Two different keys (an `AQ.` key and an `AIza` key) both get `429 RESOURCE_EXHAUSTED: Your billing account has exceeded its monthly spending cap` on `gemini-4-argon` and `gemini-3.8-flash`. The keys are valid (a bad key gives 401/403); the billing account behind them is capped. Raising the cap or linking the event credits didn't clear it yet. Check in AI Studio which project each key belongs to and that the project's billing account holds the DeepMind credits with a cap above this month's spend.
+
+## Handover (for whoever picks up B)
+1. `git checkout slice/b-brain && git pull`, `pnpm install`, `git config core.hooksPath .githooks`.
+2. `cp .env.example .env` and fill in your **own** values. Never share them in chat, the repo or an AI conversation.
+   - `MONGODB_URI`: Atlas, Drivers, Node.js connection string, with the real password in place of `<db_password>`. Your IP must be in Network Access.
+   - `GEMINI_API_KEY`: from AI Studio, on a project whose billing has the event credits.
+3. Check Gemini with two tiny calls before spending credits:
+   `pnpm tsx --env-file=.env -e "import('./lib/gemini').then(async ({ gemini, ANALYSIS_MODEL, TRANSCRIBE_MODEL }) => { for (const model of [ANALYSIS_MODEL, TRANSCRIBE_MODEL]) console.log(model, (await gemini().models.generateContent({ model, contents: 'Reply with: ok' })).text) })"`
+4. Once both reply, run the live eval (45 Argon calls plus Atlas): `RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts`. A failing case means a band or family outside what `data/test-cases.json` allows, or a digit in the output. Fix the rules or the prompt, not the case, unless the case is wrong.
+5. Run `pnpm seed:patterns` on the team cluster `cluster0.revh6w` (needs Owen's Atlas invite).
 
 ## Next
-- Live: Argon/audio probes, `pnpm seed:patterns`, Argon smoke test, three-run live eval, `transcribe` check on WAV and browser audio.
+- Live: Gemini probe, three-run live eval, `transcribe` check on WAV and browser audio.
+- `pnpm seed:patterns` on the team cluster.
 - `DEMO_FALLBACK=1`: record `data/demo-fallback.json` from live runs of the three demo scripts.
 
 ## Needs from others

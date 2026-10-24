@@ -5,7 +5,12 @@ import { DeviceFrame } from '@/components/ui/DeviceFrame';
 import './globals.css';
 
 // Designed for low-vision readers: letters like I, l and 1 can't be confused.
-const atkinson = Atkinson_Hyperlegible_Next({ subsets: ['latin'], variable: '--font-atkinson' });
+const atkinson = Atkinson_Hyperlegible_Next({
+  subsets: ['latin'],
+  variable: '--font-atkinson',
+  // next/font has no metrics for this font yet, so a fallback can't be generated.
+  adjustFontFallback: false,
+});
 const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',

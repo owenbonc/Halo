@@ -4,7 +4,7 @@ const VARIANT = {
   primary: 'glass-accent text-on-accent',
   secondary: 'glass text-ink',
 };
-// lg: Grandma's big targets. md: a standard iPhone button, for the caretaker.
+// lg: the loved one's big targets. md: a standard iPhone button, for the caregiver.
 const SIZE = {
   lg: 'min-h-14 gap-3 px-6 py-3 text-xl font-bold',
   md: 'min-h-12 gap-2 px-5 py-2.5 text-[1.0625rem] font-semibold',

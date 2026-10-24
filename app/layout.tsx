@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-GB" className={`${atkinson.variable} ${bricolage.variable}`}>
       <body className="text-xl">
-        {/* Full screen on a phone; a phone frame on the laptop, so the demo looks like Grandma's phone. */}
+        {/* Full screen on a phone; a phone frame on the laptop, so the demo looks like the loved one's phone. */}
         <DeviceFrame>
           <main className="mx-auto max-w-md px-4 pt-[max(2rem,var(--safe-top))] pb-[max(2rem,var(--safe-bottom))]">
             {children}

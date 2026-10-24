@@ -9,18 +9,18 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AlertModeChoice, Choice, WhatTheySee } from '@/components/grandma/Consent';
+import { AlertModeChoice, Choice, WhatTheySee } from '@/components/loved-one/Consent';
 import {
   setTextSize,
   TEXT_SIZES,
   type TextSize,
   useAppliedTextSize,
-} from '@/components/grandma/prefs';
+} from '@/components/loved-one/prefs';
 import { Button } from '@/components/ui/Button';
 import { saveRole } from '@/lib/role';
 import type { Settings } from '@/lib/types';
 
-// The caretaker fills in the first four steps on her phone; the last step is hers alone.
+// The caregiver fills in the first four steps on her phone; the last step is hers alone.
 const STEPS = ['her', 'you', 'backup', 'size', 'handover', 'consent'] as const;
 type Step = (typeof STEPS)[number];
 
@@ -53,7 +53,7 @@ export default function SetupPage() {
     setFailed(false);
     const settings: Settings = {
       elderName: her,
-      // The caretaker is holding her phone while setting up, so the contact is confirmed in person.
+      // The caregiver is holding her phone while setting up, so the contact is confirmed in person.
       contact: { name: you, verified: true },
       backupContact: backupName.trim() ? { name: backupName.trim() } : null,
       alertMode,
@@ -69,8 +69,8 @@ export default function SetupPage() {
       setFailed(true);
       return;
     }
-    saveRole('grandma');
-    router.replace('/grandma');
+    saveRole('loved-one');
+    router.replace('/loved-one');
   };
 
   const shared = { heading, step: index + 1, onBack: back };

@@ -5,7 +5,7 @@ The app is called **Halo**. The Vercel URL and the GitHub repo keep their old na
 Owen is at another hackathon all Saturday and replies to messages slowly, if at all. Until he's back:
 
 - **Keeper: A (ish24cho).** A merges to main and owns `lib/types.ts`, the shared routes and deploy settings, the same way Owen did (AGENTS.md).
-- **Slice C and design are open to the team.** Anyone may change Grandma's screens, the setup flow or `DESIGN.md`, including a redesign. Owen's hand-drawn wireframes were never shared, so there is no redesign brief: it's your call. Keep the semantic tokens and `components/ui/`, update `DESIGN.md` when you change a rule, and keep all seven demo-script steps working.
+- **Slice C and design are open to the team.** Anyone may change the loved one's screens, the setup flow or `DESIGN.md`, including a redesign. Owen's hand-drawn wireframes were never shared, so there is no redesign brief: it's your call. Keep the semantic tokens and `components/ui/`, update `DESIGN.md` when you change a rule, and keep all seven demo-script steps working.
 
 ## The live app
 
@@ -44,9 +44,9 @@ If a box is still empty when you read this, ask Owen in the group chat.
 ## What's on main
 
 - **Role picker** (`/`): "Set up a phone for someone" or "I look out for someone". Each phone remembers its role.
-- **Setup** (`/setup`): the caretaker fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told.
-- **Grandma's app** (`/grandma`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
-- **Caretaker's app** (`/caretaker`): Alerts, History and Profile, with a floating "I'm calling her now". It was built by C at Owen's request; D builds on it.
+- **Setup** (`/setup`): the caregiver fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told.
+- **Loved one's app** (`/loved-one`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
+- **Caregiver's app** (`/caregiver`): Alerts, History and Profile, with a floating "I'm calling her now". It was built by C at Owen's request; D builds on it.
 - **The call** (`/call`): A's live Gemini screener with Kokoro voice clips (PR #7), including the `recordedFixture` contract.
 - **Not merged yet:** B's brain (`slice/b-brain`). `analyse` on main is still the stub.
 
@@ -59,7 +59,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 - Owen's decisions on Kota's review (PR #15): recorded messages are transcribed for real, and the preset police-call sample is served only under `DEMO_FALLBACK=1` (the call page says so); `CALL_RECORDED_TRANSCRIPTION_READY` is gone. Sam sees the summary when she was on automatic alerts at the time the alert went out, tap or automatic, so `AlertRecord` now stores `alertMode`. Run `pnpm demo:reset` after merging: older alerts lack the field.
 
 **A**
-- The screener's fixed opening says "you've reached Grandma's call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its clip), but her name is now set at setup. Make the line name-free, or agree a persona name and put it in `lib/seed.ts` too.
+- The screener's fixed opening says "you've reached a call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its clip), but her name is now set at setup. Make the line name-free, or agree a persona name and put it in `lib/seed.ts` too.
 - Move `/call` onto `DESIGN.md` tokens: it still uses raw Tailwind colours.
 
 **B**

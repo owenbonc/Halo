@@ -17,7 +17,7 @@ export async function saveSettings(next: Settings) {
   await settings.replaceOne({ id: 'household' }, { id: 'household', ...next }, { upsert: true });
 }
 
-// Every call, from the screener or a voice note, lands here: analyse, save, and alert if Grandma chose that.
+// Every call, from the screener or a voice note, lands here: analyse, save, and alert if the loved one chose that.
 export async function recordCall(
   source: CallRecord['source'],
   transcript: string,

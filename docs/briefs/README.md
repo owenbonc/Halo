@@ -1,6 +1,6 @@
 # Brief for every teammate and their agent
 
-We're building **Halo** at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London time**. It's one web app: `/` asks "Who are you?" (Grandma or Caretaker), and `/call` is the demo caller's page.
+We're building **Halo** at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London time**. It's one web app: `/` asks "Who are you?" (Loved one or Caregiver), and `/call` is the demo caller's page.
 
 Start your agent with one line:
 

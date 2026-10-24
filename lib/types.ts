@@ -68,7 +68,7 @@ export const AlertRecord = z.object({
 });
 export type AlertRecord = z.infer<typeof AlertRecord>;
 
-// The caretaker's view of an alert: no transcript, no cues.
+// The caregiver's view of an alert: no transcript, no cues.
 export type SamAlert = {
   id: string;
   createdAt: string;
@@ -79,7 +79,7 @@ export type SamAlert = {
   summary: string | null;
 };
 
-// Grandma's view of a call: everything but the transcript, plus its latest alert.
+// The loved one's view of a call: everything but the transcript, plus its latest alert.
 export type CallView = Omit<CallRecord, 'transcript'> & { alert: AlertRecord | null };
 
 export type Pattern = {

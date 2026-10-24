@@ -13,7 +13,7 @@ function ReadIt({ call }: { call: CallView }) {
   const { contact, paused } = useGrandma();
   const voice = useReadAloud();
   const script = readScript(call, contact, paused);
-  const warning = call.analysis.band !== 'none';
+  const summary = call.analysis.summary.trim();
 
   // She tapped "Read it to me" to get here, so start reading straight away.
   // biome-ignore lint/correctness/useExhaustiveDependencies: read once on arrival, not on every poll
@@ -24,10 +24,13 @@ function ReadIt({ call }: { call: CallView }) {
   return (
     <div className="space-y-6">
       <BandBadge band={call.analysis.band} />
-      {warning && call.analysis.summary && (
-        <p className="text-2xl leading-normal">{call.analysis.summary}</p>
-      )}
+      {summary && <p className="text-2xl leading-normal">{summary}</p>}
       <p>{reassurance(call)}</p>
+      {voice.error && (
+        <p role="alert" className="font-semibold text-ink-2">
+          {voice.error}
+        </p>
+      )}
       <Button
         variant={voice.speaking ? 'secondary' : 'primary'}
         onClick={() => (voice.speaking ? voice.stop() : voice.read(script))}

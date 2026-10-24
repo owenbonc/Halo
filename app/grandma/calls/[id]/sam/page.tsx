@@ -6,6 +6,7 @@ import { useGrandma } from '@/components/grandma/GrandmaData';
 import { SAM_LINE, SAM_STYLE, samState } from '@/components/grandma/sam';
 import { Button, buttonClass } from '@/components/ui/Button';
 import { Phone } from '@/components/ui/icons';
+import { GUIDANCE } from '@/lib/guidance';
 import type { CallView } from '@/lib/types';
 
 function GetSam({ call }: { call: CallView }) {
@@ -42,7 +43,7 @@ function GetSam({ call }: { call: CallView }) {
       )}
       {asked === 'failed' && (
         <p role="alert" className="font-semibold text-danger">
-          That didn't send. Try again, or call {contact} or 159 yourself.
+          That didn't send. Try again, or call {contact} or {GUIDANCE.call_159.tel} yourself.
         </p>
       )}
       {sam === 'paused' && (
@@ -55,9 +56,9 @@ function GetSam({ call }: { call: CallView }) {
         </p>
       )}
       {(sam === 'escalated' || sam === 'paused') && (
-        <a href="tel:159" className={buttonClass('primary')}>
+        <a href={`tel:${GUIDANCE.call_159.tel}`} className={buttonClass('primary')}>
           <Phone />
-          Call 159
+          {GUIDANCE.call_159.title}
         </a>
       )}
     </div>

@@ -11,6 +11,7 @@ export class LiveCall {
   private player: AudioPlayer;
   private cancelStart?: () => void;
   private closed = false;
+  private terminated = false;
   private finishing?: Promise<string>;
   private ready = false;
   private activityTimer?: ReturnType<typeof setTimeout>;
@@ -66,7 +67,7 @@ export class LiveCall {
             const content = message.serverContent;
             if (content) {
               this.transcript.add('Caller', content.inputTranscription?.text);
-              if (!this.finishing) {
+              if (!this.finishing && !this.terminated) {
                 if (content.modelTurn?.parts.length) this.lateCompletion = false;
                 if (content.turnComplete && !this.speaking) this.lateCompletion = true;
                 if (content.outputTranscription?.text || content.modelTurn?.parts.length) {
@@ -89,37 +90,40 @@ export class LiveCall {
                   // Retry on later fragments, but never wait indefinitely for a complete line.
                   this.replyTimer = setTimeout(() => {
                     if (this.closed || this.finishing) return;
-                    this.fatal = new CallError('The screening response was incomplete. Try again.');
-                    this.ended();
+                    this.end(new CallError('The screening response was incomplete. Try again.'));
                   }, 3000);
                 }
                 if (this.awaitingReply) this.playReply();
               }
             }
-            if (message.goAway && this.ready && !this.finishing) this.ended();
+            if (message.goAway && this.ready) this.end(this.interrupted());
           })
-          .catch(() => {
-            this.fatal = new CallError(
-              'The live conversation could not be read. Please try again.',
-            );
-            if (this.ready) this.ended();
+          .catch((error) => {
+            if (this.closed || this.terminated || this.finishing) return;
+            this.fatal =
+              error instanceof CallError
+                ? error
+                : new CallError(
+                    'The live conversation could not be read. Nothing was sent. Please try again.',
+                  );
+            if (this.ready) this.end(this.fatal);
             else fail();
           });
       };
       socket.onerror = () => {
-        if (this.ready) this.ended();
+        if (this.ready) this.end(this.interrupted());
         else fail();
       };
       socket.onclose = () => {
         if (!this.closed && !this.finishing) {
-          if (this.ready) this.ended();
+          if (this.ready) this.end(this.interrupted());
           else fail();
         }
       };
     });
-    if (this.closed || this.finishing) throw new CallError('Call cancelled.');
+    if (this.closed || this.finishing || this.terminated) throw new CallError('Call cancelled.');
     await this.context.audioWorklet.addModule('/call/microphone');
-    if (this.closed || this.finishing) throw new CallError('Call cancelled.');
+    if (this.closed || this.finishing || this.terminated) throw new CallError('Call cancelled.');
     this.source = this.context.createMediaStreamSource(this.stream);
     this.capture = new AudioWorkletNode(this.context, 'call-capture');
     this.capture.port.onmessage = ({
@@ -128,7 +132,7 @@ export class LiveCall {
       if (this.closed || this.finishing || !this.listening || data.generation !== this.generation)
         return;
       if (socket.bufferedAmount > 256_000) {
-        this.ended();
+        this.end(this.interrupted());
         return;
       }
       this.send({
@@ -177,13 +181,12 @@ export class LiveCall {
         try {
           this.transcript.add('Assistant', clip.text);
         } catch {
-          this.fatal = new CallError('The call transcript is too long.');
-          this.ended();
+          this.end(new CallError('The call transcript is too long. Nothing was sent.'));
           return;
         }
         this.speaking = false;
         if (id === 'closing') {
-          this.ended();
+          this.end();
           return;
         }
         this.activityTimer = setTimeout(() => {
@@ -193,9 +196,21 @@ export class LiveCall {
         }, 150);
       });
     } catch (error) {
-      this.fatal = error instanceof CallError ? error : new CallError('The voice could not play.');
-      this.ended();
+      this.end(error instanceof CallError ? error : new CallError('The voice could not play.'));
     }
+  }
+  private interrupted() {
+    return new CallError('The call was interrupted. Nothing was sent. Please start a new call.');
+  }
+  private end(error?: CallError) {
+    if (this.closed || this.terminated || this.finishing) return;
+    this.terminated = true;
+    this.fatal = error;
+    this.stopMic();
+    this.player.stop();
+    clearTimeout(this.activityTimer);
+    clearTimeout(this.replyTimer);
+    this.ended();
   }
   private send(value: unknown) {
     if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(value));

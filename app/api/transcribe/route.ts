@@ -20,5 +20,11 @@ export async function POST(request: Request) {
   if (!session) return fail(403, 'Unknown or already used call session.');
   const audio = await readAudio(request);
   if (typeof audio === 'string') return fail(400, audio);
-  return Response.json({ transcript: session.recordedFixture ? PRESET : await transcribe(audio) });
+  try {
+    return Response.json({
+      transcript: session.recordedFixture ? PRESET : await transcribe(audio),
+    });
+  } catch {
+    return fail(502, 'The recording could not be transcribed. Please try again.');
+  }
 }

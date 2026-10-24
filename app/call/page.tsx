@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { SCREENER_OPENING } from '@/lib/screener-prompt';
-import { CallRecord, PostCallBody } from '@/lib/types';
 import { testSpeaker } from './audio-player';
 import { LiveCall } from './live-call';
 import { LiveTokenResponse } from './protocol';
 import { RecordedCall } from './recorded-call';
 import { AccessCodeError, CallError, callRequest } from './request';
 import { loadVoice, type VoiceClips } from './scripted-voice';
+import { submitCall } from './submit-call';
 
 type Phase = 'idle' | 'connecting' | 'prompting' | 'listening' | 'sending' | 'done' | 'error';
 type Attempt = {
@@ -42,14 +43,13 @@ function errorMessage(error: unknown, delivery = false) {
   if (error instanceof DOMException && error.name === 'NotReadableError')
     return 'The microphone is busy. Close other calling apps and try again.';
   return delivery
-    ? 'We could not confirm delivery. Check Grandma’s page before making another call.'
+    ? 'We could not confirm delivery. Check the recipient’s Alerts screen before making another call.'
     : 'The call could not start. Check your connection or browser settings and try again.';
 }
 export default function CallPage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [mode, setMode] = useState<'live' | 'recorded'>('live');
   const [actualMode, setActualMode] = useState(mode);
-  const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
   const [muted, setMuted] = useState(false);
@@ -67,7 +67,6 @@ export default function CallPage() {
     const hide = () => {
       stop();
       setPhase('idle');
-      setFixture(false);
       setMuted(false);
     };
     window.addEventListener('pagehide', hide);
@@ -93,28 +92,7 @@ export default function CallPage() {
     try {
       if (!attempt.call || !attempt.id)
         throw new CallError('The call did not connect. Please try again.');
-      const transcript = await attempt.call.finish();
-      if (attempt.cancelled) return;
-      const body = PostCallBody.parse({
-        callSessionId: attempt.id,
-        transcript,
-        callerLabel: 'Unknown caller (demo)',
-      });
-      const response = await callRequest(
-        '/api/calls',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        },
-        30_000,
-        attempt.abort.signal,
-      );
-      if (!response.ok)
-        throw new CallError(
-          'We could not confirm delivery. Check Grandma’s page before making another call.',
-        );
-      CallRecord.parse(response.data);
+      await submitCall(attempt.call, attempt.id, attempt.abort.signal);
       if (!attempt.cancelled) setPhase('done');
     } catch (e) {
       if (!attempt.cancelled) {
@@ -160,7 +138,6 @@ export default function CallPage() {
     setMuted(false);
     setActivity('waiting');
     setError(null);
-    setFixture(false);
     try {
       if (!navigator.mediaDevices?.getUserMedia)
         throw new CallError(
@@ -208,7 +185,6 @@ export default function CallPage() {
       const token = LiveTokenResponse.parse(response.data);
       if (attempt.cancelled) return;
       attempt.id = token.callSessionId;
-      setFixture(token.recordedFixture);
       if (token.token && token.model && attempt.context && attempt.stream && attempt.clips) {
         setActualMode('live');
         const live = new LiveCall(
@@ -290,21 +266,19 @@ export default function CallPage() {
                   ? 'Preparing the response. Your microphone is paused; please wait.'
                   : 'Listening. Tell the assistant why you’re calling.'
           : phase === 'sending'
-            ? 'Microphone off. Passing the conversation to Grandma…'
+            ? 'Microphone off. Preparing the summary card…'
             : phase === 'done'
-              ? fixture
-                ? 'Sample result passed to Grandma.'
-                : 'Passed to Grandma.'
+              ? 'Summary card sent to the recipient’s Alerts screen.'
               : phase === 'error'
                 ? 'Call stopped. Your microphone is off.'
                 : 'Ready for a practice call.';
   return (
     <section className="space-y-5 text-center">
-      <p className="rounded-full bg-stone-200 px-4 py-1 text-base">Simulated call for the demo</p>
+      <p className="rounded-full bg-surface-2 px-4 py-1 text-base">Simulated call for the demo</p>
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold">Call Grandma</h1>
-        <p className="text-lg text-stone-600">
-          Her assistant will ask who’s calling and what it’s about.
+        <h1 className="text-3xl font-semibold">Make a practice call</h1>
+        <p className="text-lg text-ink-2">
+          The assistant will ask who’s calling and what it’s about.
         </p>
       </div>
       <fieldset
@@ -312,18 +286,20 @@ export default function CallPage() {
         className="flex flex-wrap justify-center gap-x-5 text-base disabled:opacity-60"
       >
         <legend className="sr-only">Call mode</legend>
-        <label className="flex min-h-11 items-center gap-2">
+        <label className="flex min-h-12 items-center gap-2">
           <input
             type="radio"
+            className="accent-accent-ink"
             name="mode"
             checked={mode === 'live'}
             onChange={() => setMode('live')}
           />
           Live conversation
         </label>
-        <label className="flex min-h-11 items-center gap-2">
+        <label className="flex min-h-12 items-center gap-2">
           <input
             type="radio"
+            className="accent-accent-ink"
             name="mode"
             checked={mode === 'recorded'}
             onChange={() => setMode('recorded')}
@@ -332,9 +308,9 @@ export default function CallPage() {
         </label>
       </fieldset>
       {mode === 'live' && (
-        <p className="text-base text-stone-600">
-          Kokoro voice · prerecorded screening questions. Please take turns: background sounds won’t
-          cut off a question. Gemini listens when the assistant finishes.
+        <p className="text-base text-ink-2">
+          The assistant uses prerecorded questions. Wait for “Listening” before you speak;
+          background sounds won’t cut off a question.
         </p>
       )}
       {codeRequired && (
@@ -347,15 +323,15 @@ export default function CallPage() {
             onChange={(e) => setCode(e.target.value)}
             disabled={busy}
             maxLength={256}
-            className="mt-2 block w-full rounded-xl border-2 border-stone-500 p-3"
+            className="mt-2 block w-full rounded-chip border-2 border-line-strong p-3"
           />
         </label>
       )}
       {!busy && (
-        <button
+        <Button
           type="button"
           disabled={speakerTesting}
-          className="min-h-11 underline disabled:opacity-50"
+          variant="secondary"
           onClick={async () => {
             setSpeakerTesting(true);
             try {
@@ -368,30 +344,20 @@ export default function CallPage() {
           }}
         >
           Test speaker
-        </button>
+        </Button>
       )}
       <p role="status" aria-live="polite" className="min-h-14">
         {status}
       </p>
-      {fixture && (
-        <p className="rounded-xl border-2 border-amber-600 bg-amber-50 p-4 text-lg">
-          Sample-result demo: this recording is not transcribed. Grandma will receive a preset scam
-          warning, regardless of what you say.
-        </p>
-      )}
       {phase === 'prompting' && (
-        <div className="space-y-3 rounded-xl bg-stone-100 p-4">
+        <div className="space-y-3 rounded-chip bg-surface-2 p-4">
           <p>{SCREENER_OPENING}</p>
-          <button type="button" onClick={readQuestion} className="min-h-11 underline">
+          <Button type="button" onClick={readQuestion} variant="secondary">
             Read question aloud
-          </button>
-          <button
-            type="button"
-            onClick={record}
-            className="w-full rounded-full bg-green-800 p-5 font-semibold text-white"
-          >
-            {fixture ? 'Start sample demo recording' : 'Start recording'}
-          </button>
+          </Button>
+          <Button type="button" onClick={record}>
+            Start recording
+          </Button>
         </div>
       )}
       {phase === 'listening' && (
@@ -401,10 +367,10 @@ export default function CallPage() {
       )}
       {phase === 'listening' && actualMode === 'live' && (
         <div className="space-y-3">
-          <button
+          <Button
             type="button"
             aria-pressed={muted}
-            className="min-h-12 rounded-xl border-2 border-stone-600 px-5"
+            variant="secondary"
             onClick={() => {
               const next = !muted;
               if (current.current?.call instanceof LiveCall) current.current.call.setMuted(next);
@@ -412,7 +378,7 @@ export default function CallPage() {
             }}
           >
             {muted ? 'Unmute microphone' : 'Mute microphone'}
-          </button>
+          </Button>
           <label className="block text-base">
             Assistant volume
             <input
@@ -420,7 +386,7 @@ export default function CallPage() {
               min="0"
               max="100"
               value={volume}
-              className="block min-h-11 w-full"
+              className="block min-h-12 w-full"
               onChange={(e) => {
                 const next = Number(e.target.value);
                 setVolume(next);
@@ -432,54 +398,51 @@ export default function CallPage() {
         </div>
       )}
       {phase === 'listening' ? (
-        <button
+        <Button
           type="button"
           onClick={() => {
             if (current.current) void finish(current.current);
           }}
-          className="w-full rounded-full bg-red-700 p-6 font-semibold text-white focus-visible:outline-4 focus-visible:outline-offset-4"
+          className="bg-danger! text-surface!"
         >
           Hang up
-        </button>
+        </Button>
       ) : (
         phase !== 'prompting' && (
-          <button
-            type="button"
-            onClick={start}
-            disabled={busy || speakerTesting}
-            className="w-full rounded-full bg-green-800 p-6 font-semibold text-white disabled:opacity-50 focus-visible:outline-4 focus-visible:outline-offset-4"
-          >
+          <Button type="button" onClick={start} disabled={busy || speakerTesting}>
             {phase === 'sending'
               ? 'Passing it on…'
               : phase === 'connecting'
                 ? 'Connecting…'
-                : 'Call Grandma'}
-          </button>
+                : 'Start call'}
+          </Button>
         )
       )}
       {(phase === 'connecting' || phase === 'prompting') && (
-        <button
+        <Button
           type="button"
-          className="min-h-11 underline"
+          variant="secondary"
           onClick={() => {
             if (current.current) dispose(current.current);
             current.current = null;
             if ('speechSynthesis' in window) speechSynthesis.cancel();
             setPhase('idle');
-            setFixture(false);
           }}
         >
           Cancel
-        </button>
+        </Button>
       )}
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-900">
+        <p
+          role="alert"
+          className="rounded-chip border border-danger bg-danger-soft p-4 text-danger"
+        >
           {error}
         </p>
       )}
-      <p className="text-base text-stone-600">
-        Use a made-up caller and story. Calls last up to 45 seconds. Live audio is processed by
-        Google; the transcript is saved for analysis. Grandma receives a summary card.
+      <p className="text-base text-ink-2">
+        Use a made-up caller and story. Calls last up to 45 seconds. Audio is processed by Google;
+        the transcript is saved for analysis. The recipient receives a summary card.
       </p>
     </section>
   );

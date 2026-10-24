@@ -8,7 +8,7 @@ Start your agent with one line:
 
 ## Setup
 
-1. Clone `https://github.com/owenbonc/grandma-s-phone` (Owen adds you as a collaborator).
+1. Clone `https://github.com/owenbonc/Halo` (Owen adds you as a collaborator).
 2. Commit under your own name: `git config user.name` and `user.email` in the repo.
 3. Tonight's tasks need no app code. A's spike happens in a scratch folder; B's pattern files can go on B's branch.
 4. Once the skeleton lands on `main` (target Fri 23:30), `git pull`, then work on your own branch: `git switch -c slice/<a-call|b-brain|c-grandma|d-caretaker>`.

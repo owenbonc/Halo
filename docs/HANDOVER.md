@@ -1,6 +1,6 @@
 # Handover: Owen is away on Saturday 24 Oct
 
-The app is called **Halo**. The Vercel URL and the GitHub repo keep their old names.
+The app is called **Halo**. The GitHub repo is `owenbonc/Halo`; the Vercel URL keeps its old name.
 
 Owen is at another hackathon all Saturday and replies to messages slowly, if at all. Until he's back:
 
@@ -29,7 +29,7 @@ Owen is at another hackathon all Saturday and replies to messages slowly, if at 
 - [x] Add `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE` to Vercel production (as Secrets), then push or redeploy.
 - [ ] Send the access code privately to whoever plays the caller.
 - [ ] Invite the team to the Atlas project (Project → Access Manager → Invite).
-- [x] Invite D as a GitHub collaborator. **D: accept the invite email** (or go to github.com/owenbonc/grandma-s-phone/invitations); until then you can't push.
+- [x] Invite D as a GitHub collaborator. **D: accept the invite email** (or go to github.com/owenbonc/Halo/invitations); until then you can't push.
 
 If a box is still empty when you read this, ask Owen in the group chat.
 

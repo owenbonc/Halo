@@ -4,10 +4,10 @@ import { CallScreen } from '@/components/grandma/CallScreen';
 import { buttonClass } from '@/components/ui/Button';
 import { Quote } from '@/components/ui/icons';
 
-// What they said: the phrases that worried us, and a way into the whole call.
+// Their words: the phrases that worried us, and a way into the whole call.
 export default function SaidPage() {
   return (
-    <CallScreen title="What they said">
+    <CallScreen title="Their words">
       {(call) => (
         <div className="space-y-6">
           {call.analysis.cues.length > 0 ? (

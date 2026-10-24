@@ -6,6 +6,7 @@ const BACK =
   'glass inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full px-5 font-semibold text-ink transition-transform duration-100 ease-out active:scale-[0.97]';
 
 // Grandma's top bar: stays on screen as translucent material while the page scrolls under it.
+// It owns the status-bar gap, so it cancels the page's own top padding, like the caretaker's header.
 export function TopBar({
   title,
   count,
@@ -19,7 +20,7 @@ export function TopBar({
 }) {
   const router = useRouter();
   return (
-    <header className="material sticky top-0 z-10 -mx-4 space-y-3 px-4 pt-[max(0.75rem,var(--safe-top))] pb-3">
+    <header className="material sticky top-0 z-10 -mx-4 -mt-[max(2rem,var(--safe-top))] space-y-3 px-4 pt-[max(0.75rem,var(--safe-top))] pb-3">
       {back && (
         <button
           type="button"

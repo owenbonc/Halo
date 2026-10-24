@@ -71,13 +71,15 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - The voice note lives on Other calls and on the empty Alerts screen; after sending, the new card opens in Alerts.
   - SPEC.md ("Mum's app", API table) and DESIGN.md (Tabs, One card, big buttons) updated. Clicked through locally on synthetic calls; verify.sh READY.
 
+- **Action ring (Owen's call, 24 Oct, branch `ui/alert-ring`):** the card leads with the time, then a ring of big icon-first buttons around a verdict circle (band icon and a short word, `BAND_LABEL.circle`). Warning calls get four quarters: **Get Sam**, **What to do**, **Their words** (was What they said) and **Read aloud** (was Read it to me); green calls get two halves. The full verdict, scam type and Sam's status sit below. Still fits at Standard text; Large and up scroll a little. Grandma's top bar now cancels the page's top padding, removing a doubled gap above every title.
+
 ## Doing
 
 ## Next
 
 - Check on the stage phone that the card's fade-in plays. The browser pane draws no frames, so it couldn't be tested there.
 - Retest against B's real `analyse` (long summaries, four cues) and on a real phone with a real microphone.
-- Check the Alerts screen at Larger and Largest text on the stage phone, and that "Read it to me" starts speaking on arrival (the browser pane can't play speech).
+- Check the Alerts screen at Larger and Largest text on the stage phone, and that "Read aloud" starts speaking on arrival (the browser pane can't play speech).
 
 ## Needs from others
 

@@ -2,11 +2,17 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { type Role, savedRole, saveRole } from '@/lib/role';
+import { savedRole, saveRole } from '@/lib/role';
 
-const ROLES: { role: Role; label: string; hint: string }[] = [
-  { role: 'grandma', label: 'Grandma', hint: 'See what we found out about your calls' },
-  { role: 'caretaker', label: 'Caretaker', hint: 'Hear when Grandma needs you' },
+// Her phone gets its role at the end of setup, so only the caretaker's choice is saved here.
+const CHOICES = [
+  { href: '/setup', label: 'Set up a phone for someone', hint: 'Do this on their phone, together' },
+  {
+    href: '/caretaker',
+    label: 'I look out for someone',
+    hint: 'Get told when a call worries them',
+    role: 'caretaker' as const,
+  },
 ];
 
 export default function RolePicker() {
@@ -24,15 +30,15 @@ export default function RolePicker() {
         <p className="font-display text-2xl font-extrabold tracking-[-0.02em] text-accent-ink">
           Hang Up &amp; Check
         </p>
-        <h1 className="text-4xl font-bold leading-tight">Who are you?</h1>
+        <h1 className="text-4xl font-bold leading-tight">What would you like to do?</h1>
         <p className="text-ink-2">This phone will remember your answer.</p>
       </header>
       <div className="space-y-4">
-        {ROLES.map(({ role, label, hint }) => (
+        {CHOICES.map(({ href, label, hint, role }) => (
           <Link
-            key={role}
-            href={`/${role}`}
-            onClick={() => saveRole(role)}
+            key={href}
+            href={href}
+            onClick={() => role && saveRole(role)}
             className="glass flex min-h-24 w-full flex-col items-start justify-center gap-1 rounded-card px-6 py-4 text-left transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
           >
             <span className="font-display text-3xl font-bold tracking-[-0.02em]">{label}</span>

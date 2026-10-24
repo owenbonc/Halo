@@ -1,10 +1,10 @@
 'use client';
-import { createContext, type ReactNode, useContext, useEffect } from 'react';
+import { createContext, type ReactNode, useContext } from 'react';
 import { Clock, Inbox, User } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
 import type { CallView, Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
-import { TEXT_SIZES, useDone, useTextSize } from './prefs';
+import { useAppliedTextSize, useDone } from './prefs';
 
 // A green call is shown briefly so she sees it was screened, then clears itself and is never kept.
 export const GREEN_SHOWN_MS = 5 * 60_000;
@@ -35,15 +35,7 @@ export function GrandmaShell({ children }: { children: ReactNode }) {
   const calls = usePoll<CallView[]>('/api/calls');
   const settings = usePoll<Settings>('/api/settings', 10_000);
   const done = useDone();
-  const size = useTextSize();
-
-  // Everything in her app is in rem, so one root size scales cards, pills, buttons and the tab bar together.
-  useEffect(() => {
-    document.documentElement.style.fontSize = TEXT_SIZES[size].scale;
-    return () => {
-      document.documentElement.style.fontSize = '';
-    };
-  }, [size]);
+  useAppliedTextSize();
 
   const now = Date.now();
   const all = calls.data ?? [];

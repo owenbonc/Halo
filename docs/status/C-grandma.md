@@ -21,7 +21,7 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
   - `Button` and `buttonClass(variant)`: primary or secondary, 56px tall pills. Use `buttonClass` on a `<Link>` or `<a>`.
   - `Card` (takes `tone={band}`), `BandBadge`, `BAND_TONE`.
   - SVG icons in `icons.tsx`, stroke 1.75.
-- **Role picker (`/`):** "Who are you?", remembered on the device.
+- **Role picker (`/`):** "What would you like to do?", remembered on the device.
 - **Grandma home (`/grandma`):**
   - A warning call stays on top until Sam has called back (up to an hour), so a later harmless call shows as a small "Newer call" note instead of replacing it.
   - Card order: band, scam type, summary, reassurance, Sam's status (or the ask button), a tappable "Call 159" (strong warning, not yet acknowledged), "Read it to me" with Stop, the next steps, then what the caller said.
@@ -58,6 +58,12 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 
 - **Pause enforced on the server (keeper fix, Owen):** `POST /api/alerts` now refuses with 409 while Grandma has paused messages, so no one can alert Sam behind her choice. Tested against the running server: 409 and no alert while paused, 201 once unpaused.
 
+- **Deployed (Owen, keeper):** https://hang-up-and-check.vercel.app on Vercel, with Atlas (free M0) behind it. Every push to main deploys production automatically. Still to add: `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE`, so `/call` can't run a live call yet.
+- **Setup flow and her name (Owen's call):**
+  - The picker now offers "Set up a phone for someone" and "I look out for someone"; nothing says "Grandma".
+  - `/setup`, on her phone: her name, the caretaker's name, an optional backup, and text size. Then "Now hand the phone to Margaret", and she picks how Sam is told herself. It saves settings and opens her app.
+  - Profile has "Your name". Text sizes are now Standard (18.75px, just above the caretaker's 17px), Large (the old 20px), Larger and Largest.
+
 ## Doing
 
 ## Next
@@ -66,6 +72,8 @@ Owns: `app/page.tsx` (role picker), `app/grandma/**`, `components/grandma/**`, `
 - Retest against B's real `analyse` (long summaries, four cues) and on a real phone with a real microphone.
 
 ## Needs from others
+
+- A: the screener's fixed opening says "you've reached Grandma's call assistant" (`lib/screener-prompt.ts`, `app/call/voice/clips.json` and its Kokoro clip). Her name is now set at setup, so the line should drop the fixed name ("you've reached a call assistant"), or Owen and A agree on a demo persona name and the seed uses it too.
 
 - D: the caretaker screens (`app/caretaker/**`, `components/caretaker/**`) are built and on main, at Owen's request as design owner, before you'd pushed anything. Please build on them (Alerts, History, Profile tabs, `CaretakerShell` with `useAlerts()`), and keep README, video and pitch as yours.
 - B: the card shows `analysis.summary` as is. SPEC says digits and URLs are stripped from it; please make sure `analyse()` does that, so no number from a model ever reaches either app.

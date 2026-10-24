@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { type ReactNode, useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { AlertModeChoice, Choice, WhatTheySee } from '@/components/grandma/Consent';
 import { setTextSize, TEXT_SIZES, type TextSize, useTextSize } from '@/components/grandma/prefs';
 import { TopBar } from '@/components/grandma/TopBar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
-import { Check, CircleCheck, Cross } from '@/components/ui/icons';
+import { CircleCheck } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import type { Settings } from '@/lib/types';
@@ -64,27 +65,15 @@ export default function ProfilePage() {
         {save === 'failed' && "That change didn't save. Try again."}
       </p>
 
+      <NameSection name={settings.elderName} onChange={(elderName) => update({ elderName })} />
+
       <ContactSection settings={settings} onChange={update} />
 
-      <fieldset className="min-w-0 space-y-3">
-        <legend className="mb-3 text-2xl font-bold">When should {contact} be told?</legend>
-        <Choice
-          type="radio"
-          name="mode"
-          checked={settings.alertMode === 'ask_first'}
-          onChange={() => update({ alertMode: 'ask_first' })}
-          title="Ask me first"
-          hint={`Only when I tap “Ask ${contact} to call me”.`}
-        />
-        <Choice
-          type="radio"
-          name="mode"
-          checked={settings.alertMode === 'auto_strong'}
-          onChange={() => update({ alertMode: 'auto_strong' })}
-          title={`Tell ${contact} automatically when it's serious`}
-          hint={`For strong warning signs, ${contact} is told straight away.`}
-        />
-      </fieldset>
+      <AlertModeChoice
+        contact={contact}
+        mode={settings.alertMode}
+        onChange={(alertMode) => update({ alertMode })}
+      />
 
       <Choice
         type="checkbox"
@@ -94,27 +83,7 @@ export default function ProfilePage() {
         hint={`While paused, ${contact} isn't told about any call.`}
       />
 
-      <Card className="space-y-4">
-        <h2 className="text-2xl font-bold">What {contact} sees</h2>
-        <List
-          icon={<Check className="mt-1 size-6 text-accent-ink" />}
-          heading={`${contact} will see`}
-          items={[
-            'That a call worried us, and the kind of scam it looked like',
-            'A request to call you',
-            ...(settings.alertMode === 'auto_strong' ? ['A one-line summary of the call'] : []),
-          ]}
-        />
-        <List
-          icon={<Cross className="mt-1 size-6 text-ink-2" />}
-          heading={`${contact} will never see`}
-          items={[
-            'What was said, word for word',
-            'Recordings of any call',
-            'Calls that showed no warning signs',
-          ]}
-        />
-      </Card>
+      <WhatTheySee contact={contact} mode={settings.alertMode} />
 
       <fieldset className="min-w-0 space-y-3">
         <legend className="mb-3 text-2xl font-bold">Text size</legend>
@@ -140,6 +109,38 @@ export default function ProfilePage() {
       {/* Room to scroll clear of the tab bar. */}
       <div aria-hidden="true" className="h-24" />
     </section>
+  );
+}
+
+function NameSection({ name, onChange }: { name: string; onChange: (name: string) => void }) {
+  const [value, setValue] = useState(name);
+  const inputId = useId();
+  const trimmed = value.trim();
+
+  return (
+    <Card>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (trimmed && trimmed !== name) onChange(trimmed);
+        }}
+      >
+        <label htmlFor={inputId} className="block text-2xl font-bold">
+          Your name
+        </label>
+        <input
+          id={inputId}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={40}
+          required
+          autoComplete="given-name"
+          className="min-h-14 w-full rounded-chip border border-line-strong bg-surface px-4 text-xl"
+        />
+        {trimmed && trimmed !== name && <Button type="submit">Save my name</Button>}
+      </form>
+    </Card>
   );
 }
 
@@ -222,55 +223,5 @@ function ContactSection({
         Choose someone else
       </Button>
     </Card>
-  );
-}
-
-function Choice({
-  type,
-  name,
-  checked,
-  onChange,
-  title,
-  hint,
-}: {
-  type: 'radio' | 'checkbox';
-  name?: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  title: string;
-  hint: string;
-}) {
-  return (
-    <label
-      className={`flex cursor-pointer items-start gap-4 rounded-card border p-4 transition-colors duration-150 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent-ink ${checked ? 'border-accent-ink bg-accent-soft' : 'border-line-strong bg-surface'}`}
-    >
-      <input
-        type={type}
-        name={name}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-1 size-7 shrink-0 accent-accent-ink focus-visible:outline-none"
-      />
-      <span className="min-w-0 break-words">
-        <span className="block font-bold">{title}</span>
-        <span className="block text-ink-2">{hint}</span>
-      </span>
-    </label>
-  );
-}
-
-function List({ icon, heading, items }: { icon: ReactNode; heading: string; items: string[] }) {
-  return (
-    <div className="space-y-2">
-      <h3 className="font-bold">{heading}</h3>
-      <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item} className="flex gap-3">
-            {icon}
-            {item}
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

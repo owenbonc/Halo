@@ -28,7 +28,7 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## Two densities
 
-- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large or Largest text in Profile; it scales the root font size (100% / 112.5% / 125%) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
+- **Grandma** (`/grandma/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Profile; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caretaker's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
 - **Caretaker** (`/caretaker/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
 - Sizes are always rem, never px, so Grandma's text size reaches everything.
 
@@ -55,7 +55,7 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 ## Tabs
 
 - Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
-- Grandma: **New** (`/grandma`, calls she hasn't dealt with), **Past calls** (`/grandma/past`, every warning call with filters), **Profile** (`/grandma/profile`, her person, consent, text size, switch role). A call opens at `/grandma/calls/[id]`.
+- Grandma: **New** (`/grandma`, calls she hasn't dealt with), **Past calls** (`/grandma/past`, every warning call with filters), **Profile** (`/grandma/profile`, her name, her person, consent, text size, switch role). A call opens at `/grandma/calls/[id]`.
 - A call leaves New only when she taps "I've dealt with this" (remembered on her phone). Green calls show in New for 5 minutes so she sees the call was screened, then clear themselves and are never kept in Past calls.
 - Caretaker: **Alerts**, **History**, **Profile** (read-only: Grandma controls consent).
 

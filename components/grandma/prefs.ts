@@ -1,5 +1,5 @@
 'use client';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 // Grandma's per-phone choices. localStorage can throw (private browsing); the app still works, it just forgets.
 const DONE_KEY = 'hang-up-and-check.done';
@@ -62,16 +62,18 @@ export function markDone(id: string) {
 
 // ---- Text size ----
 
+// Standard sits just above the caretaker's 17px; 93.75% keeps 3rem tap targets at 45px, above Apple's 44pt.
 export const TEXT_SIZES = {
-  standard: { label: 'Standard', hint: 'The usual size.', scale: '100%' },
-  large: { label: 'Large', hint: 'A bit bigger everywhere.', scale: '112.5%' },
+  standard: { label: 'Standard', hint: 'A little bigger than usual.', scale: '93.75%' },
+  large: { label: 'Large', hint: 'Bigger everywhere.', scale: '100%' },
+  larger: { label: 'Larger', hint: 'Bigger still.', scale: '112.5%' },
   largest: { label: 'Largest', hint: 'As big as it goes.', scale: '125%' },
 } as const;
 export type TextSize = keyof typeof TEXT_SIZES;
 
 function sizeSnapshot(): TextSize {
   const raw = read(SIZE_KEY);
-  return raw === 'large' || raw === 'largest' ? raw : 'standard';
+  return raw && raw in TEXT_SIZES ? (raw as TextSize) : 'standard';
 }
 
 export function useTextSize(): TextSize {
@@ -80,4 +82,17 @@ export function useTextSize(): TextSize {
 
 export function setTextSize(size: TextSize) {
   write(SIZE_KEY, size);
+}
+
+/** Applies her text size while the calling screen is mounted. */
+export function useAppliedTextSize(): TextSize {
+  const size = useTextSize();
+  // Everything in her app is in rem, so one root size scales cards, pills, buttons and the tab bar together.
+  useEffect(() => {
+    document.documentElement.style.fontSize = TEXT_SIZES[size].scale;
+    return () => {
+      document.documentElement.style.fontSize = '';
+    };
+  }, [size]);
+  return size;
 }

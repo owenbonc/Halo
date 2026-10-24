@@ -46,7 +46,10 @@ describe('buildPrompt', () => {
 describe('analyseWith', () => {
   it('grounds Argon in the patterns Atlas returned', async () => {
     const judge = vi.fn<AnalyseDeps['judge']>().mockResolvedValue(courierVerdict);
-    const result = await analyseWith(COURIER, { findPatterns: async () => library, judge });
+    const result = await analyseWith(COURIER, 'screener', {
+      findPatterns: async () => library,
+      judge,
+    });
     expect(judge).toHaveBeenCalledWith(COURIER, library);
     expect(result).toMatchObject({
       band: 'strong',
@@ -59,7 +62,7 @@ describe('analyseWith', () => {
   it('still judges when Atlas is down', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const judge = vi.fn<AnalyseDeps['judge']>().mockResolvedValue(courierVerdict);
-    const result = await analyseWith(COURIER, {
+    const result = await analyseWith(COURIER, 'screener', {
       findPatterns: async () => {
         throw new Error('atlas down');
       },
@@ -72,7 +75,7 @@ describe('analyseWith', () => {
 
   it('falls back to word rules when Argon fails, and says so', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    const result = await analyseWith(COURIER, {
+    const result = await analyseWith(COURIER, 'screener', {
       findPatterns: async () => library,
       judge: async () => {
         throw new Error('quota');

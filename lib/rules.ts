@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { type Analysis, type Band, type GuidanceId, type Pattern, ScamFamily } from './types';
+import {
+  type Analysis,
+  type Band,
+  type CallRecord,
+  type GuidanceId,
+  type Pattern,
+  ScamFamily,
+} from './types';
 
 export const Signals = z.object({
   claimsAuthority: z.boolean(),
@@ -23,7 +30,9 @@ export const ModelVerdict = z.object({
 });
 export type ModelVerdict = z.infer<typeof ModelVerdict>;
 
-export const NONE_SUMMARY = 'No common warning signs found. This is not a guarantee.';
+// Green means no concern signal at all, so this is true whenever it is shown.
+export const NONE_FALLBACK_SUMMARY =
+  "The caller didn't ask for money, bank details or access to a device.";
 export const UNCLEAR_SUMMARY = "I couldn't make out enough of the call to check it.";
 export const DEGRADED_SUMMARY =
   "The full check didn't finish, so this is based on simple word checks only.";
@@ -172,9 +181,15 @@ const STRONG_STEPS: Record<ScamFamily, GuidanceId[]> = {
   none: ['dont_call_back', 'different_phone', 'call_159'],
 };
 
-export function nextStepsFor(band: Band, family: ScamFamily): GuidanceId[] {
+export function nextStepsFor(
+  band: Band,
+  family: ScamFamily,
+  source: CallRecord['source'],
+): GuidanceId[] {
   if (band === 'none') return ['call_back_known_number'];
   if (band === 'some') return ['call_back_known_number', 'call_159'];
+  // The screener took the call, so no line of hers was ever held open.
+  if (source === 'screener') return STRONG_STEPS[family].filter((id) => id !== 'different_phone');
   return [...STRONG_STEPS[family]];
 }
 
@@ -199,10 +214,18 @@ function summaryFor(verdict: ModelVerdict | null, signals: Signals, concern: boo
   return cleaned && !CLAIMS_SAFE.test(cleaned) ? cleaned : FALLBACK_SUMMARY;
 }
 
+// The card title already says no warning signs, so the summary says what the call was about.
+function greenSummary(verdict: ModelVerdict | null): string {
+  const cleaned = scrub(verdict?.summary ?? '').slice(0, 200);
+  const usable = cleaned && !CLAIMS_SAFE.test(cleaned) && !/\bwarning signs?\b/i.test(cleaned);
+  return usable ? cleaned : NONE_FALLBACK_SUMMARY;
+}
+
 export function decide(
   transcript: string,
   verdict: ModelVerdict | null,
   patterns: Pattern[],
+  source: CallRecord['source'],
 ): Analysis {
   const words = wordSignals(transcript);
   const signals = Object.fromEntries(
@@ -222,8 +245,8 @@ export function decide(
       band,
       family: 'none',
       cues: [],
-      summary: NONE_SUMMARY,
-      nextSteps: nextStepsFor(band, 'none'),
+      summary: greenSummary(verdict),
+      nextSteps: nextStepsFor(band, 'none', source),
       matchedPatternIds: [],
     };
   }
@@ -232,7 +255,7 @@ export function decide(
     family,
     cues: quotedCues([...(verdict?.cues ?? []), ...words.phrases], transcript),
     summary: summaryFor(verdict, signals, concern),
-    nextSteps: nextStepsFor(band, family),
+    nextSteps: nextStepsFor(band, family, source),
     matchedPatternIds: patterns
       .filter((pattern) => pattern.family === family)
       .slice(0, 3)

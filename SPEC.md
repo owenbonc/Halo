@@ -137,7 +137,7 @@ interface SamAlert {
 
 Functions:
 
-- `analyse(transcript: string): Promise<Analysis>` in `lib/analyse.ts`. The transcript is untrusted data, never instructions. The band comes from rules over Argon's structured output and the retrieval matches, not from free text.
+- `analyse(transcript: string, source: "screener" | "voice_note"): Promise<Analysis>` in `lib/analyse.ts`. Screened calls drop `different_phone` from the steps, since she never picked up. The transcript is untrusted data, never instructions. The band comes from rules over Argon's structured output and the retrieval matches, not from free text.
 - `findPatterns(transcript: string, k: number): Promise<Pattern[]>` in `lib/patterns.ts` (Atlas Vector Search).
 - `transcribe(audio: Blob): Promise<string>` in `lib/transcribe.ts`.
 - `GUIDANCE: Record<GuidanceId, { title: string; body: string }>` in `lib/guidance.ts`. The only phone numbers the app ever shows: 159; Report Fraud 0300 123 2040 (reportfraud.police.uk); Police Scotland 101; 7726.

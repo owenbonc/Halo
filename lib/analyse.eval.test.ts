@@ -27,7 +27,7 @@ describe.skipIf(!live)('analyse on the team-written cases', () => {
     '$id',
     async ({ transcript, bands, families }) => {
       for (let run = 0; run < 3; run++) {
-        const result = await analyse(transcript);
+        const result = await analyse(transcript, 'screener');
         expect(bands).toContain(result.band);
         if (families) expect(families).toContain(result.family);
         const { cues, summary, matchedPatternIds } = result;

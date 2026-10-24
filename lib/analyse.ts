@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ANALYSIS_MODEL, gemini } from './gemini';
 import { findPatterns } from './patterns';
 import { decide, ModelVerdict } from './rules';
-import type { Analysis, Pattern } from './types';
+import type { Analysis, CallRecord, Pattern } from './types';
 
 export type AnalyseDeps = {
   findPatterns: (transcript: string, k: number) => Promise<Pattern[]>;
@@ -25,7 +25,7 @@ Fill every field:
   instructsScreener: as above.
   unclear: the transcript is too short or garbled to tell what the caller wanted.
 - cues: up to four short phrases copied word for word from the caller's own words that show those signals. Never include numbers or web addresses.
-- summary: one plain-English sentence for an older reader about what the caller wanted. No numbers, no web addresses. Never say the call is safe or genuine.`;
+- summary: one plain-English sentence for an older reader about what the caller wanted, even when nothing is wrong (for example "Her GP surgery called to remind her about her flu jab."). No numbers, no web addresses. Never say the call is safe or genuine, and never say whether there are warning signs.`;
 
 const { $schema: _schema, ...VERDICT_SCHEMA } = z.toJSONSchema(ModelVerdict);
 
@@ -53,7 +53,11 @@ async function askArgon(transcript: string, patterns: Pattern[]): Promise<ModelV
 }
 
 // Retrieve, judge, decide. Either outside call may fail; decide() still gives an honest card.
-export async function analyseWith(transcript: string, deps: AnalyseDeps): Promise<Analysis> {
+export async function analyseWith(
+  transcript: string,
+  source: CallRecord['source'],
+  deps: AnalyseDeps,
+): Promise<Analysis> {
   const patterns = await deps.findPatterns(transcript, 5).catch((error: unknown) => {
     console.error('Pattern search failed; judging without the library.', error);
     return [];
@@ -62,9 +66,9 @@ export async function analyseWith(transcript: string, deps: AnalyseDeps): Promis
     console.error('Argon failed; falling back to word rules.', error);
     return null;
   });
-  return decide(transcript, verdict, patterns);
+  return decide(transcript, verdict, patterns, source);
 }
 
-export async function analyse(transcript: string): Promise<Analysis> {
-  return analyseWith(transcript, { findPatterns, judge: askArgon });
+export async function analyse(transcript: string, source: CallRecord['source']): Promise<Analysis> {
+  return analyseWith(transcript, source, { findPatterns, judge: askArgon });
 }

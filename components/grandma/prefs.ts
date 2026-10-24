@@ -3,6 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 
 // Grandma's per-phone choices. localStorage can throw (private browsing); the app still works, it just forgets.
 const DONE_KEY = 'hang-up-and-check.done';
+const OPENED_KEY = 'hang-up-and-check.opened';
 const SIZE_KEY = 'hang-up-and-check.text-size';
 
 const listeners = new Set<() => void>();
@@ -31,34 +32,44 @@ function write(key: string, value: string) {
   emit();
 }
 
-// ---- Calls she has dealt with ----
+// ---- Calls she has opened, and calls she has dealt with ----
 
-let doneRaw: string | null = null;
-let doneIds: string[] = [];
-function doneSnapshot(): string[] {
-  const raw = read(DONE_KEY);
-  if (raw !== doneRaw) {
-    doneRaw = raw;
-    try {
-      const parsed: unknown = JSON.parse(raw ?? '[]');
-      doneIds = Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : [];
-    } catch {
-      doneIds = [];
+// A list of call ids on this phone, kept to the newest 200.
+function idList(key: string) {
+  let raw: string | null = null;
+  let ids: string[] = [];
+  const snapshot = (): string[] => {
+    const next = read(key);
+    if (next !== raw) {
+      raw = next;
+      try {
+        const parsed: unknown = JSON.parse(next ?? '[]');
+        ids = Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : [];
+      } catch {
+        ids = [];
+      }
     }
-  }
-  return doneIds;
+    return ids;
+  };
+  return {
+    use: () => useSyncExternalStore(subscribe, snapshot, () => noIds),
+    add: (id: string) => {
+      const current = snapshot();
+      if (!current.includes(id)) write(key, JSON.stringify([...current, id].slice(-200)));
+    },
+  };
 }
-const noDone: string[] = [];
+const noIds: string[] = [];
+
+const done = idList(DONE_KEY);
+const opened = idList(OPENED_KEY);
 
 /** Ids of calls she tapped "I've dealt with this" on, on this phone. */
-export function useDone(): string[] {
-  return useSyncExternalStore(subscribe, doneSnapshot, () => noDone);
-}
-
-export function markDone(id: string) {
-  const ids = doneSnapshot();
-  if (!ids.includes(id)) write(DONE_KEY, JSON.stringify([...ids, id].slice(-200)));
-}
+export const useDone = done.use;
+export const markDone = done.add;
+/** Ids of calls she has tapped any button on, on this phone. */
+export const useOpened = opened.use;
+export const markOpened = opened.add;
 
 // ---- Text size ----
 

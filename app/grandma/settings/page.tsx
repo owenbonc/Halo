@@ -13,7 +13,7 @@ import type { Settings } from '@/lib/types';
 
 type Save = 'idle' | 'saving' | 'saved' | 'failed';
 
-export default function ProfilePage() {
+export default function SettingsPage() {
   const textSize = useTextSize();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -50,7 +50,7 @@ export default function ProfilePage() {
 
   return (
     <section className="space-y-10">
-      <TopBar title="Profile" />
+      <TopBar title="Settings" />
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p
         role="status"

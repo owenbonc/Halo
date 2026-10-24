@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
@@ -6,6 +7,8 @@ import { appScroller } from '@/components/ui/DeviceFrame';
 import { Mic } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { startRecording } from '@/lib/recorder';
+import type { CallView } from '@/lib/types';
+import { useGrandma } from './GrandmaData';
 
 type State =
   | { kind: 'idle'; message: string | null }
@@ -19,6 +22,8 @@ const minutes = (ms: number) => {
 
 // No time limit: people may speak slowly. The server caps the upload size.
 export function VoiceNote() {
+  const { focus } = useGrandma();
+  const router = useRouter();
   const [state, setState] = useState<State>({ kind: 'idle', message: null });
   const [now, setNow] = useState(0);
 
@@ -50,7 +55,10 @@ export function VoiceNote() {
     form.append('audio', audio);
     const res = await fetch('/api/voice-note', { method: 'POST', body: form }).catch(() => null);
     if (res?.ok) {
-      setState({ kind: 'idle', message: 'Done. Your new card is at the top.' });
+      const call = (await res.json()) as CallView;
+      setState({ kind: 'idle', message: null });
+      focus(call.id);
+      router.push('/grandma');
       appScroller().scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }

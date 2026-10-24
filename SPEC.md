@@ -76,6 +76,11 @@ Close with: tested on synthetic scripts written by the team; it doesn't stop spo
 
 - **Web app** (Mum's and Sam's views, all API routes): Next.js 16, TypeScript, Tailwind, pnpm, Biome, Vitest, `zod` at every boundary. Deployed on Vercel. HTTPS is required for the microphone.
 - **One app, two roles.** `/` asks "What would you like to do?" with two big buttons: **Set up a phone for someone** and **I look out for someone**. The caretaker sets up her phone with her at `/setup`: her name, the caretaker's name, an optional backup, and her text size; then they hand her the phone and she makes the consent choice herself. Setup ends in her view, and each phone remembers its role (localStorage); both views have a small "Switch role" link. `/grandma` is the older person's view (her name comes from settings, never a fixed "Grandma"), `/caretaker` the caretaker's. `/call` is the demo caller's page and isn't offered on the picker.
+- **Mum's app** (`/grandma`) has three tabs: **Alerts**, **Past calls** and **Settings**.
+  - **Alerts** shows one call at a time, like the top card of a deck, with no scrolling at Standard text. The card face is the verdict (band badge), the scam type, the time and Sam's status line. Under it are big buttons with icons, each opening its own screen with a Back button: **Get Sam** and **What to do** (the fixed next steps, with a Call 159 button on strong warnings; warning calls only) are the large primary actions; **What they said** (the quoted phrases, with a link to the whole call with every number and link removed) and **Read it to me** (the summary, read aloud) are secondary. "I've dealt with this" sits quietly below them, then **Next call** ("Call 2 of 5") and **Other calls**, the list of every warning call not dealt with yet.
+  - The deck holds the calls she hasn't opened yet (opening means tapping any button on the card), strongest band first and newest first within a band. When none are left it refills with the calls she has opened but not dealt with. Green calls sit at the bottom of the deck and move to Past calls once she opens them.
+  - **Past calls** is the backlog: every call she has dealt with, and green calls she has opened, with filters.
+  - **Settings** is mostly for the caretaker: her name, her person and backup, how Sam is told, pause, text size and Switch role. There is no allowlist of numbers.
 - **Screener** (Plan C, inside the same Next.js app): the caller's phone opens `/call`. The browser gets a short-lived Gemini Live token from `POST /api/live-token`, streams the microphone straight to Gemini Live, plays the AI's voice back, and posts the transcript to `POST /api/calls` when the call ends. No separate server and no phone network. The API key never reaches the browser; only the short-lived token does.
 - **AI:** `@google/genai`. `gemini-4-argon` does the analysis (required for the DeepMind bounty). A Gemini Live model handles the spoken conversation; `gemini-3.8-flash` transcribes voice notes and recordings if Argon doesn't take audio.
 - **Data:** MongoDB Atlas via the `mongodb` driver. Collections `patterns` (with a Vector Search index), `calls`, `alerts`, `settings`.
@@ -151,6 +156,7 @@ HTTP (Next.js route handlers):
 | `POST /api/transcribe` | multipart `audio` → `{ transcript }` | call page (recorded line) |
 | `POST /api/voice-note` | multipart `audio` → `CallRecord` | Mum's app |
 | `GET /api/calls` | → `CallRecord[]` without `transcript`, newest first, each with its latest alert status | Mum's app (polls every 2 s) |
+| `GET /api/calls/:id/transcript` | → `{ transcript }` with every digit, spoken number and link removed | Mum's app (What they said) |
 | `POST /api/alerts` | `{ callId }` → `AlertRecord` (`trigger: "user_tap"`) | Mum's app |
 | `POST /api/alerts/:id/ack` | → `AlertRecord` | Sam's app |
 | `GET /api/alerts` | → `SamAlert[]` | Sam's app (polls every 2 s) |

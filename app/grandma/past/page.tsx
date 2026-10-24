@@ -10,12 +10,13 @@ const FILTERS: { id: string; label: string; keep: (c: CallView) => boolean }[] =
   { id: 'all', label: 'All', keep: () => true },
   { id: 'strong', label: 'Strong warnings', keep: (c) => c.analysis.band === 'strong' },
   { id: 'some', label: 'Some warnings', keep: (c) => c.analysis.band === 'some' },
+  { id: 'none', label: 'No warning signs', keep: (c) => c.analysis.band === 'none' },
   { id: 'voice', label: 'Voice notes', keep: (c) => c.source === 'voice_note' },
 ];
 
-// The Past calls tab: every call that worried us, newest first. Green calls are never kept.
+// The Past calls tab: the backlog of calls she has dealt with, and green calls she has opened, newest first.
 export default function PastCallsPage() {
-  const { past, done, calls, error } = useGrandma();
+  const { past, calls, error } = useGrandma();
   const [filter, setFilter] = useState('all');
   const shown = past.filter(FILTERS.find((f) => f.id === filter)?.keep ?? (() => true));
 
@@ -49,11 +50,11 @@ export default function PastCallsPage() {
       {calls && shown.length === 0 && (
         <Card className="space-y-2">
           <h2 className="text-2xl font-bold">
-            {past.length === 0 ? 'No worrying calls yet' : 'None of these'}
+            {past.length === 0 ? 'Nothing here yet' : 'None of these'}
           </h2>
           <p>
             {past.length === 0
-              ? 'Calls that showed warning signs will be kept here so you can look back at them.'
+              ? "When you've dealt with a call, it moves here so you can look back at it."
               : 'Try another filter, or All.'}
           </p>
         </Card>
@@ -61,7 +62,7 @@ export default function PastCallsPage() {
 
       <ul className="space-y-3">
         {shown.map((call) => (
-          <CallRow key={call.id} call={call} isNew={!done.includes(call.id)} />
+          <CallRow key={call.id} call={call} isNew={false} />
         ))}
       </ul>
 

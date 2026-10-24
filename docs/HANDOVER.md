@@ -44,7 +44,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 
 - **Role picker** (`/`): "Set up a phone for someone" or "I look out for someone". Each phone remembers its role.
 - **Setup** (`/setup`): the caretaker fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told.
-- **Grandma's app** (`/grandma`): New, Past calls and Profile tabs, the floating Sam dock, the voice note, and "I've dealt with this".
+- **Grandma's app** (`/grandma`): Alerts (one call at a time like a deck, with big Get Sam, What to do, What they said and Read it to me buttons), Past calls and Settings tabs, the voice note, and "I've dealt with this".
 - **Caretaker's app** (`/caretaker`): Alerts, History and Profile, with a floating "I'm calling her now". It was built by C at Owen's request; D builds on it.
 - **The call** (`/call`): A's live Gemini screener with Kokoro voice clips (PR #7), including the `recordedFixture` contract.
 - **Not merged yet:** B's brain (`slice/b-brain`). `analyse` on main is still the stub.
@@ -74,7 +74,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 ## Settled decisions (don't reopen without Owen)
 
 - **No allowlist of "official" numbers.** Her saved contacts already ring through on her phone. Trusting bank, police or council numbers would let through exactly the spoofed calls the app exists to catch.
-- **The consent choice is hers.** It's made after the hand-over screen in setup, and in Profile.
+- **The consent choice is hers.** It's made after the hand-over screen in setup, and in Settings.
 - **Sam never sees transcripts or quoted phrases.** Phone numbers shown anywhere come only from `lib/guidance.ts`.
 
 ## Known risks

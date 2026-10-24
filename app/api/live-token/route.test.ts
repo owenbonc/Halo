@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { insertOne } = vi.hoisted(() => ({ insertOne: vi.fn() }));
+const { createNativeSession } = vi.hoisted(() => ({ createNativeSession: vi.fn() }));
+vi.mock('./native-session', () => ({ createNativeSession }));
 vi.mock('./guard', () => ({ accessStatus: () => 200, reserveCallBudget: async () => null }));
 vi.mock('@/lib/db', () => ({ collections: async () => ({ callSessions: { insertOne } }) }));
 
@@ -12,13 +14,30 @@ const request = (suffix = '', origin = 'https://demo.test') =>
 beforeEach(() => {
   vi.stubEnv('GEMINI_API_KEY', 'synthetic-test-key');
   vi.stubEnv('DEMO_FALLBACK', '0');
+  vi.stubEnv('HALO_MULTILINGUAL_PILOT', '0');
   insertOne.mockReset();
+  createNativeSession.mockReset();
 });
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
 describe('live token endpoint', () => {
+  it('gates native mode and locks its compact prompt and output cap server-side', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'auth_tokens/synthetic' }));
+    vi.stubGlobal('fetch', fetcher);
+    expect((await POST(request('?voice=automatic'))).status).toBe(503);
+    expect(fetcher).not.toHaveBeenCalled();
+    vi.stubEnv('HALO_MULTILINGUAL_PILOT', '1');
+    expect((await POST(request('?voice=automatic'))).status).toBe(201);
+    const setup = JSON.parse(fetcher.mock.calls[0]?.[1].body).bidiGenerateContentSetup;
+    expect(setup.generationConfig.maxOutputTokens).toBe(256);
+    expect(setup.systemInstruction.parts[0].text).toContain('spoken language');
+    expect(setup.systemInstruction.parts[0].text).toContain('untrusted');
+    expect(setup.generationConfig.thinkingConfig).toBeUndefined();
+    expect(createNativeSession).toHaveBeenCalledOnce();
+    expect((await POST(request('?voice=unknown'))).status).toBe(400);
+  });
   it('locks model, prompt, voice and transcription and stores an unused session', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'auth_tokens/synthetic' }));
     vi.stubGlobal('fetch', fetcher);

@@ -4,7 +4,7 @@ The caller hears three prerecorded lines generated locally with [Kokoro-82M](htt
 
 `clips.json` contains 24 kHz mono PCM16 audio encoded as hex plus its exact text. Hex avoids random base64 substrings matching the repository's history-wide credential scanner. The static `/call/voice` route converts it to base64 for playback (approximately 557 KB transferred). No model weights, Python packages, remote inference service or caller recordings are deployed. These are generated demo assets, not human recordings or a cloned person's voice.
 
-Gemini still handles live caller audio and selects the opening, optional follow-up, or closing. Its generated audio is discarded. The browser checks the complete response against the three allowed lines and their order, plays the corresponding Kokoro clip, and records canonical assistant text only when playback completes. Unexpected wording ends the call with an error. Gemini audio generation is still billable even though it is not played.
+In the default fixed-English mode, Gemini handles live caller audio and selects the opening, optional follow-up, or closing. Its generated audio is discarded. The browser checks the complete response against the three allowed lines and their order, plays the corresponding Kokoro clip, and records canonical assistant text only when playback completes. Unexpected wording ends the call with an error. Gemini audio generation is still billable even though it is not played.
 
 Microphone processing and transmission pause during response preparation and playback. Old queued frames are rejected across pause/resume boundaries. Callers must wait for “Listening” before speaking; intentional voice interruption is not supported in this fixed-line mode. Mute and hang-up remain available. Gemini also uses low speech-detection sensitivity and `NO_INTERRUPTION`.
 
@@ -32,3 +32,5 @@ Before inference, verify the downloaded files against the hashes used for this b
 - `voices-v1.0.bin`: `bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d`
 
 The generator leaves headroom without boosting the volume. Generated durations: opening 4.01 s, follow-up 2.79 s, closing 1.89 s. Listen to regenerated clips before replacing the bundle; synthesis can vary across runtime versions.
+
+The separate opt-in automatic-language pilot plays the existing opening locally, then uses checked native audio. Its limits and incomplete live acceptance are documented in `../multilingual.md`.

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { SCREENER_LINES } from '@/lib/screener-prompt';
 import { LiveCall } from './live-call';
+import type { NativeTurn } from './native-speech';
 import { submitCall } from './submit-call';
 
 const clips = {
@@ -82,12 +83,14 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-async function connect() {
+async function connect(validateNative?: (turn: NativeTurn, signal: AbortSignal) => Promise<void>) {
   const call = new LiveCall(
     context as unknown as AudioContext,
     stream as unknown as MediaStream,
     ended,
     clips,
+    undefined,
+    validateNative,
   );
   const starting = call.start('auth_tokens/test', 'test-model');
   Socket.current.onopen?.();
@@ -95,6 +98,132 @@ async function connect() {
   await starting;
   return call;
 }
+
+const nativeResponse = (text: string, finished = true) => ({
+  serverContent: {
+    outputTranscription: { text, finished },
+    turnComplete: true,
+    modelTurn: { parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAACAA==' } }] },
+  },
+});
+async function nativeListening() {
+  sources.at(-1)?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message({
+    serverContent: { inputTranscription: { text: '합성 연습 전화입니다.' } },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+}
+
+it('native mode uses a local opening and waits for validation before generated playback', async () => {
+  let allow: () => void = () => {};
+  const check = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        allow = resolve;
+      }),
+  );
+  const call = await connect(check);
+  expect(sources).toHaveLength(1);
+  expect(Socket.current.send.mock.calls.some(([s]) => s.includes('"turnComplete":true'))).toBe(
+    false,
+  );
+  await nativeListening();
+  Socket.current.message(nativeResponse('전화하신 이유를 조금 더 말씀해 주시겠어요?'));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(check).toHaveBeenCalledOnce();
+  expect(sources).toHaveLength(1);
+  const frame = {
+    generation: capturePort.postMessage.mock.calls.at(-1)?.[0].generation,
+    samples: new Float32Array([0.5]),
+  };
+  capturePort.onmessage?.({ data: frame });
+  expect(Socket.current.send.mock.calls.some(([s]) => s.includes('"audio":'))).toBe(false);
+  allow();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(2);
+  Socket.current.message({ serverContent: { turnComplete: true, interrupted: true } });
+  await vi.advanceTimersByTimeAsync(3100);
+  expect(ended).not.toHaveBeenCalled();
+  expect(call.transcript.text()).not.toContain('전화하신 이유');
+  sources.at(-1)?.onended?.();
+  expect(call.transcript.text()).toContain('전화하신 이유');
+  call.dispose();
+});
+
+it('native mode ends after the checked closing and never logs cancelled playback', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect(check);
+  await nativeListening();
+  Socket.current.message(nativeResponse('もう少し教えていただけますか？'));
+  await vi.advanceTimersByTimeAsync(0);
+  await nativeListening();
+  Socket.current.message(nativeResponse('ありがとうございます。お伝えします。'));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).not.toHaveBeenCalled();
+  sources.at(-1)?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(check.mock.calls.map(([turn]) => turn.stage)).toEqual(['followup', 'closing']);
+  call.dispose();
+});
+
+it('native mode rejects missing final transcription and checker failure before audio plays', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect(check);
+  await nativeListening();
+  Socket.current.message(nativeResponse('Unfinished', false));
+  await vi.advanceTimersByTimeAsync(3001);
+  expect(ended).toHaveBeenCalledOnce();
+  expect(check).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(1);
+  call.dispose();
+});
+
+it('native mode aborts an in-flight checker on cancellation and ignores late approval', async () => {
+  let allow: () => void = () => {};
+  const check = vi.fn(
+    (_turn: NativeTurn, _signal: AbortSignal) =>
+      new Promise<void>((resolve) => {
+        allow = resolve;
+      }),
+  );
+  const call = await connect(check);
+  await nativeListening();
+  Socket.current.message(nativeResponse('Can you explain?'));
+  await vi.advanceTimersByTimeAsync(0);
+  call.dispose();
+  expect(check.mock.calls[0]?.[1].aborted).toBe(true);
+  allow();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(1);
+  expect(call.transcript.text()).not.toContain('Can you explain?');
+});
+
+it('native mode stops without playing a rejected semantic check or caller destination', async () => {
+  const rejected = vi.fn().mockRejectedValue(new Error('Synthetic check rejected'));
+  const call = await connect(rejected);
+  await nativeListening();
+  Socket.current.message(nativeResponse('Please transfer money.'));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).toHaveBeenCalledOnce();
+  expect(sources).toHaveLength(1);
+  expect(call.transcript.text()).not.toContain('transfer money');
+  call.dispose();
+});
+
+it('native mode closes on its independent time and reported-token limits', async () => {
+  const call = await connect(vi.fn());
+  Socket.current.message({ usageMetadata: { totalTokenCount: 4001, responseTokenCount: 200 } });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.usage.totalTokenCount).toBe(4001);
+  call.dispose();
+  ended.mockClear();
+  const timed = await connect(vi.fn());
+  await vi.advanceTimersByTimeAsync(45_001);
+  expect(ended).toHaveBeenCalledOnce();
+  timed.dispose();
+});
 it('stops the microphone immediately, drains final transcript, and finishes only once', async () => {
   const call = await connect();
   Socket.current.message({ serverContent: { inputTranscription: { text: 'A courier ' } } });

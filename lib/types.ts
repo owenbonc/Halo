@@ -61,6 +61,8 @@ export const AlertRecord = z.object({
   callId: z.string(),
   createdAt: z.string(),
   trigger: z.enum(['user_tap', 'auto_strong']),
+  // Her consent when the alert went out, which decides whether Sam sees the summary.
+  alertMode: Settings.shape.alertMode,
   status: AlertStatus,
   acknowledgedAt: z.string().nullable(),
 });

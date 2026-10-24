@@ -67,7 +67,7 @@ describe('live token endpoint', () => {
     expect(fetcher).not.toHaveBeenCalled();
     expect(insertOne).not.toHaveBeenCalled();
   });
-  it('issues a recorded-message session without minting a live token', async () => {
+  it('issues a recorded-message session for real transcription without minting a live token', async () => {
     vi.stubEnv('GEMINI_API_KEY', '');
     const fetcher = vi.fn();
     vi.stubGlobal('fetch', fetcher);
@@ -76,13 +76,12 @@ describe('live token endpoint', () => {
     expect(await response.json()).toMatchObject({
       token: null,
       model: null,
-      recordedFixture: true,
+      recordedFixture: false,
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
-  it('uses real transcription in forced recorded mode once transcription is ready', async () => {
+  it('forces a preset recorded session under the demo fallback', async () => {
     vi.stubEnv('DEMO_FALLBACK', '1');
-    vi.stubEnv('CALL_RECORDED_TRANSCRIPTION_READY', '1');
     const fetcher = vi.fn();
     vi.stubGlobal('fetch', fetcher);
     const response = await POST(request());
@@ -90,8 +89,9 @@ describe('live token endpoint', () => {
     expect(await response.json()).toMatchObject({
       token: null,
       model: null,
-      recordedFixture: false,
+      recordedFixture: true,
     });
+    expect(insertOne.mock.calls[0]?.[0]).toMatchObject({ recordedFixture: true });
     expect(fetcher).not.toHaveBeenCalled();
   });
   it('does not create a session or expose upstream errors when token creation fails', async () => {

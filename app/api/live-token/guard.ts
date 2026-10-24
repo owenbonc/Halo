@@ -20,8 +20,8 @@ export async function reserveCallBudget(db: Db, now = Date.now()) {
   await budgets.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
   // Global atomic budgets also hold across serverless instances and forged client IPs.
   for (const [window, maximum] of [
-    [60_000, 6],
-    [3_600_000, 60],
+    [60_000, 20],
+    [3_600_000, 300],
   ] as const) {
     const bucket = Math.floor(now / window);
     const counter = await budgets.findOneAndUpdate(

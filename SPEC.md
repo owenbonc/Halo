@@ -128,6 +128,7 @@ interface AlertRecord {
   callId: string;
   createdAt: string;
   trigger: "user_tap" | "auto_strong";
+  alertMode: Settings["alertMode"]; // her choice when the alert was sent
   status: "sent" | "acknowledged" | "escalated"; // "escalated" computed on read after ESCALATE_AFTER_MIN with no ack
   acknowledgedAt: string | null;
 }
@@ -136,7 +137,7 @@ interface AlertRecord {
 interface SamAlert {
   id: string; createdAt: string; status: AlertRecord["status"];
   elderName: string; band: Band; family: ScamFamily;
-  summary: string | null;      // only when alertMode was "auto_strong"
+  summary: string | null;      // only when the alert's alertMode is "auto_strong"
 }
 ```
 
@@ -152,8 +153,8 @@ HTTP (Next.js route handlers):
 | Route | Body → response | Caller |
 |---|---|---|
 | `POST /api/calls` | `{ callSessionId, transcript, callerLabel }` → `CallRecord` (`callSessionId` must come from `/api/live-token` and is single-use; runs `analyse`, saves, auto-alerts if `alertMode` is `auto_strong`, band is `strong` and not paused) | call page |
-| `POST /api/live-token` | → `{ token, callSessionId, model, recordedFixture }` (short-lived Gemini Live token, screener instructions locked server-side; `recordedFixture` is true when the recorded fallback returns a preset sample) | call page |
-| `POST /api/transcribe` | multipart `audio` → `{ transcript }` | call page (recorded line) |
+| `POST /api/live-token` | → `{ token, callSessionId, model, recordedFixture }` (short-lived Gemini Live token, screener instructions locked server-side; `recordedFixture` is true only under `DEMO_FALLBACK=1`, when `/api/transcribe` returns the preset police-call sample; otherwise recorded messages are transcribed for real) | call page |
+| `POST /api/transcribe` | multipart `audio` + `x-call-session-id` header → `{ transcript }` (one per unused session; audio checked before the session is claimed) | call page (recorded line) |
 | `POST /api/voice-note` | multipart `audio` → `CallRecord` | Mum's app |
 | `GET /api/calls` | → `CallRecord[]` without `transcript`, newest first, each with its latest alert status | Mum's app (polls every 2 s) |
 | `GET /api/calls/:id/transcript` | → `{ transcript }` with every digit, spoken number and link removed | Mum's app (Their words) |

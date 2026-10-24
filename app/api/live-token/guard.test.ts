@@ -22,7 +22,7 @@ describe('demo access', () => {
   });
 });
 it('enforces an atomic shared budget and returns the actual retry window', async () => {
-  const updates = vi.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 61 });
+  const updates = vi.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 301 });
   const index = vi.fn();
   const db = {
     collection: () => ({ createIndex: index, findOneAndUpdate: updates }),

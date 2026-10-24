@@ -50,6 +50,7 @@ export default function CallPage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [mode, setMode] = useState<'live' | 'recorded'>('live');
   const [actualMode, setActualMode] = useState(mode);
+  const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
   const [muted, setMuted] = useState(false);
@@ -138,6 +139,7 @@ export default function CallPage() {
     setMuted(false);
     setActivity('waiting');
     setError(null);
+    setFixture(false);
     try {
       if (!navigator.mediaDevices?.getUserMedia)
         throw new CallError(
@@ -185,6 +187,7 @@ export default function CallPage() {
       const token = LiveTokenResponse.parse(response.data);
       if (attempt.cancelled) return;
       attempt.id = token.callSessionId;
+      setFixture(token.recordedFixture);
       if (token.token && token.model && attempt.context && attempt.stream && attempt.clips) {
         setActualMode('live');
         const live = new LiveCall(
@@ -268,7 +271,9 @@ export default function CallPage() {
           : phase === 'sending'
             ? 'Microphone off. Preparing the summary card…'
             : phase === 'done'
-              ? 'Summary card sent to the recipient’s Alerts screen.'
+              ? fixture
+                ? 'Sample result sent to the recipient’s Alerts screen.'
+                : 'Summary card sent to the recipient’s Alerts screen.'
               : phase === 'error'
                 ? 'Call stopped. Your microphone is off.'
                 : 'Ready for a practice call.';
@@ -345,6 +350,12 @@ export default function CallPage() {
         >
           Test speaker
         </Button>
+      )}
+      {fixture && phase !== 'idle' && (
+        <p className="rounded-chip border border-caution bg-caution-soft p-4 text-base">
+          Demo fallback: this recording isn’t transcribed. The recipient gets the preset police-call
+          sample, whatever you say.
+        </p>
       )}
       <p role="status" aria-live="polite" className="min-h-14">
         {status}

@@ -11,6 +11,9 @@ const PRESET = (cases.find((c) => c.id === 'demo-police-courier')?.transcript ??
   .join(' ');
 
 export async function POST(request: Request) {
+  // Validate before claiming, so a bad upload doesn't use up the call.
+  const audio = await readAudio(request);
+  if (typeof audio === 'string') return fail(400, audio);
   const { callSessions } = await collections();
   // One transcription per unused session from /api/live-token, which holds the access code and budget.
   const session = await callSessions.findOneAndUpdate(
@@ -18,13 +21,12 @@ export async function POST(request: Request) {
     { $set: { transcribed: true } },
   );
   if (!session) return fail(403, 'Unknown or already used call session.');
-  const audio = await readAudio(request);
-  if (typeof audio === 'string') return fail(400, audio);
   try {
     return Response.json({
       transcript: session.recordedFixture ? PRESET : await transcribe(audio),
     });
-  } catch {
+  } catch (error) {
+    console.error('transcription failed', error);
     return fail(502, 'The recording could not be transcribed. Please try again.');
   }
 }

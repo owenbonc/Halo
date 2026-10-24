@@ -34,10 +34,10 @@ If a box is still empty when you read this, ask Owen in the group chat.
 
 ## The database
 
-- MongoDB Atlas, free M0 cluster `cluster0.revh6w` on AWS us-east-1, in Owen's organisation. The database is `hangup`.
-- Production uses the user `app`, whose password lives only in Vercel. Once you're invited, make **your own** database user (Database & Network Access) and put your own connection string in your local `.env`. Never share one in the repo, an issue or a chat with an AI.
-- Production has no calls yet. Its settings fall back to the seed (her name "Grandma", contact Sam) until someone runs `/setup` on the stage phone or `pnpm demo:reset` against Atlas.
-- Still to do on Atlas: B's `pnpm seed:patterns`. Nobody has checked yet that a free M0 cluster supports B's Automated Embedding; `seed:patterns` will show.
+- MongoDB Atlas cluster `cluster0.lhbq6vr`, B's seeded cluster, with database `hangup`. Production switched to it on Sat 24 Oct; Owen's old `cluster0.revh6w` is no longer used.
+- Production's connection string lives only in Vercel. Make **your own** database user (Database & Network Access) and put your own connection string in your local `.env`. Never share one in the repo, an issue or a chat with an AI.
+- Network Access allows `0.0.0.0/0`, because Vercel's servers have no fixed IPs. Removing it takes production's data routes down.
+- The 30 patterns and both search indexes (`patterns_semantic`, `patterns_phrases`) are seeded and READY. Run `pnpm demo:reset` against this cluster before every demo run.
 - Demo step 7 shows Atlas on screen, so whoever presents needs to be signed in to Atlas.
 
 ## What's on main
@@ -61,7 +61,7 @@ If a box is still empty when you read this, ask Owen in the group chat.
 - Move `/call` onto `DESIGN.md` tokens: it still uses raw Tailwind colours.
 
 **B**
-- Land the brain and run `pnpm seed:patterns` on Atlas.
+- Run the live Gemini eval once a working key is in place.
 
 **D**
 - README, pitch and video. Keep the stage dialogue in line with B's `demo-*` test cases.
@@ -79,8 +79,6 @@ If a box is still empty when you read this, ask Owen in the group chat.
 ## Known risks
 
 - Shared API routes have no access control. Use synthetic data only.
-- `lib/db.ts` keeps a failed MongoDB connection until the server restarts. One Atlas blip can keep production failing until the next deploy.
-- Functions run in London (lhr1) and the database is in Virginia, which adds about 80 ms per query. That's fine for the demo.
 - The database password was exposed during setup. Owen rotates it after submission.
 
 ## Timeline (London)

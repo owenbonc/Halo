@@ -18,8 +18,3 @@ export async function startRecording(): Promise<{ stop: () => Promise<Blob> }> {
       }),
   };
 }
-
-export function speak(text: string) {
-  speechSynthesis.cancel();
-  speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-}

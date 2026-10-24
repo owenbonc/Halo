@@ -4,20 +4,19 @@ export const LiveTokenResponse = z.union([
   z.object({
     token: z.string().startsWith('auth_tokens/'),
     model: z.string().min(1),
-    callSessionId: z.string().uuid(),
+    callSessionId: z.uuid(),
     recordedFixture: z.boolean(),
   }),
   z.object({
     token: z.null(),
     model: z.null(),
-    callSessionId: z.string().uuid(),
+    callSessionId: z.uuid(),
     recordedFixture: z.boolean(),
   }),
 ]);
 export const TranscriptResponse = z.object({ transcript: z.string().trim().min(1).max(19_000) });
 export const LiveMessage = z.object({
   setupComplete: z.object({}).optional(),
-  error: z.object({}).optional(),
   goAway: z.object({}).optional(),
   serverContent: z
     .object({

@@ -1,7 +1,14 @@
+import { z } from 'zod';
 import { collections, noMongoId } from './db';
 import type { AlertRecord, CallRecord, SamAlert, Settings } from './types';
 
-const escalateAfterMs = () => Number(process.env.ESCALATE_AFTER_MIN ?? 3) * 60_000;
+// A typo in the env var would otherwise give NaN and silently disable escalation.
+const escalateAfterMs = () =>
+  z.coerce
+    .number()
+    .positive()
+    .catch(3)
+    .parse(process.env.ESCALATE_AFTER_MIN ?? 3) * 60_000;
 
 // Escalation is worked out on read, so there are no timers to fail.
 export function statusAt(alert: AlertRecord, now: number): AlertRecord['status'] {

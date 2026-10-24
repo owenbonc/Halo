@@ -2,8 +2,6 @@ import { getSettings, saveSettings } from '@/lib/calls';
 import { fail, readJson } from '@/lib/http';
 import { Settings } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   return Response.json(await getSettings());
 }

@@ -3,8 +3,6 @@ import { collections } from '@/lib/db';
 import { fail, readJson } from '@/lib/http';
 import { PostCallBody } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   return Response.json(await listCallViews());
 }

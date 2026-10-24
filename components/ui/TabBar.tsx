@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { Inbox } from './icons';
+import type { Bell } from './icons';
 
 export type Tab = {
   href: string;
   label: string;
-  Icon: typeof Inbox;
+  Icon: typeof Bell;
   badge?: number;
   // Other routes that belong to this tab (a call opened from Past calls keeps Past calls selected).
   match?: string[];

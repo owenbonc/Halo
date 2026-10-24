@@ -128,7 +128,7 @@ function StatusBar() {
           </svg>
         </div>
       </div>
-      <div className="absolute top-[11px] left-1/2 h-[37px] w-[125px] -translate-x-1/2 rounded-full bg-black" />
+      <div className="absolute top-[11px] left-1/2 h-[37px] w-[125px] -translate-x-1/2 rounded-full bg-[var(--device)]" />
     </div>
   );
 }

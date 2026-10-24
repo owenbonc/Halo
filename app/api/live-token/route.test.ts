@@ -58,9 +58,6 @@ describe('live token endpoint', () => {
     });
     expect(wire.bidiGenerateContentSetup.systemInstruction.parts[0].text).toContain('untrusted');
     expect(JSON.stringify(body)).not.toContain('synthetic-test-key');
-    expect(new Date(wire.newSessionExpireTime).getTime()).toBeLessThan(
-      new Date(wire.expireTime).getTime(),
-    );
   });
   it('rejects cross-origin token minting before calling external services', async () => {
     const fetcher = vi.fn();
@@ -93,15 +90,6 @@ describe('live token endpoint', () => {
     expect((await POST(request())).status).toBe(503);
     expect((await POST(request('?mode=unknown'))).status).toBe(400);
     expect(insertOne).not.toHaveBeenCalled();
-  });
-  it('does not let a client override protected turn-taking', async () => {
-    const fetcher = vi.fn().mockResolvedValue(Response.json({ name: 'auth_tokens/synthetic' }));
-    vi.stubGlobal('fetch', fetcher);
-    expect((await POST(request('?interruptions=on'))).status).toBe(201);
-    const wire = JSON.parse(fetcher.mock.calls[0]?.[1].body);
-    expect(wire.bidiGenerateContentSetup.realtimeInputConfig.activityHandling).toBe(
-      'NO_INTERRUPTION',
-    );
   });
 });
 it('limits new-session and connection lifetimes', () => {

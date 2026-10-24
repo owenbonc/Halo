@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/band';
 import { Check, Cross } from '@/components/ui/icons';
 import type { Settings } from '@/lib/types';
 
-/** Her two consent choices, shared by setup and Profile so she sees the same words in both. */
+/** Her two consent choices, shared by setup and Settings so she sees the same words in both. */
 export function AlertModeChoice({
   contact,
   mode,

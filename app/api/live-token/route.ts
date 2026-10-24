@@ -4,7 +4,6 @@ import type { LiveToken } from '@/lib/types';
 import { accessStatus, reserveCallBudget } from './guard';
 import { LIVE_MODEL, mintLiveToken } from './token';
 
-export const dynamic = 'force-dynamic';
 const Mode = z.enum(['live', 'recorded']);
 const headers = { 'Cache-Control': 'no-store' };
 

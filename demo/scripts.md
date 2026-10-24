@@ -18,6 +18,8 @@ Expected: Strong warning signs, fake police or courier, Sam alerted automaticall
 
 ## 2. GP surgery (demo step 5): expect a green card and no alert
 
+Needs live Argon. Without it the rules mark the call unclear and the card is amber.
+
 Screener: "Hello, you've reached Grandma's call assistant. Who's calling, and what's it about?"
 
 > Hello, this is Rachel from Riverside Medical Practice. I'm calling to remind her about her flu jab appointment on Tuesday morning. If she can't make it, she can ring the surgery on the usual number.

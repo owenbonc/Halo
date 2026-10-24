@@ -1,13 +1,9 @@
 import type { Band, ScamFamily } from './types';
 
-export const BAND_LABEL: Record<Band, { icon: string; title: string; tone: string }> = {
-  strong: { icon: '⛔', title: 'Strong warning signs', tone: 'border-red-700 bg-red-50' },
-  some: { icon: '⚠️', title: 'Some warning signs', tone: 'border-amber-600 bg-amber-50' },
-  none: {
-    icon: '✅',
-    title: 'No common warning signs found. This is not a guarantee.',
-    tone: 'border-green-700 bg-green-50',
-  },
+export const BAND_LABEL: Record<Band, { title: string }> = {
+  strong: { title: 'Strong warning signs' },
+  some: { title: 'Some warning signs' },
+  none: { title: 'No common warning signs found. This is not a guarantee.' },
 };
 
 export const FAMILY_LABEL: Record<ScamFamily, string> = {

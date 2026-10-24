@@ -58,7 +58,6 @@ export class LiveCall {
             const raw = event.data instanceof Blob ? await event.data.text() : event.data;
             if (this.closed) return;
             const message = LiveMessage.parse(JSON.parse(raw));
-            if (message.error) throw new CallError('The live assistant could not continue.');
             if (message.setupComplete) {
               clearTimeout(timeout);
               this.ready = true;

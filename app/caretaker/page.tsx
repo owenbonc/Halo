@@ -1,11 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
+import { onSoundChange, soundOn, unlockSound } from '@/components/caretaker/alert-signal';
 import { BandLine } from '@/components/caretaker/BandLine';
 import { LargeTitle, PollStatus, useAlerts } from '@/components/caretaker/Shell';
 import { when } from '@/components/grandma/CallCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
-import { Check, Phone } from '@/components/ui/icons';
+import { Check, Phone, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import { FAMILY_LABEL } from '@/lib/labels';
@@ -13,11 +14,24 @@ import { FAMILY_LABEL } from '@/lib/labels';
 const HOUR = 60 * 60_000;
 const ENTER = 'transition-transform duration-200 ease-out motion-reduce:transition-none';
 
+// The context's own changes, plus coming back to the tab, when Safari may have suspended it.
+function subscribeSound(notify: () => void) {
+  const off = onSoundChange(notify);
+  document.addEventListener('visibilitychange', notify);
+  return () => {
+    off();
+    document.removeEventListener('visibilitychange', notify);
+  };
+}
+
 export default function AlertsPage() {
   const alerts = useAlerts();
   // Acknowledged here: shown as done straight away, before the next poll confirms it.
   const [done, setDone] = useState<string | null>(null);
   const [ack, setAck] = useState<{ id: string; failed: boolean } | null>(null);
+  // Follows the shared audio context, which Safari can suspend, so the button returns when sound stops.
+  const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
+  const soundStatus = useRef<HTMLDivElement>(null);
 
   const open = alerts.data?.find((a) => a.status !== 'acknowledged' && a.id !== done);
   const latest = alerts.data?.[0];
@@ -44,15 +58,36 @@ export default function AlertsPage() {
     <section className={open ? 'pb-14' : undefined}>
       <LargeTitle>Alerts</LargeTitle>
       <PollStatus alerts={alerts} loading="Checking for alerts…" />
+      {/* One live region for both states, focused on tap, since the tapped button unmounts. */}
+      <div ref={soundStatus} role="status" tabIndex={-1} className="mb-4 outline-none">
+        {sound ? (
+          <p className="flex items-center gap-2 text-[0.9375rem] text-ink-2">
+            <Speaker className="size-5" />
+            Alert sound is on while this app is open.
+          </p>
+        ) : (
+          <Button
+            size="md"
+            variant="secondary"
+            onClick={() => {
+              soundStatus.current?.focus();
+              unlockSound();
+            }}
+          >
+            <Speaker className="size-5" />
+            Turn on alert sound
+          </Button>
+        )}
+      </div>
       <div aria-live="polite">
         {open ? (
           <Card
             key={open.id}
             tone={open.band}
-            className={`space-y-3 ${ENTER} starting:translate-y-3`}
+            className={`space-y-4 py-8 ${ENTER} starting:translate-y-3`}
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
-            <h2 className="text-[1.375rem] leading-tight font-bold">
+            <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
               {open.elderName} got a call that looks like a scam. Please call her.
             </h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -66,7 +101,7 @@ export default function AlertsPage() {
             {open.summary && <p>{open.summary}</p>}
             {open.status === 'escalated' && (
               <p className="rounded-chip border border-inset-line bg-inset px-3 py-2 text-[0.9375rem] font-semibold">
-                {open.elderName} has been told you haven't replied yet.
+                {open.elderName} has been told you haven’t replied yet.
               </p>
             )}
           </Card>
@@ -74,10 +109,10 @@ export default function AlertsPage() {
           <Card key={called.id} className={`space-y-1 ${ENTER} starting:translate-y-3`}>
             <h2 className="flex items-center gap-2 text-[1.0625rem] font-bold">
               <Check className="size-5 text-accent-ink" />
-              You told {called.elderName} you're calling.
+              You told {called.elderName} you’re calling.
             </h2>
             <p className="text-[0.9375rem] text-ink-2">
-              Her phone now says you're calling her. Alert from {when(called.createdAt)}.
+              Her phone now says you’re calling her. Alert from {when(called.createdAt)}.
             </p>
           </Card>
         ) : (
@@ -85,7 +120,7 @@ export default function AlertsPage() {
             <Card className="space-y-1">
               <h2 className="text-[1.0625rem] font-bold">No alerts right now</h2>
               <p className="text-[0.9375rem] text-ink-2">
-                If a call to her looks like a scam, you'll see it here straight away.
+                If a call to her looks like a scam, you’ll see it here straight away.
               </p>
             </Card>
           )
@@ -102,7 +137,7 @@ export default function AlertsPage() {
               role="alert"
               className="rounded-chip bg-danger-soft px-4 py-2 text-[0.9375rem] font-semibold text-danger shadow-float"
             >
-              That didn't send. Check your connection and try again.
+              That didn’t send. Check your connection and try again.
             </p>
           )}
           <Button size="md" disabled={sending} onClick={() => call(open.id)}>

@@ -1,86 +1,72 @@
 # Halo
 
-An AI call screener for older people: it answers unknown callers, works out whether their story matches a UK scam script, gives Grandma a plain card telling her what to do, and lets her chosen person know when it matters.
+**Apple's screener asks who's calling. Halo works out whether to believe them, and she decides who hears about it.**
 
-Built at Encode London 2026. Submissions close **Sunday 25 Oct, 12:00 London time**.
+Live: https://hang-up-and-check.vercel.app · Built at Encode London 2026 (Real World track, Google DeepMind and MongoDB bounties).
 
-> This README is the team's starting point during the build. Slice D rewrites it for judges before submission.
+## The problem
+The UK scams that cost older people the most start with a phone call: someone pretending to be the police or the bank coaches them to keep it secret, then sends a courier for cash or gets a bank transfer. About 62% of 2025 courier-fraud reports came from people aged 76–96, with an average loss of about £15k (police figures from secondary copies; sources in [docs/research.md](docs/research.md)). The UK measures that work bring in a third person the scammer doesn't control.
 
-## Start here (everyone)
+## What it does
+1. An AI screener answers unknown callers and asks who's calling and why.
+2. Gemini 4 Argon compares the story with a MongoDB Atlas library of UK scam scripts; fixed rules set the warning level.
+3. She gets a plain card: red, amber or green, the caller's own phrases, and fixed next steps (don't call back, call 159).
+4. If it's serious and she chose it, her person's phone lights up: "Please call her." They tap "I'm calling her now"; if they don't, she's told to call 159.
+5. If she answered a call herself, a voice note gets the same check.
 
-1. **Get access:** Owen adds you as a collaborator. Accept the email invite.
-2. **Find your slice** in the table below and open your GitHub issue: it's your checklist. Owen's one-off setup is [#1](https://github.com/owenbonc/grandma-s-phone/issues/1).
-3. **Set up your laptop** (Node 24 and pnpm 9):
+## What's real and what's faked
+**Real**
+- The screener's live voice conversation (Gemini Live)
+- Argon's analysis and the Atlas pattern search
+- The alert, acknowledgement and escalation, stored in Atlas
+- Voice-note transcription
 
-   ```bash
-   git clone https://github.com/owenbonc/grandma-s-phone.git
-   cd grandma-s-phone
-   git config user.name "Your Name"
-   git config user.email "you@example.com"
-   git config core.hooksPath .githooks   # scans for keys before every push
-   pnpm install
-   cp .env.example .env
-   ```
+**Faked, and why**
+- Calls come through the `/call` web page, not the phone network. Production would forward silenced calls through a paid telephony provider such as Twilio.
+- One seeded household. Sam's verification code shows on screen instead of by SMS.
+- Both phones keep the web app open and poll every 2 seconds. Production would push or text.
+- A recorded fallback analysis and caller audio exist for a failed live call (`DEMO_FALLBACK=1`), used only then.
 
-   In `.env`, set `MONGODB_URI=mongodb://127.0.0.1:27017` to work offline, or the Atlas string B shares with you privately.
+All test data is synthetic: the scam scripts were written by the team.
 
-4. **Run it** (two terminals):
+## How it uses Gemini and MongoDB Atlas
+- **Gemini Live:** the screener's conversation. **Gemini 4 Argon:** judges the transcript (structured output; the transcript is treated as untrusted data). **Gemini Flash:** transcribes voice notes.
+- **Atlas Vector Search with Automated Embedding plus Atlas Search,** fused with `$rankFusion`: finds the closest scam scripts. **Atlas collections** for calls, alerts (the audit log) and settings.
 
-   ```bash
-   pnpm db:local
-   ```
+## Privacy
+- Her person never sees transcripts or quoted phrases, and sees a summary only if she chose automatic alerts.
+- No phone number from a caller or a model is ever shown; numbers come from one fixed list.
+- She can pause alerts at any time, and the server enforces it.
 
-   ```bash
-   pnpm demo:reset && pnpm dev
-   ```
+## Honest limits
+It doesn't stop spoofed numbers she has saved, landline calls, or a call she has already answered. It has only been tested on scripts the team wrote. It adds to Apple's screening, the banks and 159; it doesn't replace them.
 
-   Open http://localhost:3000 and pick Grandma or Caretaker. Open http://localhost:3000/call to play the caller.
-
-5. **Work on your own branch,** never on `main`:
-
-   ```bash
-   git switch -c slice/<a-call|b-brain|c-grandma|d-caretaker>
-   ```
-
-6. **Start your AI agent** with:
-
-   > You are working on slice X of Halo. Read AGENTS.md, SPEC.md, docs/briefs/README.md, docs/briefs/X-….md and every file in docs/status/ before doing anything.
-
-7. **After each finished step:** update your own file in `docs/status/`, commit, and push your branch. Owen merges into `main` once `scripts/verify.sh` prints READY.
-
-## Who does what
-
-| Slice | What you build | Checklist | Brief | Status |
-|---|---|---|---|---|
-| **A: The call** | The `/call` page and the AI screener's voice conversation | [#2](https://github.com/owenbonc/grandma-s-phone/issues/2) | [A-call.md](docs/briefs/A-call.md) | [A-call](docs/status/A-call.md) |
-| **B: The brain** | Scam analysis with Gemini 4 Argon and the MongoDB Atlas pattern library | [#3](https://github.com/owenbonc/grandma-s-phone/issues/3) | [B-brain.md](docs/briefs/B-brain.md) | [B-brain](docs/status/B-brain.md) |
-| **C: Grandma's app** | Role picker, Grandma's cards, setup and consent, voice note, shared look | [#4](https://github.com/owenbonc/grandma-s-phone/issues/4) | [C-grandma.md](docs/briefs/C-grandma.md) | [C-grandma](docs/status/C-grandma.md) |
-| **D: Caretaker's app** | Alerts, "I'm calling her now", escalation, then README, video and pitch | [#5](https://github.com/owenbonc/grandma-s-phone/issues/5) | [D-caretaker.md](docs/briefs/D-caretaker.md) | [D-caretaker](docs/status/D-caretaker.md) |
-
-The rules every slice follows are in [docs/briefs/README.md](docs/briefs/README.md). The short version: only edit your own files, never edit `lib/types.ts` (request changes in your status file), never push to `main`, never commit `.env` or keys, and only use made-up test data.
-
-## Where things are
-
-- **What we're building:** [SPEC.md](SPEC.md), a copy of the [Specification in Notion](https://app.notion.com/p/14297080891e838fae6c01ef02aa20d8). Notion wins if they differ.
-- **Why:** [docs/research.md](docs/research.md), the research behind the idea.
-- **Rules for AI agents:** [AGENTS.md](AGENTS.md).
-
-## Timeline (London time)
-
-| When | What |
-|---|---|
-| Fri tonight | Each slice's prep task (see your issue). A's phone test by 21:00 |
-| Sat 09:00 | Build your slice from the skeleton on `main` |
-| Sat 13:00, 18:00, 22:30 | Whole team runs the demo together on the deployed app |
-| Sat 23:00 | Feature freeze: fixes and polish only after this |
-| Sun 08:00–09:30 | Three clean demo runs, record the video |
-| Sun 10:00 | Submitted |
-
-## Commands
+## Run it
+Node 24 and pnpm 9.
 
 ```bash
+pnpm install
+cp .env.example .env   # MONGODB_URI, GEMINI_API_KEY
+pnpm seed:patterns     # load the scam library into Atlas
+pnpm demo:reset && pnpm dev
+```
+
+Open http://localhost:3000 and pick a role on each phone; open http://localhost:3000/call to play the caller.
+
+## Team
+| Slice | Who |
+|---|---|
+| The call (screener) | ish24cho |
+| The brain (Argon and Atlas) | Josh Lim |
+| Her app and the design | Owen |
+| Her person's app, alerts, pitch | Josh Lim |
+
+## Developing
+Read [AGENTS.md](AGENTS.md), [SPEC.md](SPEC.md) (a copy of the Notion specification; Notion wins), [docs/briefs/README.md](docs/briefs/README.md) and [docs/HANDOVER.md](docs/HANDOVER.md) first. Work on your own `slice/*` branch, never on `main`, and update your file in `docs/status/` after each step.
+
+```bash
+pnpm db:local        # temporary in-memory database for offline work (MONGODB_URI=mongodb://127.0.0.1:27017)
 pnpm dev             # the app on http://localhost:3000
-pnpm db:local        # temporary in-memory database for offline work
 pnpm demo:reset      # restore the demo household before every run
 pnpm test            # unit tests
 scripts/verify.sh    # typecheck, lint, test, build and secrets scan: must print READY

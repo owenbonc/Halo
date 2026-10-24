@@ -15,7 +15,7 @@ function ReadIt({ call }: { call: CallView }) {
   const script = readScript(call, contact, paused);
   const summary = call.analysis.summary.trim();
 
-  // She tapped "Read it to me" to get here, so start reading straight away.
+  // She tapped "Read aloud" to get here, so start reading straight away.
   // biome-ignore lint/correctness/useExhaustiveDependencies: read once on arrival, not on every poll
   useEffect(() => {
     voice.read(script);
@@ -42,7 +42,7 @@ function ReadIt({ call }: { call: CallView }) {
   );
 }
 
-// Read it to me: the summary in large words, read aloud.
+// Read aloud: the summary in large words, read aloud.
 export default function ReadPage() {
-  return <CallScreen title="Read it to me">{(call) => <ReadIt call={call} />}</CallScreen>;
+  return <CallScreen title="Read aloud">{(call) => <ReadIt call={call} />}</CallScreen>;
 }

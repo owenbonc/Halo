@@ -1,52 +1,50 @@
 # B. The brain
 
-Owner: Josh Lim
-Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts` (new), `lib/gemini.ts` (new), `data/**`, `scripts/seed-patterns.ts`, `lib/*.test.ts`
+Owner: Josh Lim; completion work on `slice/b-brain-finish`.
+Owns: `lib/analyse.ts`, `lib/patterns.ts`, `lib/transcribe.ts`, `lib/rules.ts`, `lib/gemini.ts`, shared `lib/scrub.ts` cleanup, `data/**`, `scripts/seed-patterns.ts`, `lib/*.test.ts`.
 
 ## Done
-- Completion branch `slice/b-brain-finish` starts from merged main `82f32f8`; authenticated HTTPS pull confirmed it is current. Node 24.11.1 / pnpm 9.15.9 frozen installation completed without manifest or lockfile changes. Baseline: `pnpm exec vitest run lib/patterns.test.ts lib/rules.test.ts lib/analyse.test.ts lib/scrub.test.ts` — 4 files, 61 tests passed.
-- Added `@google/genai` to package.json (A needs it too).
-- Branch `slice/b-brain` created.
-- Scam pattern library: 30 synthetic UK patterns in `data/patterns/` (courier, police, bank, remote access, investment), schema-checked by `lib/patterns.test.ts`.
-- Rules (`lib/rules.ts`): fixed band rules, a word-rule floor the model can't lower, number/URL scrubbing, verbatim-cue check; behaviour tests in `lib/rules.test.ts`.
-- `findPatterns`: one `$rankFusion` query fusing Atlas Vector Search (Automated Embedding, `voyage-4`) and Atlas Search; `pnpm seed:patterns` loads the patterns, builds both indexes and runs a smoke query.
-- `pnpm seed:patterns` ran on my own Atlas cluster (24 Oct): 30 patterns loaded, both indexes built, and the courier smoke query returned three courier patterns. Automated Embedding works there. Still to run on the team cluster `cluster0.revh6w` once Owen invites me.
-- `analyse`: retrieve (Atlas) → judge (Argon, structured JSON, transcript fenced as untrusted data) → decide (fixed rules). Falls back to word rules if Argon or Atlas fails. Not yet run live (no keys).
-- 15 synthetic test cases (`data/test-cases.json`) with an offline sweep (never green, never a number when Argon is down) and a three-run live eval (`RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts`), not yet run (no keys).
-- `transcribe`: Gemini Flash, inline audio, browser MIME parameters stripped. Not yet run live (no keys).
-- Merged main (24 Oct) and did the handover's B items:
-  - Summaries never carry a digit or a link: every summary, green included, goes through `scrub()`. Tested.
-  - Screened calls drop `different_phone` from the steps, since she never picked up. Voice notes keep it.
-  - A green summary now says what the call was about (Argon is asked for it). If Argon's line is empty, claims the call is safe, or talks about warning signs, it falls back to "The caller didn't ask for money, bank details or access to a device." It never repeats the card title.
+
+- B's analysis, transcription, hybrid retrieval, fixed band rules, 30 schema-checked synthetic patterns and 15 evaluation cases are merged into main (`82f32f8`). The keeper's caller already passes `source` to `analyse()`.
+- The finish branch is based on an authenticated HTTPS pull of current main. Node 24.11.1 / pnpm 9.15.9 frozen installation completed without manifest or lockfile changes. The original B baseline passed: 4 files, 61 tests.
+- One shared scrubber protects summaries, verbatim cues and displayed transcripts. It removes typed and spoken destinations including `dot io`, `dot xyz` and `dot co dot uk`; duplicate rule-module code/tests are removed. Regressions cover full-width digits, spoken numbers, ordinary wording, repeated detection, summaries, cues and preserved transcript turns.
+- The opt-in live evaluator forces `DEMO_FALLBACK=0` and rejects either Atlas or Argon degradation. A local negative probe with both credentials deliberately blank failed on the first case, as expected, without calling external services.
+- The seed script checks 30 unique patterns before replacement, checks stored count and searchable text, and requires a relevant courier/police smoke-query result after both search indexes become queryable.
+- Added transcription behavior tests for WAV and browser WebM/Opus MIME parameters, submitted audio, provider-error propagation, bounded output and silence. These mock the provider; they are not live audio acceptance.
+- Current B verification: 5 test files / 87 tests passed; the 15 opt-in live cases are skipped by default. Full verification passes typecheck, lint, offline tests and the history secret scan. `pnpm exec next build --webpack` compiles all routes and passes TypeScript.
+- The user approved shared demo target `cluster0.lhbq6vr.mongodb.net`, database `hangup`. This replaces the older handover target. Credentials stay in `.env`; the application uses URI credentials, not `MONGODB_API_KEY`.
 
 ## Doing
-- Finishing the merged brain on `slice/b-brain-finish`: service probes, approved shared Atlas seeding, one shared scrubber, strict live evaluation, then the captured police/courier fallback.
-- The user confirmed `cluster0.lhbq6vr.mongodb.net`, database `hangup`, is the approved shared demo target. Local credentials remain in `.env`; `MONGODB_API_KEY` is not used by the application's MongoDB driver.
+
+- Preparing checked B changes and precise A/C/D handoffs for review.
+- Helping configure Atlas Network Access for this laptop before retrying the database ping and seed.
 
 ## Blocked
-- **Gemini billing (24 Oct, 14:12).** Two different keys (an `AQ.` key and an `AIza` key) both get `429 RESOURCE_EXHAUSTED: Your billing account has exceeded its monthly spending cap` on `gemini-4-argon` and `gemini-3.8-flash`. The keys are valid (a bad key gives 401/403); the billing account behind them is capped. Raising the cap or linking the event credits didn't clear it yet. Check in AI Studio which project each key belongs to and that the project's billing account holds the DeepMind credits with a cap above this month's spend.
 
-## Handover (for whoever picks up B)
-1. `git checkout slice/b-brain && git pull`, `pnpm install`, `git config core.hooksPath .githooks`.
-2. `cp .env.example .env` and fill in your **own** values. Never share them in chat, the repo or an AI conversation.
-   - `MONGODB_URI`: Atlas, Drivers, Node.js connection string, with the real password in place of `<db_password>`. Your IP must be in Network Access.
-   - `GEMINI_API_KEY`: from AI Studio, on a project whose billing has the event credits.
-3. Check Gemini with two tiny calls before spending credits:
-   `pnpm tsx --env-file=.env -e "import('./lib/gemini').then(async ({ gemini, ANALYSIS_MODEL, TRANSCRIBE_MODEL }) => { for (const model of [ANALYSIS_MODEL, TRANSCRIBE_MODEL]) console.log(model, (await gemini().models.generateContent({ model, contents: 'Reply with: ok' })).text) })"`
-4. Once both reply, run the live eval (45 Argon calls plus Atlas): `RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts`. A failing case means a band or family outside what `data/test-cases.json` allows, or a digit in the output. Fix the rules or the prompt, not the case, unless the case is wrong.
-5. Run `pnpm seed:patterns` on the team cluster `cluster0.revh6w` (needs Owen's Atlas invite).
+- **Atlas connectivity:** the configured hostname/database were checked before any write. DNS resolves three members, but ping and a read-only retry fail with `ReplicaSetNoPrimary`; every member reports `MongoNetworkError` / `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR`. The user has instructions to add their current IP in Atlas and wait for Active. No seed or other database write was performed, and there is no new Atlas smoke-query evidence.
+- **Default build:** `scripts/verify.sh` prints `NOT READY` because Turbopack's CSS worker reports `binding to a port: Operation not permitted`. The failure repeats with network access and a direct `pnpm build`; webpack production build passes. Shared build configuration is unchanged.
+
+## Deferred at the user's request
+
+- **Gemini billing:** the minimal `gemini-4-argon` probe returned `429 RESOURCE_EXHAUSTED` with the monthly spending-cap message. Further billable calls stopped. The user asked to ignore the unavailable Gemini key for now; Flash, the 45 live analysis runs and real WAV/WebM transcription are not verified.
+- **Captured fallback:** no `data/demo-fallback.json` or runtime bypass is added because the agreed fixture must come from successful live police/courier runs. This depends on Gemini being restored; no placeholder is presented as captured output.
 
 ## Next
-- Live: Gemini probe, three-run live eval, `transcribe` check on WAV and browser audio.
-- `pnpm seed:patterns` on the team cluster.
-- `DEMO_FALLBACK=1`: record `data/demo-fallback.json` from live runs of the three demo scripts.
+
+1. Once the current IP is Active, repeat sanitized Mongo ping and run `pnpm seed:patterns` against the approved `hangup` database. Require 30 stored patterns, non-empty search text, queryable `patterns_semantic` (Automated Embedding, `voyage-4`) and `patterns_phrases` (English text search), plus a relevant courier/police result.
+2. After the Gemini cap is resolved, run both minimal model probes, then `RUN_LIVE_EVAL=1 pnpm vitest run lib/analyse.eval.test.ts --bail=1`: 15 cases, three runs each. Fix actual prompt/rule defects without weakening expected cases.
+3. Exercise temporary synthetic WAV and browser-recorded WebM/Opus through `transcribe()` and normal analysis; do not commit recordings.
+4. Capture the first valid police/courier analysis after its three runs pass. Store exactly `{ transcript, analysis }` in `data/demo-fallback.json`, parse once with Zod, and return independent copies only for screener calls under `DEMO_FALLBACK=1`. Test no provider calls and voice-note exclusion.
+5. After A integrates the fixture transcript route, test complete recorded fallback with isolated local MongoDB and an empty Gemini key. After deployment, run all three scenarios three times across the app phones. Full verification must print READY before calling the slice done.
 
 ## Needs from others
-- **A (keeper):** this branch changes `analyse(transcript)` to `analyse(transcript, source)`. That is one line in `lib/calls.ts` and the contract line in `SPEC.md`, both yours, so please check them in the PR. The Notion spec needs the same line.
-- **A (keeper):** `app/api/transcribe` still doesn't catch errors from `transcribe()`, so a Gemini quota or network failure returns a bare 500. Please wrap it and return `fail(502, "I couldn't hear that. Try again, or call 159.")`. (C already did this for `/api/voice-note`.)
-- **C or design:** the Grandma card only shows `analysis.summary` on warning cards. A green card could now show it too ("Her GP surgery called about her flu jab"), since it no longer repeats the title.
-- **D:** keep the stage dialogue in line with the `demo-*` cases in `data/test-cases.json`, or send me changes, so the rehearsed results match.
-- **Team question:** screened strong calls on the remote-access family still include `hang_up` ("You don't have to stay on the line"). She never picked up, so it may be worth dropping too.
+
+- **A / keeper (`ish24cho`):** reproduce the default Turbopack worker failure and run unchanged `scripts/verify.sh` to READY in the merge environment. This branch does not modify shared build configuration, routes or `lib/types.ts`.
+- **A / keeper:** once B's captured fixture exists, return its transcript from `/api/transcribe` when `DEMO_FALLBACK=1`, before calling Gemini. Preserve upload validation; return a plain `502` on normal transcription failure. Keep `recordedFixture=true` whenever fixed fallback is active, even if `CALL_RECORDED_TRANSCRIPTION_READY=1`.
+- **A / keeper:** update the Notion source of truth to merged two-argument `analyse(transcript, source)` and the agreed one-scenario fallback. `SPEC.md` already contains the source argument. Shared access control, submission recovery and session expiry remain A's responsibilities.
+- **C (`owenbonc`):** existing green summaries say what the call was about, but the read screen and read-aloud script still hide them. Display/read them when ready; B does not edit C's screens.
+- **D:** exact stage wording is in `data/test-cases.json`: `demo-police-courier` (strong; police/courier), `demo-gp` (none; no alert), `demo-trick` (strong; no caller number/link shown). Use those caller turns. Atlas evidence and three-run live acceptance are pending connectivity/billing recovery.
 
 ## Contract change requests
-- `analyse(transcript: string, source: "screener" | "voice_note")` (SPEC "Interfaces"). No change to `lib/types.ts`.
+
+- No public API shape or `lib/types.ts` changes in this branch.

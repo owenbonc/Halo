@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { carriesNumberOrLink, scrub } from './scrub';
 import {
   type Analysis,
   type Band,
@@ -76,16 +77,6 @@ const QUOTABLE = new Set<keyof Signals>([
   'asksForDetails',
 ]);
 
-// Spoken numbers: two or more of these tokens in a row, so "one of the two" is not a number.
-const NUMBER_TOKEN =
-  'zero|oh|nought|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|double|triple';
-const URL = /\b(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b\S*/giu;
-const SPOKEN_DOMAIN = /(?:\b[\w-]+\s+)?(?:\bdot\s+(?:com|co|uk|org|net|info|help|app)\b\s*)+/gi;
-const DIGITS = /\p{Nd}[\p{Nd}\s().-]*/gu;
-const NUMBER_WORDS = new RegExp(
-  `\\b(?:${NUMBER_TOKEN})\\b(?:(?:[\\s,.-]+|\\s+and\\s+)(?:${NUMBER_TOKEN})\\b)+`,
-  'gi',
-);
 const CLAIMS_SAFE =
   /\bsafe\b(?! account\b)|\b(?:genuine|legit|legitimate|real|trusted|trustworthy|fine|ok|okay)\b|\bnothing to worry\b|\bnot a scam\b/i;
 
@@ -138,23 +129,6 @@ export function bandFor(signals: Signals, family: ScamFamily, corroborated: bool
   }
   return 'none';
 }
-
-export function scrub(text: string): string {
-  return text
-    .replace(URL, ' ')
-    .replace(SPOKEN_DOMAIN, ' ')
-    .replace(DIGITS, ' ')
-    .replace(NUMBER_WORDS, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/\s+([,.!?])/g, '$1')
-    .trim();
-}
-
-const carriesNumberOrLink = (text: string) =>
-  text.search(URL) !== -1 ||
-  text.search(SPOKEN_DOMAIN) !== -1 ||
-  /\p{Nd}/u.test(text) ||
-  text.search(NUMBER_WORDS) !== -1;
 
 // Only phrases the caller really said, and none that carry a number or a link.
 export function quotedCues(candidates: string[], transcript: string): string[] {

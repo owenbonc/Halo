@@ -1,4 +1,5 @@
 // Loads data/patterns into Atlas and builds the hybrid-search indexes (pnpm seed:patterns).
+import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { closeDb, collections } from '../lib/db';
@@ -19,10 +20,22 @@ const docs = await Promise.all(
     return { ...pattern, text: patternText(pattern) };
   }),
 );
+assert.equal(docs.length, 30, 'Expected the complete library of 30 synthetic patterns.');
+assert.equal(new Set(docs.map((doc) => doc.id)).size, docs.length, 'Pattern ids must be unique.');
+assert.ok(
+  docs.every((doc) => doc.text.trim()),
+  'Every pattern must have searchable text.',
+);
 
 const { patterns } = await collections();
 await patterns.deleteMany({});
 await patterns.insertMany(docs);
+assert.equal(await patterns.countDocuments({}), docs.length, 'Stored pattern count is wrong.');
+assert.equal(
+  await patterns.countDocuments({ text: { $type: 'string', $regex: '\\S' } }),
+  docs.length,
+  'Stored patterns must all have searchable text.',
+);
 console.log(`Loaded ${docs.length} patterns.`);
 
 const wanted = [
@@ -71,6 +84,12 @@ for (let tries = 0; ; tries++) {
 const sample = await findPatterns(
   'A police officer said a courier will collect my cash and not to tell my family.',
   3,
+);
+assert.ok(
+  sample.some(
+    (pattern) => pattern.family === 'courier' || pattern.family === 'police_impersonation',
+  ),
+  'The smoke query did not retrieve a relevant courier or police pattern.',
 );
 console.log('Smoke query:', sample.map((p) => `${p.id} (${p.family})`).join(', '));
 await closeDb();

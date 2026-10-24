@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { SCREENER_LINES } from '@/lib/screener-prompt';
 import { LiveCall } from './live-call';
+import { submitCall } from './submit-call';
 
 const clips = {
   opening: { text: SCREENER_LINES.opening, pcm: 'AAABAA==' },
@@ -167,7 +168,7 @@ it('does not start capture if disconnected while the worklet is loading', async 
   Socket.current.message({ setupComplete: {} });
   await vi.advanceTimersByTimeAsync(0);
   Socket.current.onclose?.();
-  const finishing = expect(call.finish()).rejects.toThrow('No caller speech');
+  const finishing = expect(call.finish()).rejects.toThrow('interrupted');
   const rejected = expect(starting).rejects.toThrow('Call cancelled');
   loaded();
   await rejected;
@@ -311,4 +312,88 @@ it('never plays an unexpected model reply or submits it as assistant speech', as
   expect(ended).toHaveBeenCalledOnce();
   expect(call.transcript.text()).toBe('');
   call.dispose();
+});
+
+it.each(['close', 'error', 'goAway'] as const)(
+  'does not submit partial speech after an unexpected %s and releases the microphone immediately',
+  async (failure) => {
+    const call = await connect();
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    Socket.current.message({ serverContent: { inputTranscription: { text: 'A courier will' } } });
+    await vi.advanceTimersByTimeAsync(0);
+    if (failure === 'close') Socket.current.onclose?.();
+    if (failure === 'error') Socket.current.onerror?.();
+    if (failure === 'goAway') Socket.current.message({ goAway: {} });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(track.stop).toHaveBeenCalled();
+    Socket.current.onclose?.();
+    expect(ended).toHaveBeenCalledOnce();
+    const result = expect(
+      submitCall(call, 'synthetic-session', new AbortController().signal),
+    ).rejects.toThrow('interrupted');
+    await vi.advanceTimersByTimeAsync(2000);
+    await result;
+    expect(fetcher).not.toHaveBeenCalled();
+  },
+);
+
+it('does not turn a deliberate hang-up into a failure when the socket closes during the drain', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: { inputTranscription: { text: 'A synthetic caller.' } },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  const finished = call.finish();
+  Socket.current.onclose?.();
+  Socket.current.onerror?.();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await finished).toBe('Caller: A synthetic caller.');
+  expect(ended).not.toHaveBeenCalled();
+});
+
+it('keeps a completed Kokoro closing successful despite malformed late messages', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: { outputTranscription: { text: SCREENER_LINES.opening }, turnComplete: true },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message({
+    serverContent: { inputTranscription: { text: 'A synthetic caller.' } },
+  });
+  Socket.current.message({
+    serverContent: { outputTranscription: { text: SCREENER_LINES.closing }, turnComplete: true },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  Socket.current.onmessage?.({ data: 'malformed late provider message' });
+  await vi.advanceTimersByTimeAsync(0);
+  const result = call.finish();
+  Socket.current.onmessage?.({ data: 'malformed message during drain' });
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await result).toContain(
+    `Caller: A synthetic caller.\nAssistant: ${SCREENER_LINES.closing}`,
+  );
+});
+
+it('preserves the first failure when late messages arrive', async () => {
+  const call = await connect();
+  Socket.current.message({
+    serverContent: { inputTranscription: { text: 'A synthetic caller.' } },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  Socket.current.onerror?.();
+  Socket.current.onmessage?.({ data: 'malformed late provider message' });
+  Socket.current.message({
+    serverContent: { outputTranscription: { text: SCREENER_LINES.opening }, turnComplete: true },
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  const result = expect(call.finish()).rejects.toThrow('interrupted');
+  await vi.advanceTimersByTimeAsync(2000);
+  await result;
+  expect(ended).toHaveBeenCalledOnce();
+  expect(sources).toHaveLength(0);
 });

@@ -11,9 +11,9 @@ export default function HelpPage() {
       {(call) => (
         <div className="space-y-6">
           {call.analysis.band === 'strong' && (
-            <a href="tel:159" className={buttonClass('primary')}>
+            <a href={`tel:${GUIDANCE.call_159.tel}`} className={buttonClass('primary')}>
               <Phone />
-              Call 159
+              {GUIDANCE.call_159.title}
             </a>
           )}
           <ol className="space-y-5">

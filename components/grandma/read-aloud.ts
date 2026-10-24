@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GUIDANCE } from '@/lib/guidance';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { CallView } from '@/lib/types';
 import { reassurance } from './CallCard';
 import { SAM_LINE, samState } from './sam';
+import { startSpeech } from './speech';
 
 // Each part becomes its own sentence so the voice pauses between them.
 const sentences = (parts: (string | false | null | undefined)[]) =>
@@ -20,7 +21,7 @@ export function readScript(call: CallView, contact: string, paused: boolean) {
   return sentences([
     BAND_LABEL[analysis.band].title,
     warning && FAMILY_LABEL[analysis.family],
-    warning && analysis.summary,
+    analysis.summary.trim(),
     reassurance(call),
     warning && SAM_LINE[samState(call, paused)](contact),
     analysis.nextSteps.length > 0 && 'What to do now',
@@ -31,20 +32,27 @@ export function readScript(call: CallView, contact: string, paused: boolean) {
 
 export function useReadAloud() {
   const [speaking, setSpeaking] = useState(false);
-  useEffect(() => () => speechSynthesis.cancel(), []);
+  const [error, setError] = useState<string | null>(null);
+  const cancel = useRef<() => void>(() => {});
+  useEffect(() => () => cancel.current(), []);
   const read = (text: string) => {
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-GB';
-    utterance.rate = 0.9;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    speechSynthesis.speak(utterance);
+    cancel.current();
+    setError(null);
     setSpeaking(true);
+    cancel.current = startSpeech(
+      text,
+      () => setSpeaking(false),
+      () => {
+        setSpeaking(false);
+        setError(
+          'Read-aloud could not start. Try “Read it again”, or read the words on this screen.',
+        );
+      },
+    );
   };
   const stop = () => {
-    speechSynthesis.cancel();
+    cancel.current();
     setSpeaking(false);
   };
-  return { speaking, read, stop };
+  return { speaking, error, read, stop };
 }

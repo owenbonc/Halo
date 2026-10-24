@@ -10,7 +10,16 @@ const cache = globalThis as unknown as { mongo?: Promise<MongoClient> };
 async function database(): Promise<Db> {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error('MONGODB_URI is not set. See .env.example.');
-  cache.mongo ??= new MongoClient(uri).connect();
+  if (!cache.mongo) {
+    const client = new MongoClient(uri);
+    const connecting = client.connect().catch(async (error: unknown) => {
+      // A temporary outage must not poison every request until the next deployment.
+      if (cache.mongo === connecting) cache.mongo = undefined;
+      await client.close().catch(() => {});
+      throw error;
+    });
+    cache.mongo = connecting;
+  }
   return (await cache.mongo).db(process.env.MONGODB_DB ?? 'hangup');
 }
 

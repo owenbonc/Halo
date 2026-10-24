@@ -8,8 +8,8 @@ import './globals.css';
 const atkinson = Atkinson_Hyperlegible_Next({
   subsets: ['latin'],
   variable: '--font-atkinson',
-  // next/font has no metrics for this font yet, so a fallback can't be generated.
-  adjustFontFallback: false,
+  // Turbopack has no metrics for this font; an explicit fallback stops it looking them up.
+  fallback: ['system-ui', 'sans-serif'],
 });
 const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],

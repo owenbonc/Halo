@@ -35,17 +35,17 @@ type Segment = { href: string; Icon: typeof Phone; label: string; primary?: bool
 // Each segment's icon and words sit in the middle of the segment, nudged clear of the verdict circle.
 // The bottom quarters put their words above the icon, so the wider line stays clear of the ring's curve.
 const QUARTER = [
-  'flex-col pr-[10%] pb-[14%]',
-  'flex-col pl-[10%] pb-[14%]',
-  'flex-col-reverse pr-[10%] pt-[16%]',
-  'flex-col-reverse pl-[10%] pt-[16%]',
+  'flex-col rounded-tl-[100%] pr-[10%] pb-[14%]',
+  'flex-col rounded-tr-[100%] pl-[10%] pb-[14%]',
+  'flex-col-reverse rounded-bl-[100%] pr-[10%] pt-[16%]',
+  'flex-col-reverse rounded-br-[100%] pl-[10%] pt-[16%]',
 ];
-const HALF = ['pr-[44%]', 'pl-[44%]'];
+const HALF = ['flex-col rounded-l-[100%_50%] pr-[44%]', 'flex-col rounded-r-[100%_50%] pl-[44%]'];
 
 /*
  * Her buttons as a ring around the verdict: four quarters on a warning call, two halves on a green one.
- * The ring grows with her text size up to the screen's width; icons and words scale with the ring (cqw)
- * so they stay inside their segment.
+ * The ring grows with her text size until it fills the screen's width. Icons and the centre word scale with
+ * the ring (cqw) so they stay inside it; labels never drop below her text size.
  */
 function ActionRing({
   band,
@@ -64,27 +64,27 @@ function ActionRing({
       className="@container relative mx-auto aspect-square w-full max-w-[21rem]"
     >
       <div
-        className={`grid size-full gap-[2cqw] [clip-path:circle(50%)] ${quarters ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2'}`}
+        className={`grid size-full gap-[2cqw] ${quarters ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2'}`}
       >
         {segments.map(({ href, Icon: SegmentIcon, label, primary }, i) => (
           <Link
             key={href}
             href={href}
             onClick={onOpen}
-            className={`flex items-center justify-center gap-[1cqw] text-center font-bold leading-tight transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${quarters ? QUARTER[i] : `flex-col ${HALF[i]}`} ${primary ? 'glass-accent text-on-accent' : 'glass text-ink'}`}
+            className={`flex items-center justify-center gap-[1cqw] text-center font-bold leading-tight transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${(quarters ? QUARTER : HALF)[i]} focus-visible:-outline-offset-4 ${primary ? 'glass-accent text-on-accent' : 'glass text-ink'}`}
           >
             <SegmentIcon className="size-[14cqw]" />
-            <span className="text-[max(5.6cqw,0.95rem)]">{label}</span>
+            <span className="text-[max(5.6cqw,1.05rem)]">{label}</span>
           </Link>
         ))}
       </div>
       {/* The full verdict sits under the ring as the card's heading, so screen readers skip this copy. */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-[29%] flex flex-col items-center justify-center gap-[0.5cqw] rounded-full border-2 text-center font-bold leading-tight shadow-[0_0_0_2cqw_var(--color-bg)] ${card} ${text}`}
+        className={`absolute inset-[29%] flex flex-col items-center justify-center gap-[0.5cqw] rounded-full border-2 text-center font-bold leading-tight shadow-[0_0_0_2cqw_var(--color-bg)] ${card} ${text}`}
       >
         <Icon className="size-[12cqw]" />
-        <span className="px-[3cqw] text-[4.6cqw]">{BAND_LABEL[band].short}</span>
+        <span className="px-[3cqw] text-[4.6cqw]">{BAND_LABEL[band].circle}</span>
       </div>
     </nav>
   );

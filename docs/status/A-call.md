@@ -5,6 +5,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Done
 
+- User reports a teammate’s Gemini key is working. Gemini remains the primary demo path; private Whisper is retained as an explicitly enabled, local-only backup. Documented activation and return-to-Gemini steps. This report is not independent verification of the teammate’s key or production settings.
+
 - Actual production-build rehearsal passed: real GPU WAV/WebM -> existing app transcript/session -> persisted cards; courier/trick strong, GP amber under degraded rules; auto/manual/paused consent, caretaker privacy, acknowledgement, replay rejection and digit scrubbing verified. Browser checks covered pre-mic provider disclosure, access-code rejection and an actual caregiver acknowledgement. Disconnecting private GPU forwarding returns a controlled 502 with no new card. Independent Codex with ChatGPT review accepted this local milestone after inspecting the diff and all seven recorded execution outputs, including the default-build failure. Gemini remains default and production is unchanged.
 
 - Synced main through `428ec9e`, including Owen's merge of PR #13, the preset transcription guard, alert-time consent and updated call budgets. Production token issuance now requests the access code (401); production provider inference remains unverified.
@@ -57,7 +59,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Doing
 
-- Local caller and caretaker pages are running for the user’s physical microphone rehearsal, with a separate synthetic-demo database. This rehearsal uses Whisper transcription and existing degraded word checks; live Gemini and production acceptance remain outstanding.
+- Local rehearsal has returned to Gemini mode, with GPU transcription disabled and the existing private environment left intact. Physical microphone and live Gemini acceptance remain outstanding; the teammate’s working key has not been copied or verified here.
 
 ## Next
 

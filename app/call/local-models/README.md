@@ -1,10 +1,20 @@
-# Optional private GPU transcription
+# Backup plan: private GPU transcription
 
 Gemini remains the default. This opt-in experiment changes only recorded messages sent through `/api/transcribe`; Gemini Live, analysis and voice notes retain their existing paths. It is not enabled in production.
 
 The caller hears the existing recorded-message question, records up to 45 seconds and sends it through Halo's authenticated call session. Halo sends that recording through a private SSH connection to this Whisper service. The transcript follows the existing save/card/consent/alert flow. The call page discloses the private transcription computer before recording. No audio is saved by this service.
 
 With Gemini unavailable, analysis still uses the existing conservative word checks: the courier/trick scripts produce warnings; the GP is amber, not a verified green result. There is no automatic switch to a fabricated sample or another provider when the private service fails.
+
+## Normal demo: Gemini
+
+Use the working team Gemini key in the server environment. Keep `HALO_LOCAL_TRANSCRIPTION` unset or `0` and `DEMO_FALLBACK=0`, then restart Next.js. The call page defaults to Live conversation; recorded messages also use Gemini. No GPU connection is needed. Never put the key in Git or browser code.
+
+## When Gemini is unavailable
+
+Enable this backup deliberately using the setup below, restart Next.js, and use Recorded message. This is a local speech-to-text backup, not a replacement for Gemini Live or Argon analysis. If Gemini analysis is also unavailable, the existing conservative word checks remain in effect. Qwen is not used.
+
+To return to Gemini, unset `HALO_LOCAL_TRANSCRIPTION` (or set it to `0`) and restart Next.js. Stop the dedicated Halo inference processes/forwarding when no longer needed; retain the isolated models for another rehearsal. No automatic provider switch is implemented.
 
 ## Setup on a separate Windows NVIDIA machine
 

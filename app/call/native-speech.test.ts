@@ -92,3 +92,14 @@ it('requires an explicit positive checker response and never uploads buffered au
     'could not be checked',
   );
 });
+
+it('discards an empty noise turn without using up the follow-up stage', () => {
+  const reply = new NativeReply();
+  reply.add({ turnComplete: true });
+  expect(reply.empty).toBe(true);
+  reply.discard();
+  expect(reply.ready).toBe(false);
+  reply.add(response('Who do you represent?'));
+  expect(reply.empty).toBe(false);
+  expect(reply.advance().stage).toBe('followup');
+});

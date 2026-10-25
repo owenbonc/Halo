@@ -557,6 +557,48 @@ it('preserves the first failure when late messages arrive', async () => {
   expect(ended).toHaveBeenCalledOnce();
   expect(sources).toHaveLength(1);
 });
+it('ignores a silent noise turn before the caller speaks and keeps listening', async () => {
+  const call = await connect();
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message({ serverContent: { turnComplete: true } });
+  await vi.advanceTimersByTimeAsync(300);
+  expect(ended).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(1);
+  expect(capturePort.postMessage.mock.calls.at(-1)?.[0].enabled).toBe(true);
+  await exchange('Which company are you calling from?');
+  expect(sources).toHaveLength(2);
+  sources.at(-1)?.onended?.();
+  expect(call.transcript.text()).toContain('Assistant: Which company are you calling from?');
+  call.dispose();
+});
+it('plays the follow-up when the caller transcription arrives after the reply', async () => {
+  const call = await connect();
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message(nativeResponse('Which company are you calling from?'));
+  await vi.advanceTimersByTimeAsync(300);
+  expect(sources).toHaveLength(2);
+  Socket.current.message({ serverContent: { inputTranscription: { text: 'This is the bank.' } } });
+  await vi.advanceTimersByTimeAsync(0);
+  sources.at(-1)?.onended?.();
+  const result = call.finish();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await result).toBe(
+    `Assistant: ${clips.opening.text}\nCaller: This is the bank.\nAssistant: Which company are you calling from?`,
+  );
+});
+it('automatic voice still stops when a reply has no caller speech behind it', async () => {
+  const call = await connect('automatic');
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  Socket.current.message(nativeResponse('もう少し教えていただけますか？'));
+  await vi.advanceTimersByTimeAsync(300);
+  expect(ended).toHaveBeenCalledOnce();
+  const result = expect(call.finish()).rejects.toThrow('No caller speech');
+  await vi.advanceTimersByTimeAsync(2000);
+  await result;
+});
 it('says the closing when time runs out while listening, then hangs up', async () => {
   const call = await connect();
   await nativeListening();

@@ -1,9 +1,13 @@
 # A. The call
 
-Owner: call slice on `The-call`
-Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday keeper scope from `docs/HANDOVER.md`: shared routes and database integration. Public `lib/types.ts` remains unchanged.
+Owner: call slice; current sync branch `call/multilingual`
+Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Kota is the overnight keeper per `docs/HANDOVER.md`; shared routes and `lib/types.ts` belong to the keeper.
 
 ## Done
+
+- Fixed two ways an English live call could end with nothing sent (branch `call/turn-fixes`): a silent noise turn before the caller spoke, and the caller's transcription arriving after Gemini's reply. Silent noise turns are now ignored and listening resumes; a spoken reply plays even if the caller's words land late, and finish() still refuses a call with no caller speech. Automatic-language mode keeps the strict check. Both failures were reproduced in tests first; 100 call tests pass.
+
+- Synced main `22ff60f` on 25 Oct by fast-forward, including merged multilingual PR #22, role/route rename PR #23 and tailored English call PR #24. English now uses a checked generated follow-up with a prerecorded fallback; opening, fallback and closing use Gemini Sulafat clips instead of Kokoro. Automatic-language mode remains gated and off in production. Regenerated stale Next route types after the rename; full `IS_WEBPACK_TEST=1 scripts/verify.sh` prints READY. Local preview restarted on port 3103 without a Gemini key. This verifies code/build, not a live call; HANDOVER reports a local live call passed elsewhere, with production phone acceptance pending.
 
 - Synced the multilingual branch with main `2d8bf76` without conflicts, including merged backup PR #19 and the shared font fix. HANDOVER now confirms the production Gemini key and access code are set; no local working key or multilingual live acceptance is established.
 
@@ -66,7 +70,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 ## Doing
 
-- Multilingual live acceptance is pending a working key: keep the pilot off in production and English Kokoro as default. Offline implementation is independently accepted. The user requested a draft PR for review; keep it draft until real speech and analysis gates pass.
+- Multilingual PR #22 is merged; keep the pilot off in production until real speech and analysis gates pass. English tailored screening with Sulafat clips is now the default following PR #24.
 
 - Local rehearsal has returned to Gemini mode, with GPU transcription disabled and the existing private environment left intact. Physical microphone and live Gemini acceptance remain outstanding; the teammate’s working key has not been copied or verified here.
 
@@ -76,7 +80,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 
 - Production now asks for the access code (401). Owen owns production settings and provider availability; no successful production Gemini inference is established. The private GPU setup supports local Halo only: Vercel cannot use this Mac’s loopback forwarding.
 - Verify real recorded transcription with the event account. B reports its billing account exceeded its monthly cap; provider availability is still a demo blocker. `DEMO_FALLBACK=1` currently forces recorded input but does not supply recorded analysis fixtures.
-- Test physical phone permissions, Kokoro audibility, turn-taking, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
+- Test physical phone permissions, Sulafat audibility, turn-taking, mute, cancellation, background/back navigation, delayed transcription and repeat calls over HTTPS.
 - Run all three synthetic scenarios three times on the deployed build after shared blockers are fixed.
 
 ## Needs from others
@@ -85,7 +89,7 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Saturday
 - **P1 submission recovery:** `/api/calls` consumes the session before analysis/save. A transient failure can lose the submission; an alert failure after save can make delivery appear to fail. Implement idempotent receipt/recovery and separate notification failures from persistence. Client deliberately does not blindly retry.
 - **P1 transcription protection:** main now requires one transcription per unused call session, issued behind the access-code/budget gate. Pre-buffer request limits and transcription-session expiry remain follow-ups; general shared-route access control remains unresolved.
 - **P2 retention/privacy:** sessions now expire on consumption after five minutes. Define transcript/session retention and shared-route access before real users; this demo must use synthetic data only.
-- In fixed English mode, spoken responses are deterministically restricted to the three bundled questions/closing. This does not validate caller truthfulness or shared analysis, and does not make the entire application safe for real callers.
+- English follow-ups now use semantic checking, with a prerecorded fallback on rejection or checking failure. Text approval does not prove generated audio matches it, caller truthfulness or analysis accuracy. Kota must complete the production-phone PR #24 gate in HANDOVER; D must verify a courier call has matched Atlas patterns.
 - Stage-phone and HTTPS deployment access are still needed for final acceptance. Local full verification is READY; physical microphone/speaker checks and three deployed scenario runs remain outstanding.
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
 

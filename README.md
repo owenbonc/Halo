@@ -4,6 +4,13 @@
 
 Live: https://hang-up-and-check.vercel.app · Built at Encode London 2026 (Real World track, Google DeepMind and MongoDB bounties).
 
+## Try it
+- **The caller:** https://hang-up-and-check.vercel.app/call (asks for the demo access code)
+- **Her phone:** https://hang-up-and-check.vercel.app/loved-one
+- **Sam's phone:** https://hang-up-and-check.vercel.app/caregiver
+
+Open both phones, then make a call from the caller page: her card appears, and Sam is alerted when it's serious.
+
 ## The problem
 The UK scams that cost older people the most start with a phone call: someone pretending to be the police or the bank coaches them to keep it secret, then sends a courier for cash or gets a bank transfer. About 62% of 2025 courier-fraud reports came from people aged 76–96, with an average loss of about £15k (police figures from secondary copies; sources in [docs/research.md](docs/research.md)). The UK measures that work bring in a third person the scammer doesn't control.
 
@@ -51,7 +58,7 @@ pnpm seed:patterns     # load the scam library into Atlas
 pnpm demo:reset && pnpm dev
 ```
 
-Open http://localhost:3000 and pick a role on each phone; open http://localhost:3000/call to play the caller.
+Open http://localhost:3000 on each phone; a new phone asks whose phone it is. Open http://localhost:3000/call to play the caller.
 
 ## Team
 | Slice | Who |

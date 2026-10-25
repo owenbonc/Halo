@@ -1,12 +1,12 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from '@/components/ui/icons';
+import { Logo } from '@/components/ui/Logo';
 
 const BACK =
   'glass inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full px-5 font-semibold text-ink transition-transform duration-100 ease-out active:scale-[0.97]';
 
-// The loved one's top bar: stays on screen as translucent material while the page scrolls under it.
-// It owns the status-bar gap, so it cancels the page's own top padding, like the caregiver's header.
+// Owns the status-bar gap, so it cancels the page's own top padding.
 export function TopBar({
   title,
   count,
@@ -31,12 +31,13 @@ export function TopBar({
           Back
         </button>
       )}
-      <h1 className="flex min-h-12 items-center text-3xl font-bold">
-        <span>
+      <div className="flex min-h-12 items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold">
           {title}
           {count ? <span className="font-semibold text-ink-2 tabular-nums"> · {count}</span> : null}
-        </span>
-      </h1>
+        </h1>
+        <Logo />
+      </div>
     </header>
   );
 }

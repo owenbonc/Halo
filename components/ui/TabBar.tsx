@@ -17,7 +17,7 @@ export const ABOVE_TAB_BAR = 'bottom-[calc(max(0.75rem,var(--safe-bottom))+6.25r
 
 /*
  * A floating clear-glass capsule of tabs (after bulk's floating controls), in thumb reach above the home
- * indicator. The selected tab sits on lavender glass. Every tab keeps its word, never icon-only.
+ * indicator. The selected tab sits on solid umber. Every tab keeps its word, never icon-only.
  * Both phones share one size; labels grow with the loved one's text size up to 20px so three fit.
  */
 export function TabBar({ tabs }: { tabs: Tab[] }) {

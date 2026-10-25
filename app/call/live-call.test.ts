@@ -83,14 +83,19 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-async function connect(validateNative?: (turn: NativeTurn, signal: AbortSignal) => Promise<void>) {
+async function connect(
+  voice: 'english' | 'automatic' = 'english',
+  validate: (turn: NativeTurn, signal: AbortSignal) => Promise<void> = vi
+    .fn()
+    .mockResolvedValue(undefined),
+) {
   const call = new LiveCall(
     context as unknown as AudioContext,
     stream as unknown as MediaStream,
     ended,
     clips,
-    undefined,
-    validateNative,
+    voice,
+    validate,
   );
   const starting = call.start('auth_tokens/test', 'test-model');
   Socket.current.onopen?.();
@@ -99,9 +104,9 @@ async function connect(validateNative?: (turn: NativeTurn, signal: AbortSignal) 
   return call;
 }
 
-const nativeResponse = (text: string, finished = true) => ({
+const nativeResponse = (text: string) => ({
   serverContent: {
-    outputTranscription: { text, finished },
+    outputTranscription: { text },
     turnComplete: true,
     modelTurn: { parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAACAA==' } }] },
   },
@@ -114,8 +119,14 @@ async function nativeListening() {
   });
   await vi.advanceTimersByTimeAsync(0);
 }
+// The previous clip ends, the caller speaks, and Gemini answers with `text`.
+async function exchange(text: string) {
+  await nativeListening();
+  Socket.current.message(nativeResponse(text));
+  await vi.advanceTimersByTimeAsync(300);
+}
 
-it('native mode uses a local opening and waits for validation before generated playback', async () => {
+it('automatic voice uses a local opening and waits for validation before generated playback', async () => {
   let allow: () => void = () => {};
   const check = vi.fn(
     () =>
@@ -123,14 +134,12 @@ it('native mode uses a local opening and waits for validation before generated p
         allow = resolve;
       }),
   );
-  const call = await connect(check);
+  const call = await connect('automatic', check);
   expect(sources).toHaveLength(1);
   expect(Socket.current.send.mock.calls.some(([s]) => s.includes('"turnComplete":true'))).toBe(
     false,
   );
-  await nativeListening();
-  Socket.current.message(nativeResponse('전화하신 이유를 조금 더 말씀해 주시겠어요?'));
-  await vi.advanceTimersByTimeAsync(0);
+  await exchange('전화하신 이유를 조금 더 말씀해 주시겠어요?');
   expect(check).toHaveBeenCalledOnce();
   expect(sources).toHaveLength(1);
   const frame = {
@@ -151,15 +160,11 @@ it('native mode uses a local opening and waits for validation before generated p
   call.dispose();
 });
 
-it('native mode ends after the checked closing and never logs cancelled playback', async () => {
+it('automatic voice ends after the checked closing and never logs cancelled playback', async () => {
   const check = vi.fn().mockResolvedValue(undefined);
-  const call = await connect(check);
-  await nativeListening();
-  Socket.current.message(nativeResponse('もう少し教えていただけますか？'));
-  await vi.advanceTimersByTimeAsync(0);
-  await nativeListening();
-  Socket.current.message(nativeResponse('ありがとうございます。お伝えします。'));
-  await vi.advanceTimersByTimeAsync(0);
+  const call = await connect('automatic', check);
+  await exchange('もう少し教えていただけますか？');
+  await exchange('ありがとうございます。お伝えします。');
   expect(ended).not.toHaveBeenCalled();
   sources.at(-1)?.onended?.();
   expect(ended).toHaveBeenCalledOnce();
@@ -167,19 +172,25 @@ it('native mode ends after the checked closing and never logs cancelled playback
   call.dispose();
 });
 
-it('native mode rejects missing final transcription and checker failure before audio plays', async () => {
+it.each([
+  ['empty text', nativeResponse('')],
+  [
+    'no audio',
+    { serverContent: { outputTranscription: { text: 'Can you explain?' }, turnComplete: true } },
+  ],
+])('automatic voice ends on a reply with %s without checking or playing it', async (_, reply) => {
   const check = vi.fn().mockResolvedValue(undefined);
-  const call = await connect(check);
+  const call = await connect('automatic', check);
   await nativeListening();
-  Socket.current.message(nativeResponse('Unfinished', false));
-  await vi.advanceTimersByTimeAsync(3001);
+  Socket.current.message(reply);
+  await vi.advanceTimersByTimeAsync(300);
   expect(ended).toHaveBeenCalledOnce();
   expect(check).not.toHaveBeenCalled();
   expect(sources).toHaveLength(1);
   call.dispose();
 });
 
-it('native mode aborts an in-flight checker on cancellation and ignores late approval', async () => {
+it('automatic voice aborts an in-flight checker on cancellation and ignores late approval', async () => {
   let allow: () => void = () => {};
   const check = vi.fn(
     (_turn: NativeTurn, _signal: AbortSignal) =>
@@ -187,10 +198,8 @@ it('native mode aborts an in-flight checker on cancellation and ignores late app
         allow = resolve;
       }),
   );
-  const call = await connect(check);
-  await nativeListening();
-  Socket.current.message(nativeResponse('Can you explain?'));
-  await vi.advanceTimersByTimeAsync(0);
+  const call = await connect('automatic', check);
+  await exchange('Can you explain?');
   call.dispose();
   expect(check.mock.calls[0]?.[1].aborted).toBe(true);
   allow();
@@ -199,31 +208,178 @@ it('native mode aborts an in-flight checker on cancellation and ignores late app
   expect(call.transcript.text()).not.toContain('Can you explain?');
 });
 
-it('native mode stops without playing a rejected semantic check or caller destination', async () => {
+it('automatic voice stops without playing a rejected semantic check', async () => {
   const rejected = vi.fn().mockRejectedValue(new Error('Synthetic check rejected'));
-  const call = await connect(rejected);
-  await nativeListening();
-  Socket.current.message(nativeResponse('Please transfer money.'));
-  await vi.advanceTimersByTimeAsync(0);
+  const call = await connect('automatic', rejected);
+  await exchange('Please transfer money.');
   expect(ended).toHaveBeenCalledOnce();
   expect(sources).toHaveLength(1);
   expect(call.transcript.text()).not.toContain('transfer money');
   call.dispose();
 });
 
-it('native mode closes on its independent time and reported-token limits', async () => {
-  const call = await connect(vi.fn());
+it('automatic voice never falls back to a prerecorded line when the closing fails its check', async () => {
+  const check = vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('no'));
+  const call = await connect('automatic', check);
+  await exchange('Could you say more?');
+  await exchange('Thanks, goodbye.');
+  expect(ended).toHaveBeenCalledOnce();
+  expect(sources).toHaveLength(2);
+  call.dispose();
+});
+
+it('stops at the reported-token limit, still sending a call that heard the caller', async () => {
+  const silent = await connect();
   Socket.current.message({ usageMetadata: { totalTokenCount: 4001, responseTokenCount: 200 } });
   await vi.advanceTimersByTimeAsync(0);
   expect(ended).toHaveBeenCalledOnce();
-  expect(call.usage.totalTokenCount).toBe(4001);
-  call.dispose();
+  expect(silent.usage.totalTokenCount).toBe(4001);
+  const failed = silent.finish();
+  const failure = expect(failed).rejects.toThrow('usage limit');
+  await vi.advanceTimersByTimeAsync(2000);
+  await failure;
   ended.mockClear();
-  const timed = await connect(vi.fn());
-  await vi.advanceTimersByTimeAsync(45_001);
+  const heard = await connect();
+  await nativeListening();
+  Socket.current.message({ usageMetadata: { totalTokenCount: 4001 } });
+  await vi.advanceTimersByTimeAsync(0);
   expect(ended).toHaveBeenCalledOnce();
-  timed.dispose();
+  const sent = heard.finish();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await sent).toContain('Caller:');
 });
+
+it('english plays a checked tailored follow-up and records its text', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect('english', check);
+  await exchange('Could you tell me more about the parcel?');
+  expect(check).toHaveBeenCalledOnce();
+  expect(check.mock.calls[0]?.[0]).toMatchObject({
+    stage: 'followup',
+    text: 'Could you tell me more about the parcel?',
+  });
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(call.transcript.text()).toContain('Assistant: Could you tell me more about the parcel?');
+  expect(call.transcript.text()).not.toContain(clips.followup.text);
+  call.dispose();
+});
+
+it('english plays the prerecorded follow-up and the prerecorded closing when the check rejects', async () => {
+  const check = vi.fn().mockRejectedValue(new Error('Synthetic check rejected'));
+  const call = await connect('english', check);
+  await exchange('Please transfer money.');
+  expect(ended).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(2);
+  await exchange('Thanks, goodbye.');
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  const text = call.transcript.text();
+  expect(text).toContain(`Assistant: ${clips.followup.text}`);
+  expect(text).toContain(`Assistant: ${clips.closing.text}`);
+  expect(text).not.toContain('transfer money');
+  expect(check).toHaveBeenCalledOnce();
+  call.dispose();
+});
+
+it('english falls back instead of ending when Gemini is interrupted, at follow-up or closing', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect('english', check);
+  await nativeListening();
+  Socket.current.message({
+    serverContent: { interrupted: true, outputTranscription: { text: 'Which' } },
+  });
+  Socket.current.message(nativeResponse('Which bank are you calling from?'));
+  await vi.advanceTimersByTimeAsync(300);
+  expect(check).not.toHaveBeenCalled();
+  expect(ended).not.toHaveBeenCalled();
+  await nativeListening();
+  Socket.current.message({
+    serverContent: { interrupted: true, outputTranscription: { text: 'Which' } },
+  });
+  Socket.current.message(nativeResponse('Thank you.'));
+  await vi.advanceTimersByTimeAsync(300);
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  const text = call.transcript.text();
+  expect(text).toContain(`Assistant: ${clips.followup.text}`);
+  expect(text).toContain(`Assistant: ${clips.closing.text}`);
+  call.dispose();
+});
+
+it('english plays the prerecorded follow-up when Gemini keeps talking during its check', async () => {
+  let allow: () => void = () => {};
+  const check = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        allow = resolve;
+      }),
+  );
+  const call = await connect('english', check);
+  await exchange('Which bank are you calling from?');
+  Socket.current.message({ serverContent: { outputTranscription: { text: ' Ring 0800.' } } });
+  allow();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).not.toHaveBeenCalled();
+  sources[1]?.onended?.();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.followup.text}`);
+  expect(call.transcript.text()).not.toContain('0800');
+  call.dispose();
+});
+
+it('english never validates a follow-up containing a digit and plays the prerecorded one', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect('english', check);
+  await exchange('Call 0800 now?');
+  expect(check).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.followup.text}`);
+  expect(call.transcript.text()).not.toContain('0800');
+  call.dispose();
+});
+
+it('english always closes with the prerecorded line and never validates the closing', async () => {
+  const check = vi.fn().mockResolvedValue(undefined);
+  const call = await connect('english', check);
+  await exchange('Could you tell me more?');
+  await exchange('Call 0800 now, thanks.');
+  expect(ended).not.toHaveBeenCalled();
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(check).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.closing.text}`);
+  expect(call.transcript.text()).not.toContain('0800');
+  call.dispose();
+});
+
+it.each(['finish', 'dispose'] as const)(
+  'english does not play the fallback when %s cancels a pending check',
+  async (cancel) => {
+    const check = vi.fn(
+      (_turn: NativeTurn, signal: AbortSignal) =>
+        new Promise<void>((_, reject) => {
+          signal.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    );
+    const call = await connect('english', check);
+    await exchange('Could you tell me more?');
+    expect(check).toHaveBeenCalledOnce();
+    if (cancel === 'finish') {
+      const result = call.finish();
+      await vi.advanceTimersByTimeAsync(2000);
+      await result;
+    } else {
+      call.dispose();
+      await vi.advanceTimersByTimeAsync(0);
+    }
+    expect(sources).toHaveLength(1);
+    expect(ended).not.toHaveBeenCalled();
+    expect(call.transcript.text()).not.toContain(clips.followup.text);
+    call.dispose();
+  },
+);
+
 it('stops the microphone immediately, drains final transcript, and finishes only once', async () => {
   const call = await connect();
   Socket.current.message({ serverContent: { inputTranscription: { text: 'A courier ' } } });
@@ -242,30 +398,16 @@ it('stops the microphone immediately, drains final transcript, and finishes only
 });
 it('rejects silence instead of submitting only the assistant greeting', async () => {
   const call = await connect();
-  Socket.current.message({ serverContent: { outputTranscription: { text: 'Hello' } } });
-  await vi.advanceTimersByTimeAsync(0);
+  sources[0]?.onended?.();
+  expect(call.transcript.text()).toBe(`Assistant: ${clips.opening.text}`);
   const result = expect(call.finish()).rejects.toThrow('No caller speech');
   await vi.advanceTimersByTimeAsync(2000);
   await result;
 });
-it('requests hang-up when the assistant completes the closing', async () => {
+it('requests hang-up when the closing finishes playing', async () => {
   const call = await connect();
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: SCREENER_LINES.opening },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(150);
-  sources.at(-1)?.onended?.();
-  await vi.advanceTimersByTimeAsync(150);
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: "Thank you, I'll pass that on." },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(150);
+  await exchange('Could you tell me more?');
+  await exchange("Thank you, I'll pass that on.");
   expect(ended).not.toHaveBeenCalled();
   sources.at(-1)?.onended?.();
   expect(ended).toHaveBeenCalledOnce();
@@ -292,6 +434,8 @@ it('does not start capture if disconnected while the worklet is loading', async 
     stream as unknown as MediaStream,
     ended,
     clips,
+    'english',
+    vi.fn(),
   );
   const starting = call.start('auth_tokens/test', 'test-model');
   Socket.current.message({ setupComplete: {} });
@@ -306,7 +450,7 @@ it('does not start capture if disconnected while the worklet is loading', async 
   await finishing;
 });
 
-it('plays only Kokoro, ignores noise interruptions and discards stale capture frames', async () => {
+it('plays the local opening and discards stale capture frames', async () => {
   const call = await connect();
   const frame = (generation: number) =>
     capturePort.onmessage?.({
@@ -314,23 +458,10 @@ it('plays only Kokoro, ignores noise interruptions and discards stale capture fr
     });
   frame(0);
   expect(Socket.current.send.mock.calls.some(([s]) => s.includes('realtimeInput'))).toBe(false);
-  Socket.current.message({
-    serverContent: {
-      modelTurn: {
-        parts: [{ inlineData: { mimeType: 'audio/pcm;rate=24000', data: 'AAABAA==' } }],
-      },
-      outputTranscription: { text: SCREENER_LINES.opening },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(150);
   expect(sources).toHaveLength(1);
   expect(call.transcript.text()).toBe('');
-  Socket.current.message({ serverContent: { interrupted: true } });
-  await vi.advanceTimersByTimeAsync(0);
-  expect(sources[0]?.stop).not.toHaveBeenCalled();
   sources[0]?.onended?.();
-  expect(call.transcript.text()).toContain(SCREENER_LINES.opening);
+  expect(call.transcript.text()).toBe(`Assistant: ${clips.opening.text}`);
   await vi.advanceTimersByTimeAsync(150);
   const generation = capturePort.postMessage.mock.calls.at(-1)?.[0].generation;
   frame(generation - 1);
@@ -340,56 +471,8 @@ it('plays only Kokoro, ignores noise interruptions and discards stale capture fr
   call.dispose();
 });
 
-it('collects a late output fragment and does not log a cancelled clip as spoken', async () => {
-  const call = await connect();
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: SCREENER_LINES.opening.slice(0, 20) },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(500);
-  expect(ended).not.toHaveBeenCalled();
-  expect(sources).toHaveLength(0);
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: SCREENER_LINES.opening.slice(20) },
-    },
-  });
-  await vi.advanceTimersByTimeAsync(100);
-  expect(sources).toHaveLength(1);
-  call.dispose();
-  sources[0]?.onended?.();
-  expect(call.transcript.text()).toBe('');
-});
-
-it('waits for a late first transcript after turnComplete, with a bounded timeout', async () => {
-  const call = await connect();
-  Socket.current.message({ serverContent: { turnComplete: true } });
-  await vi.advanceTimersByTimeAsync(500);
-  expect(sources).toHaveLength(0);
-  Socket.current.message({
-    serverContent: { outputTranscription: { text: SCREENER_LINES.opening } },
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  expect(sources).toHaveLength(1);
-  call.dispose();
-  const second = await connect();
-  Socket.current.message({ serverContent: { turnComplete: true } });
-  await vi.advanceTimersByTimeAsync(3000);
-  expect(ended).toHaveBeenCalledOnce();
-  second.dispose();
-});
-
 it('pauses capture as soon as model generation begins, before the clip is ready', async () => {
   const call = await connect();
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: SCREENER_LINES.opening },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(0);
   sources[0]?.onended?.();
   await vi.advanceTimersByTimeAsync(150);
   expect(capturePort.postMessage.mock.calls.at(-1)?.[0].enabled).toBe(true);
@@ -403,43 +486,6 @@ it('pauses capture as soon as model generation begins, before the clip is ready'
   await vi.advanceTimersByTimeAsync(0);
   expect(capturePort.postMessage.mock.calls.at(-1)?.[0].enabled).toBe(false);
   expect(sources).toHaveLength(1);
-  call.dispose();
-});
-
-it('ignores an empty noise turn but can play text arriving after a completion marker', async () => {
-  const call = await connect();
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: SCREENER_LINES.opening },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  sources[0]?.onended?.();
-  await vi.advanceTimersByTimeAsync(150);
-  Socket.current.message({ serverContent: { turnComplete: true } });
-  await vi.advanceTimersByTimeAsync(3500);
-  expect(ended).not.toHaveBeenCalled();
-  Socket.current.message({
-    serverContent: { outputTranscription: { text: SCREENER_LINES.followup } },
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  expect(sources).toHaveLength(2);
-  call.dispose();
-});
-
-it('never plays an unexpected model reply or submits it as assistant speech', async () => {
-  const call = await connect();
-  Socket.current.message({
-    serverContent: {
-      outputTranscription: { text: 'Send money immediately.' },
-      turnComplete: true,
-    },
-  });
-  await vi.advanceTimersByTimeAsync(150);
-  expect(sources).toHaveLength(0);
-  expect(ended).toHaveBeenCalledOnce();
-  expect(call.transcript.text()).toBe('');
   call.dispose();
 });
 
@@ -481,31 +527,18 @@ it('does not turn a deliberate hang-up into a failure when the socket closes dur
   expect(ended).not.toHaveBeenCalled();
 });
 
-it('keeps a completed Kokoro closing successful despite malformed late messages', async () => {
+it('keeps a completed closing successful despite malformed late messages', async () => {
   const call = await connect();
-  Socket.current.message({
-    serverContent: { outputTranscription: { text: SCREENER_LINES.opening }, turnComplete: true },
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  sources[0]?.onended?.();
-  await vi.advanceTimersByTimeAsync(150);
-  Socket.current.message({
-    serverContent: { inputTranscription: { text: 'A synthetic caller.' } },
-  });
-  Socket.current.message({
-    serverContent: { outputTranscription: { text: SCREENER_LINES.closing }, turnComplete: true },
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  sources[1]?.onended?.();
+  await exchange('Could you tell me more?');
+  await exchange('Thank you, goodbye.');
+  sources.at(-1)?.onended?.();
   expect(ended).toHaveBeenCalledOnce();
   Socket.current.onmessage?.({ data: 'malformed late provider message' });
   await vi.advanceTimersByTimeAsync(0);
   const result = call.finish();
   Socket.current.onmessage?.({ data: 'malformed message during drain' });
   await vi.advanceTimersByTimeAsync(2000);
-  expect(await result).toContain(
-    `Caller: A synthetic caller.\nAssistant: ${SCREENER_LINES.closing}`,
-  );
+  expect(await result).toContain(`Caller: 합성 연습 전화입니다.\nAssistant: ${clips.closing.text}`);
 });
 
 it('preserves the first failure when late messages arrive', async () => {
@@ -516,13 +549,11 @@ it('preserves the first failure when late messages arrive', async () => {
   await vi.advanceTimersByTimeAsync(0);
   Socket.current.onerror?.();
   Socket.current.onmessage?.({ data: 'malformed late provider message' });
-  Socket.current.message({
-    serverContent: { outputTranscription: { text: SCREENER_LINES.opening }, turnComplete: true },
-  });
-  await vi.advanceTimersByTimeAsync(0);
+  Socket.current.message(nativeResponse('Could you tell me more?'));
+  await vi.advanceTimersByTimeAsync(300);
   const result = expect(call.finish()).rejects.toThrow('interrupted');
   await vi.advanceTimersByTimeAsync(2000);
   await result;
   expect(ended).toHaveBeenCalledOnce();
-  expect(sources).toHaveLength(0);
+  expect(sources).toHaveLength(1);
 });

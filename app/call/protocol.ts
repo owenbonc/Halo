@@ -28,9 +28,7 @@ export const LiveMessage = z.object({
   serverContent: z
     .object({
       inputTranscription: z.object({ text: z.string().optional() }).optional(),
-      outputTranscription: z
-        .object({ text: z.string().optional(), finished: z.boolean().optional() })
-        .optional(),
+      outputTranscription: z.object({ text: z.string().optional() }).optional(),
       interrupted: z.boolean().optional(),
       turnComplete: z.boolean().optional(),
       modelTurn: z

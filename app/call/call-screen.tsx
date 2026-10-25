@@ -57,7 +57,7 @@ export default function CallScreen({
   const [phase, setPhase] = useState<Phase>('idle');
   const [mode, setMode] = useState<'live' | 'recorded'>(localTranscription ? 'recorded' : 'live');
   const [actualMode, setActualMode] = useState(mode);
-  const [voice, setVoice] = useState<'fixed' | 'automatic'>('fixed');
+  const [voice, setVoice] = useState<'english' | 'automatic'>('english');
   const [fixture, setFixture] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [activity, setActivity] = useState<'waiting' | 'speaking' | 'listening'>('waiting');
@@ -175,7 +175,7 @@ export default function CallScreen({
         await microphone(attempt);
       }
       const response = await callRequest(
-        `/api/live-token?mode=${mode}&voice=${mode === 'live' ? voice : 'fixed'}`,
+        `/api/live-token?mode=${mode}&voice=${voice}`,
         { method: 'POST', headers: { 'x-call-demo-code': code } },
         20_000,
         attempt.abort.signal,
@@ -205,10 +205,9 @@ export default function CallScreen({
             void finish(attempt);
           },
           attempt.clips,
+          voice,
+          (turn, signal) => validateNativeReply(token.callSessionId, code, turn, signal),
           setActivity,
-          voice === 'automatic'
-            ? (turn, signal) => validateNativeReply(token.callSessionId, code, turn, signal)
-            : undefined,
         );
         attempt.call = live;
         live.setVolume(volume / 100);
@@ -327,7 +326,7 @@ export default function CallScreen({
         <p className="text-base text-ink-2">
           {voice === 'automatic'
             ? 'After an English greeting, the assistant tries to follow your spoken language. This is an experimental mode; language and dialect coverage varies.'
-            : 'The assistant uses prerecorded English questions.'}{' '}
+            : 'The assistant asks who’s calling, then one follow-up question about what you said.'}{' '}
           Wait for “Listening” before you speak; background sounds won’t cut off a question.
         </p>
       )}
@@ -338,10 +337,10 @@ export default function CallScreen({
             <input
               type="radio"
               name="voice"
-              checked={voice === 'fixed'}
-              onChange={() => setVoice('fixed')}
+              checked={voice === 'english'}
+              onChange={() => setVoice('english')}
             />
-            English · fixed questions
+            English
           </label>
           <label className="flex min-h-12 items-center gap-3">
             <input

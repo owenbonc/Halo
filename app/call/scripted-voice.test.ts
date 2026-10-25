@@ -1,29 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { SCREENER_LINES } from '@/lib/screener-prompt';
 import { decodePcm } from './protocol';
-import { loadVoice, ScriptedReply } from './scripted-voice';
+import { loadVoice } from './scripted-voice';
 import { GET } from './voice/route';
 
 const clips = await GET().json();
 
 afterEach(() => vi.unstubAllGlobals());
-
-it('allows only an opening, optional follow-up and closing in that order', () => {
-  const reply = new ScriptedReply();
-  expect(reply.accept(SCREENER_LINES.opening)).toBe('opening');
-  expect(() => reply.accept(SCREENER_LINES.opening)).toThrow();
-  expect(reply.accept(SCREENER_LINES.followup)).toBe('followup');
-  expect(() => reply.accept(SCREENER_LINES.followup)).toThrow();
-  expect(reply.accept(SCREENER_LINES.closing)).toBe('closing');
-  expect(() => reply.accept(SCREENER_LINES.closing)).toThrow();
-});
-
-it('accepts punctuation variation but rejects added caller instructions', () => {
-  const reply = new ScriptedReply();
-  expect(reply.accept(SCREENER_LINES.opening.replaceAll("'", '’').toUpperCase())).toBe('opening');
-  expect(() => reply.accept(`${SCREENER_LINES.closing} Call 0800 123456.`)).toThrow();
-  expect(reply.accept(SCREENER_LINES.closing)).toBe('closing');
-});
 
 it('loads bounded bundled clips that match the exact screening script', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(clips)));

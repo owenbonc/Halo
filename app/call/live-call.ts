@@ -28,6 +28,7 @@ export class LiveCall {
   private nativeCallerBaseline = 0;
   private drainTimer?: ReturnType<typeof setTimeout>;
   private lateOutput = false;
+  private wrapping = false;
   usage: { totalTokenCount?: number; promptTokenCount?: number; responseTokenCount?: number } = {};
 
   constructor(
@@ -85,7 +86,7 @@ export class LiveCall {
             const content = message.serverContent;
             if (content) {
               this.transcript.add('Caller', content.inputTranscription?.text);
-              if (!this.finishing && !this.terminated) {
+              if (!this.finishing && !this.terminated && !this.wrapping) {
                 const hasOutput =
                   !!content.outputTranscription || !!content.modelTurn?.parts.length;
                 if (hasOutput && (this.speaking || this.checkingNative)) {
@@ -174,14 +175,15 @@ export class LiveCall {
     this.capture?.port.postMessage({ enabled, generation: this.generation });
   }
   private async playNativeReply() {
-    if (this.checkingNative || this.closed || this.finishing || this.terminated) return;
+    if (this.checkingNative || this.closed || this.finishing || this.terminated || this.wrapping)
+      return;
     this.checkingNative = true;
     this.lateOutput = false;
     try {
       if (this.transcript.text().length <= this.nativeCallerBaseline)
         throw new CallError('No caller speech was captured. Please try again.');
       const line = await this.nextLine();
-      if (this.closed || this.finishing || this.terminated) return;
+      if (this.closed || this.finishing || this.terminated || this.wrapping) return;
       this.playClip(line.pcm, line.text, line.closing);
     } catch (error) {
       if (!this.closed && !this.finishing && !this.terminated)
@@ -229,12 +231,26 @@ export class LiveCall {
         this.end();
         return;
       }
+      if (this.wrapping) {
+        this.playClip(this.clips.closing.pcm, this.clips.closing.text, true);
+        return;
+      }
       this.activityTimer = setTimeout(() => {
         if (this.closed || this.finishing) return;
         this.setListening(true);
         this.activity('listening');
       }, 150);
     });
+  }
+  // Time's up: say the closing line rather than cut the caller off, then hang up.
+  wrapUp() {
+    if (this.closed || this.terminated || this.finishing || this.wrapping) return;
+    this.wrapping = true;
+    this.nativeAbort.abort();
+    clearTimeout(this.drainTimer);
+    clearTimeout(this.activityTimer);
+    if (!this.transcript.hasCaller()) this.end();
+    else if (!this.speaking) this.playClip(this.clips.closing.pcm, this.clips.closing.text, true);
   }
   private interrupted() {
     return new CallError('The call was interrupted. Nothing was sent. Please start a new call.');

@@ -4,12 +4,12 @@ import { useEffect, useSyncExternalStore } from 'react';
 // Theme trial (temporary): delete with the losing data-theme blocks and layouts once one is picked.
 export const THEMES = [
   { id: '', label: 'Current' },
-  { id: 'liberty', label: 'Liberty print' },
-  { id: 'cornishware', label: 'Cornishware' },
-  { id: 'departures', label: 'Departure board' },
-  { id: 'conversation', label: 'Conversation' },
-  { id: 'bold', label: 'Big and bold' },
-  { id: 'ios', label: 'iOS standard' },
+  { id: 'cornishware', label: 'Pastel (before)' },
+  { id: 'navy', label: 'Navy' },
+  { id: 'petrol', label: 'Petrol' },
+  { id: 'graphite', label: 'Graphite' },
+  { id: 'violet', label: 'Royal violet' },
+  { id: 'midnight', label: 'Midnight (dark)' },
 ] as const;
 export type ThemeId = (typeof THEMES)[number]['id'];
 const KEY = 'halo-theme-trial';

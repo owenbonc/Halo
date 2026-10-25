@@ -140,40 +140,28 @@
   --radius-chip: 12px;
   --radius-card: 18px;
   --radius-sheet: 24px;
-  --radius-control: 9999px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /*
- * Theme trial (temporary): each candidate redefines the reference palette, radii and fonts behind the same
- * semantic names, so every screen switches at once. Picked by components/ui/ThemeSwitcher; collapse to one after the pick.
+ * Theme trial (temporary): Cornishware's tile layout in several colourways. Each redefines the reference palette
+ * behind the same semantic names, so every screen switches at once. Collapse to one after the pick.
  */
-:root[data-theme="liberty"] {
-  --sand-0: oklch(99.5% 0.004 255);
-  --sand-50: oklch(95.2% 0.016 255);
-  --sand-100: oklch(92.2% 0.02 255);
-  --sand-200: oklch(87.5% 0.024 255);
-  --sand-500: oklch(60% 0.04 260);
-  --sand-600: oklch(49% 0.045 262);
-  --sand-700: oklch(42% 0.05 264);
-  --sand-950: oklch(22% 0.045 266);
-  --lavender-50: oklch(93.5% 0.03 262);
-  --lavender-300: oklch(36% 0.12 266);
-  --lavender-700: oklch(42% 0.14 265);
-  --on-accent: oklch(98.5% 0.008 255);
-  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
-  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
-  --glass-accent-pressed: var(--lavender-300);
-  --glass-accent-edge: rgb(255 255 255 / 0.18);
-  --radius-chip: 10px;
-  --radius-card: 14px;
-  --radius-sheet: 20px;
-  --font-bricolage: var(--font-young-serif);
-  --desk: oklch(23% 0.05 266);
-  --desk-glow: oklch(34% 0.08 266);
+:root[data-theme] {
+  --radius-chip: 16px;
+  --radius-card: 26px;
+  --radius-sheet: 32px;
+  --font-bricolage: var(--font-gabarito);
+  --on-accent: oklch(100% 0 0);
+  --glass-accent: var(--lavender-300);
+  --glass-accent-hover: oklch(from var(--lavender-300) calc(l + 0.05) c h);
+  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l + 0.09) c h);
+  --glass-accent-edge: rgb(255 255 255 / 0.14);
+  --glass-highlight: rgb(255 255 255 / 0.9);
 }
 
+/* The original pastel, kept for comparison. */
 :root[data-theme="cornishware"] {
   --sand-0: oklch(100% 0 0);
   --sand-50: oklch(97.4% 0.009 240);
@@ -186,90 +174,100 @@
   --lavender-50: oklch(94.5% 0.035 240);
   --lavender-300: oklch(80% 0.095 240);
   --lavender-700: oklch(45% 0.13 250);
-  --glass-highlight: rgb(255 255 255 / 1);
+  --on-accent: oklch(23% 0.04 255);
   --glass-accent: color-mix(in oklab, var(--lavender-300) 80%, transparent);
   --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 88%, transparent);
-  --radius-chip: 16px;
-  --radius-card: 26px;
-  --radius-sheet: 32px;
-  --font-bricolage: var(--font-gabarito);
+  --glass-accent-pressed: var(--lavender-300);
+  --glass-accent-edge: rgb(255 255 255 / 0.6);
   --desk: oklch(27% 0.06 245);
   --desk-glow: oklch(40% 0.09 240);
 }
 
-:root[data-theme="departures"] {
+/* Navy: bank-statement navy on cool white. */
+:root[data-theme="navy"] {
   --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(94.6% 0.004 250);
-  --sand-100: oklch(91% 0.006 250);
-  --sand-200: oklch(85% 0.008 250);
-  --sand-500: oklch(55% 0.01 250);
-  --sand-600: oklch(45% 0.012 250);
-  --sand-700: oklch(38% 0.012 250);
-  --sand-950: oklch(16% 0.01 250);
-  --lavender-50: oklch(91% 0.006 250);
-  --lavender-300: oklch(18% 0.01 250);
-  --lavender-700: oklch(18% 0.01 250);
-  --on-accent: oklch(100% 0 0);
-  --elevation-float: 0 1px 2px rgb(0 0 0 / 0.12);
-  --glass: rgb(255 255 255 / 0.96);
-  --glass-hover: rgb(255 255 255 / 1);
-  --glass-pressed: oklch(91% 0.006 250);
-  --glass-edge: rgb(255 255 255 / 0);
-  --glass-highlight: rgb(255 255 255 / 0);
-  --glass-outline: 0 0 0 1px oklch(55% 0.01 250);
-  --glass-accent: var(--lavender-300);
-  --glass-accent-hover: oklch(from var(--lavender-300) calc(l + 0.06) c h);
-  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l + 0.1) c h);
-  --glass-accent-edge: rgb(0 0 0 / 0);
-  --radius-chip: 4px;
-  --radius-card: 8px;
-  --radius-sheet: 12px;
-  --radius-control: 8px;
-  --font-bricolage: var(--font-barlow);
-  --desk: oklch(17% 0.01 250);
-  --desk-glow: oklch(25% 0.02 250);
+  --sand-50: oklch(96.4% 0.006 255);
+  --sand-100: oklch(93.4% 0.01 255);
+  --sand-200: oklch(88.5% 0.014 255);
+  --sand-500: oklch(58% 0.03 258);
+  --sand-600: oklch(48% 0.035 260);
+  --sand-700: oklch(41% 0.04 260);
+  --sand-950: oklch(21% 0.04 262);
+  --lavender-50: oklch(93% 0.025 258);
+  --lavender-300: oklch(31% 0.09 262);
+  --lavender-700: oklch(38% 0.11 260);
+  --desk: oklch(21% 0.05 262);
+  --desk-glow: oklch(31% 0.08 258);
 }
 
-:root[data-theme="conversation"] {
+/* Petrol: a deep blue-teal, calmer and more modern than navy. */
+:root[data-theme="petrol"] {
   --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(95.5% 0.012 320);
-  --sand-100: oklch(92.5% 0.016 320);
-  --sand-200: oklch(88% 0.02 320);
-  --sand-500: oklch(60% 0.035 320);
-  --sand-600: oklch(49% 0.04 320);
-  --sand-700: oklch(42% 0.04 320);
-  --sand-950: oklch(22% 0.03 320);
-  --lavender-50: oklch(93.5% 0.035 320);
-  --lavender-300: oklch(40% 0.12 322);
-  --lavender-700: oklch(42% 0.13 322);
-  --on-accent: oklch(99% 0.005 320);
-  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
-  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
-  --glass-accent-pressed: var(--lavender-300);
-  --glass-accent-edge: rgb(255 255 255 / 0.18);
-  --radius-chip: 14px;
-  --radius-card: 24px;
-  --radius-sheet: 28px;
-  --font-bricolage: var(--font-atkinson);
-  --desk: oklch(24% 0.05 322);
-  --desk-glow: oklch(34% 0.08 322);
+  --sand-50: oklch(96.5% 0.007 215);
+  --sand-100: oklch(93.4% 0.011 215);
+  --sand-200: oklch(88.6% 0.015 215);
+  --sand-500: oklch(58% 0.03 218);
+  --sand-600: oklch(48% 0.035 220);
+  --sand-700: oklch(41% 0.035 222);
+  --sand-950: oklch(22% 0.03 225);
+  --lavender-50: oklch(93% 0.03 215);
+  --lavender-300: oklch(37% 0.075 222);
+  --lavender-700: oklch(40% 0.085 222);
+  --desk: oklch(21% 0.04 222);
+  --desk-glow: oklch(32% 0.06 218);
 }
 
-/* Dark: every ramp flips, band tints become deep washes and band inks go light. */
-:root[data-theme="bold"] {
+/* Graphite: near-black and white, the most serious; colour is left to the warnings. */
+:root[data-theme="graphite"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(95.8% 0.002 260);
+  --sand-100: oklch(92.6% 0.003 260);
+  --sand-200: oklch(87.5% 0.004 260);
+  --sand-500: oklch(56% 0.006 260);
+  --sand-600: oklch(46% 0.007 260);
+  --sand-700: oklch(39% 0.008 260);
+  --sand-950: oklch(18% 0.006 260);
+  --lavender-50: oklch(92% 0.004 260);
+  --lavender-300: oklch(22% 0.008 260);
+  --lavender-700: oklch(26% 0.01 260);
+  --desk: oklch(17% 0.004 260);
+  --desk-glow: oklch(27% 0.008 260);
+}
+
+/* Royal violet: Halo's lavender, deepened until it carries weight. */
+:root[data-theme="violet"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(96.3% 0.008 290);
+  --sand-100: oklch(93.2% 0.012 290);
+  --sand-200: oklch(88.4% 0.016 290);
+  --sand-500: oklch(58% 0.035 290);
+  --sand-600: oklch(48% 0.04 290);
+  --sand-700: oklch(41% 0.04 290);
+  --sand-950: oklch(21% 0.035 290);
+  --lavender-50: oklch(93% 0.03 290);
+  --lavender-300: oklch(37% 0.13 290);
+  --lavender-700: oklch(42% 0.14 290);
+  --desk: oklch(21% 0.05 290);
+  --desk-glow: oklch(31% 0.08 290);
+}
+
+/* Midnight: dark navy with a bright blue; band tints become deep washes and band inks go light. */
+:root[data-theme="midnight"] {
   color-scheme: dark;
-  --sand-0: oklch(21% 0.006 250);
-  --sand-50: oklch(14% 0.005 250);
-  --sand-100: oklch(26% 0.008 250);
-  --sand-200: oklch(32% 0.01 250);
-  --sand-500: oklch(62% 0.012 250);
-  --sand-600: oklch(74% 0.01 250);
-  --sand-700: oklch(82% 0.008 250);
-  --sand-950: oklch(97% 0.004 250);
-  --lavender-50: oklch(30% 0.06 205);
-  --lavender-300: oklch(85% 0.13 200);
-  --lavender-700: oklch(85% 0.13 200);
-  --on-accent: oklch(14% 0.005 250);
+  --sand-0: oklch(23.5% 0.025 262);
+  --sand-50: oklch(17% 0.022 262);
+  --sand-100: oklch(28% 0.028 262);
+  --sand-200: oklch(33% 0.03 262);
+  --sand-500: oklch(60% 0.03 258);
+  --sand-600: oklch(73% 0.025 255);
+  --sand-700: oklch(82% 0.02 255);
+  --sand-950: oklch(97% 0.006 255);
+  --lavender-50: oklch(31% 0.06 255);
+  --lavender-300: oklch(74% 0.12 245);
+  --lavender-700: oklch(80% 0.11 245);
+  --on-accent: oklch(17% 0.022 262);
+  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.04) c h);
+  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.08) c h);
   --tomato-50: oklch(27% 0.07 28);
   --tomato-100: oklch(32% 0.08 28);
   --tomato-150: oklch(36% 0.09 28);
@@ -286,52 +284,19 @@
   --fern-200: oklch(44% 0.06 165);
   --fern-700: oklch(82% 0.1 165);
   --elevation-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
-  --glass: rgb(255 255 255 / 0.1);
-  --glass-hover: rgb(255 255 255 / 0.16);
-  --glass-pressed: rgb(255 255 255 / 0.22);
-  --glass-fallback: oklch(26% 0.008 250);
-  --glass-edge: rgb(255 255 255 / 0.14);
-  --glass-highlight: rgb(255 255 255 / 0.12);
-  --glass-outline: 0 0 0 1px rgb(255 255 255 / 0.08);
-  --glass-accent: var(--lavender-300);
-  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.04) c h);
-  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.08) c h);
+  --glass: rgb(255 255 255 / 0.08);
+  --glass-hover: rgb(255 255 255 / 0.14);
+  --glass-pressed: rgb(255 255 255 / 0.2);
+  --glass-fallback: oklch(28% 0.028 262);
+  --glass-edge: rgb(255 255 255 / 0.12);
+  --glass-highlight: rgb(255 255 255 / 0.1);
+  --glass-outline: 0 0 0 1px rgb(255 255 255 / 0.06);
   --glass-accent-edge: rgb(255 255 255 / 0);
   --material: color-mix(in oklab, var(--sand-50) 82%, transparent);
   --material-fallback: var(--sand-50);
-  --radius-chip: 10px;
-  --radius-card: 16px;
-  --radius-sheet: 22px;
-  --font-bricolage: var(--font-gabarito);
-  --desk: oklch(10% 0 0);
-  --desk-glow: oklch(20% 0.03 200);
+  --desk: oklch(11% 0.01 262);
+  --desk-glow: oklch(21% 0.04 255);
   --device-rim: #3a3a3e;
-}
-
-:root[data-theme="ios"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.2% 0.005 286);
-  --sand-100: oklch(93% 0.006 286);
-  --sand-200: oklch(88.5% 0.006 286);
-  --sand-500: oklch(62% 0.01 286);
-  --sand-600: oklch(50% 0.012 286);
-  --sand-700: oklch(42% 0.012 286);
-  --sand-950: oklch(18% 0 0);
-  --lavender-50: oklch(94% 0.03 258);
-  --lavender-300: oklch(54% 0.2 258);
-  --lavender-700: oklch(50% 0.2 258);
-  --on-accent: oklch(100% 0 0);
-  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
-  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
-  --glass-accent-pressed: var(--lavender-300);
-  --glass-accent-edge: rgb(255 255 255 / 0.2);
-  --radius-chip: 10px;
-  --radius-card: 12px;
-  --radius-sheet: 16px;
-  --font-atkinson: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui;
-  --font-bricolage: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui;
-  --desk: oklch(22% 0.005 286);
-  --desk-glow: oklch(32% 0.01 286);
 }
 
 .tone-strong {

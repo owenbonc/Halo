@@ -5,19 +5,10 @@ import { Button } from '@/components/ui/Button';
 import { BAND_TONE, BandBadge, Card } from '@/components/ui/band';
 import { Check, ListChecks, Phone, Quote, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
-import { type ThemeId, useThemeTrial } from '@/components/ui/ThemeSwitcher';
+import { useThemeTrial } from '@/components/ui/ThemeSwitcher';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { Band, CallView } from '@/lib/types';
-import {
-  BoardFace,
-  BoldFace,
-  ChatFace,
-  type Face,
-  ListFace,
-  NoteFace,
-  type Segment,
-  TileFace,
-} from './faces';
+import { type Face, type Segment, TileFace } from './faces';
 import { useLovedOne } from './LovedOneData';
 import { markDone } from './prefs';
 import { SAM_LINE, SAM_STYLE, samState } from './sam';
@@ -40,16 +31,6 @@ export function reassurance(call: CallView) {
   if (call.analysis.band === 'none') return 'We answered this call for you.';
   return 'We answered this call for you. You did the right thing by not answering it yourself.';
 }
-
-// Theme trial (temporary): the layout each direction puts in place of the ring.
-const TRIAL_FACE: Partial<Record<ThemeId, (p: { f: Face }) => ReactNode>> = {
-  liberty: NoteFace,
-  cornishware: TileFace,
-  departures: BoardFace,
-  conversation: ChatFace,
-  bold: BoldFace,
-  ios: ListFace,
-};
 
 // Each segment's icon and words sit across the middle of the segment, nudged up or down clear of the verdict
 // circle. The bottom quarters put their words above the icon, so the wider line sits where there is room.
@@ -139,7 +120,6 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
     { href: `${base}/read`, Icon: Speaker, label: 'Read aloud' },
   ];
 
-  const Trial = TRIAL_FACE[theme];
   const face: Face = {
     call,
     time: when(call.createdAt),
@@ -147,7 +127,6 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
     segments,
     onOpen,
     titleId,
-    reassurance: reassurance(call),
     status: SAM_LINE[sam](contact),
     statusBox: box,
     StatusIcon: Icon,
@@ -156,12 +135,13 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
   // Entrances move but never fade: if a browser stops drawing frames, the card must still be readable.
   return (
     <div className="space-y-2.5">
-      {Trial ? (
+      {/* Theme trial (temporary): every trial colourway uses the tile layout; Current keeps the ring. */}
+      {theme ? (
         <div
           key={`${call.id}-${theme}`}
           className="transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
         >
-          <Trial f={face} />
+          <TileFace f={face} />
         </div>
       ) : (
         <div

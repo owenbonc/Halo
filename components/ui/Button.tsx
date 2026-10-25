@@ -14,7 +14,7 @@ export type ButtonSize = keyof typeof SIZE;
 
 // Shared by <Button> and by links that should look like one.
 export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'lg') {
-  return `inline-flex w-full items-center justify-center rounded-control text-center transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${SIZE[size]} ${VARIANT[variant]}`;
+  return `inline-flex w-full items-center justify-center rounded-full text-center transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${SIZE[size]} ${VARIANT[variant]}`;
 }
 
 export function Button({

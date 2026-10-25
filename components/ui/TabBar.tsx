@@ -44,7 +44,7 @@ export function TabBar({ tabs, size = 'lg' }: { tabs: Tab[]; size?: keyof typeof
       aria-label="Sections"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4 pb-[max(0.75rem,var(--safe-bottom))]"
     >
-      <ul className="glass pointer-events-auto flex gap-1 rounded-control p-1.5">
+      <ul className="glass pointer-events-auto flex gap-1 rounded-full p-1.5">
         {tabs.map(({ href, label, Icon, badge, match = [] }) => {
           const active = pathname === href || match.some((m) => pathname.startsWith(m));
           return (
@@ -52,7 +52,7 @@ export function TabBar({ tabs, size = 'lg' }: { tabs: Tab[]; size?: keyof typeof
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center rounded-control px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] ${s.tab} ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
+                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] ${s.tab} ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
               >
                 <span className="relative">
                   <Icon className={s.icon} />

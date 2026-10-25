@@ -39,8 +39,8 @@ const SOLID = {
 } as const;
 
 /*
- * The card in front of her: the verdict as a banner, her buttons as big tiles two by two (Get Sam and What to do
- * outlined on a warning call), then Sam's status. Nothing to read past and no scrolling at Standard text.
+ * The card in front of her: the verdict as a banner, her buttons as big tiles two by two (on a warning call, Get Sam
+ * and What to do carry their icon in a solid umber circle), then Sam's status. No scrolling at Standard text.
  */
 export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode }) {
   const { contact, paused, done, open } = useLovedOne();
@@ -99,9 +99,15 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
               key={href}
               href={href}
               onClick={() => open(call.id)}
-              className={`flex aspect-square flex-col items-center justify-center gap-3 rounded-card p-3 text-center text-xl font-bold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${primary ? 'accent-outline text-on-accent' : 'glass text-ink'}`}
+              className="glass flex aspect-square flex-col items-center justify-center gap-3 rounded-card p-3 text-center text-xl font-bold text-ink transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
             >
-              <TileIcon className="size-12" />
+              {primary ? (
+                <span className="flex size-20 items-center justify-center rounded-full bg-accent text-on-accent">
+                  <TileIcon className="size-10" />
+                </span>
+              ) : (
+                <TileIcon className="size-12" />
+              )}
               {label}
             </Link>
           ))}

@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 
 const VARIANT = {
-  primary: 'accent-outline text-on-accent',
+  primary: 'glass-accent text-on-accent',
   secondary: 'glass text-ink',
 };
 // lg: the loved one's big targets. md: a standard iPhone button, for the caregiver.

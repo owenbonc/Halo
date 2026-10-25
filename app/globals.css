@@ -35,10 +35,11 @@
   --stone-700: oklch(40% 0.016 60);
   --stone-950: oklch(21% 0.012 55);
 
-  /* Umber: the brand, a dark warm grey. It outlines primary controls and inks accent text; it is never a big fill. */
+  /* Umber: the brand, a dark warm grey deep enough to carry white text, and far from the three band hues. */
   --umber-50: oklch(93% 0.012 65);
   --umber-300: oklch(30% 0.018 55);
   --umber-700: oklch(36% 0.02 55);
+  --on-accent: var(--stone-0);
 
   /* Band hues, spread for colour-blind separation (red 28, ochre 68, teal-green 165). */
   --tomato-50: oklch(94.5% 0.026 28);
@@ -66,6 +67,11 @@
   --glass-fallback: rgb(255 255 255 / 0.92);
   --glass-edge: rgb(255 255 255 / 0.75);
   --glass-highlight: rgb(255 255 255 / 0.9);
+  /* Primary actions are solid umber: white text needs the full fill behind it, and solid reads as decisive. */
+  --glass-accent: var(--umber-300);
+  --glass-accent-hover: oklch(from var(--umber-300) calc(l + 0.05) c h);
+  --glass-accent-pressed: oklch(from var(--umber-300) calc(l + 0.09) c h);
+  --glass-accent-edge: rgb(255 255 255 / 0.14);
   /* A faint ink hairline keeps the button's edge visible on pale paper, where a white edge vanishes. */
   --glass-outline: 0 0 0 1px rgb(30 26 21 / 0.1);
 
@@ -109,15 +115,13 @@
   /* Borders that carry meaning (unselected controls): 3:1 on surface. */
   --color-line-strong: var(--stone-500);
 
-  /* Primary controls are white, set apart by an accent-strong outline, with ink text (on-accent).
-     Accent-coloured text and icons use accent-ink; accent-soft tints pills and selection. */
-  --color-accent: var(--stone-0);
-  --color-accent-hover: var(--stone-50);
-  --color-accent-pressed: var(--stone-100);
-  --color-accent-strong: var(--umber-300);
+  /* Accent fills carry white text (on-accent). Accent-coloured text and icons use accent-ink. */
+  --color-accent: var(--umber-300);
+  --color-accent-hover: oklch(from var(--umber-300) calc(l - 0.03) c h);
+  --color-accent-strong: oklch(from var(--umber-300) calc(l - 0.06) c h);
   --color-accent-soft: var(--umber-50);
   --color-accent-ink: var(--umber-700);
-  --color-on-accent: var(--stone-950);
+  --color-on-accent: var(--on-accent);
 
   --color-danger: var(--tomato-700);
   --color-danger-soft: var(--tomato-50);
@@ -299,21 +303,40 @@
   }
 }
 
-/* Primary actions: solid white with a 2px umber outline, so they lead by their edge rather than a dark fill. */
-@utility accent-outline {
-  background-color: var(--color-accent);
+/* Umber for primary actions, with glass's edge and highlight. Plain solid umber when blur is missing or unwanted. */
+@utility glass-accent {
+  background-color: var(--glass-accent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
   box-shadow:
-    inset 0 0 0 2px var(--color-accent-strong),
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px var(--glass-accent-edge),
+    var(--glass-outline),
     var(--elevation-float);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      background-color: var(--color-accent-hover);
+      background-color: var(--glass-accent-hover);
     }
   }
 
   &:active:not(:disabled) {
-    background-color: var(--color-accent-pressed);
+    background-color: var(--glass-accent-pressed);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--umber-300);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background-color: var(--umber-300);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--umber-700);
+
+    &:active:not(:disabled) {
+      background-color: oklch(from var(--umber-300) calc(l - 0.06) c h);
+    }
   }
 }
 

@@ -17,7 +17,7 @@ export const ABOVE_TAB_BAR = 'bottom-[calc(max(0.75rem,var(--safe-bottom))+6.25r
 
 /*
  * A floating clear-glass capsule of tabs (after bulk's floating controls), in thumb reach above the home
- * indicator. The selected tab is white with an umber outline. Every tab keeps its word, never icon-only.
+ * indicator. The selected tab sits on solid umber. Every tab keeps its word, never icon-only.
  * Both phones share one size; labels grow with the loved one's text size up to 20px so three fit.
  */
 export function TabBar({ tabs }: { tabs: Tab[] }) {
@@ -35,7 +35,7 @@ export function TabBar({ tabs }: { tabs: Tab[] }) {
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold ${active ? 'accent-outline text-on-accent' : 'text-ink-2'}`}
+                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
               >
                 <span className="relative">
                   <Icon className="size-[min(1.75rem,30px)]" />

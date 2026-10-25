@@ -20,8 +20,8 @@ Built with the color-expert method: an OKLCH reference palette (stone, umber, to
 | `ink`, `ink-2`, `ink-3` | Primary, secondary and tertiary text |
 | `line` | Hairline borders on cards |
 | `line-strong` | Borders that carry meaning (unselected controls, secondary buttons): 3:1 |
-| `accent` + `on-accent` | White fill with ink text, set apart by an `accent-strong` outline (`accent-outline`). Primary buttons and tiles, the selected tab, the "Sam is calling you" moment. Never a dark fill |
-| `accent-hover`, `accent-pressed`, `accent-strong` | Hover and pressed fills; `accent-strong` is the umber outline |
+| `accent` + `on-accent` | Brand umber fill with white text, kept small: primary buttons, the selected tab, the icon circle on the loved one's two main tiles, the "Sam is calling you" moment |
+| `accent-hover`, `accent-strong` | Derived from `accent`; hover and pressed |
 | `accent-soft` | Selected-option tint |
 | `accent-ink` | Accent-coloured text, links and icons; focus ring and caret |
 | `danger`, `caution`, `clear` (+ `-soft`) | Strong, some and no warning signs: ink for text and the card edge, soft for the card fill |
@@ -56,7 +56,7 @@ Built with the color-expert method: an OKLCH reference palette (stone, umber, to
 
 ## Tabs
 
-- Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab white with an umber outline, a red count badge for what needs attention.
+- Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on solid umber, a red count badge for what needs attention.
 - Loved one: **Alerts** (`/loved-one`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/loved-one/past`, every call, each warning call marked dealt with or not, with filters), **Settings** (`/loved-one/settings`, her name, her person, consent, text size, set up this phone again; mostly used by the caregiver).
 - The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" takes a call out of the deck, and "Put it back in Alerts" returns it; a green call leaves the deck as soon as she opens it. Past calls lists every call either way.
 - Caregiver: **Alerts**, **History**, **Settings** (`/caregiver/settings`: the alert sound, which is the caregiver's to set, then what the loved one chose, read-only because she controls consent, and set up this phone again).
@@ -65,17 +65,17 @@ Built with the color-expert method: an OKLCH reference palette (stone, umber, to
 
 - The loved one's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). Top to bottom: the verdict banner, her buttons as tiles, then Sam's status line; everything else sits one tap away.
 - The verdict banner (`rounded-sheet`) holds the time, the band's icon and full title, and the scam type. On a warning it is the band itself, solid red or amber with white text, so it reads as urgent. A green call stays a calm tint with `BandBadge`, its caveat and the reassurance line.
-- The tiles are big squares two by two, each a large icon over a short label. Warning calls get four: **Get Sam** and **What to do** on top, white with an umber outline (`accent-outline`), and **Their words** and **Read aloud** below in white `glass`. Green calls get two, Their words and Read aloud. Below the tiles, Sam's status, a quiet "I've dealt with this", then **Next call** and **Other calls**.
+- The tiles are big squares two by two, each a large icon over a short label. Warning calls get four: all four are white `glass`; **Get Sam** and **What to do** on top carry their icon in a solid umber circle, so they lead without a big dark fill, and **Their words** and **Read aloud** below have a plain icon. Green calls get two, Their words and Read aloud. Below the tiles, Sam's status, a quiet "I've dealt with this", then **Next call** and **Other calls**.
 - Each button opens its own screen at `/loved-one/calls/[id]/{sam,help,said,read}`, titled with the same words as its button, with a glass **Back** pill at the top (`TopBar back`). "Their words" leads on to the whole call (`/transcript`), with every number and link removed on the server.
-- Sam's status is white with an umber edge while Sam is on it, and white with a red edge and red text when Sam hasn't replied. The caregiver's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
+- Sam's status is solid umber with white text while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on umber). The caregiver's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
 - Top bars (`TopBar`) are sticky `material`. Leave room at the end of each page so the last item scrolls clear of the tab bar.
 
 ## Glass (from bulk)
 
 - `glass`: clear glass (white at 55% over a 20px blur, a bright edge and top highlight, a faint ink hairline, the float shadow). Secondary buttons, the role choices and the pill links in the header.
-- `accent-outline` (not glass): solid white with a 2px umber outline for primary actions, ink text on top, so they lead by their edge rather than a dark fill.
+- `glass-accent`: solid umber for primary actions, keeping glass's edge and highlight. White text on top.
 - `material`: translucent paper for bars that stay on screen. Headers are sticky `material` bars with the content scrolling under them.
-- Every glass surface turns solid (white with a `line-strong` edge) when the browser has no backdrop blur, or the user asks for reduced transparency or more contrast.
+- Every glass surface turns solid (white with a `line-strong` edge, or plain umber) when the browser has no backdrop blur, or the user asks for reduced transparency or more contrast.
 - Status messages (like "Sam is calling you") are solid, never glass: glass is for things you press or that stay on screen.
 
 ## Motion and touch

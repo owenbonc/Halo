@@ -56,9 +56,12 @@ export default function SetupPage() {
     if (role) setHome(`/${role}`);
   }, []);
 
-  // Each step replaces the screen, so move focus to its heading for screen readers.
+  // Each step replaces the screen, so move focus to its heading for screen readers (not on first load).
+  const moved = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: path and index only exist to re-run this effect.
   useEffect(() => {
-    if (path || index > 0) heading.current?.focus();
+    if (moved.current) heading.current?.focus();
+    moved.current = true;
   }, [path, index]);
 
   const finish = async () => {

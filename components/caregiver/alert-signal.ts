@@ -2,12 +2,15 @@
 
 // Browsers only allow sound after a tap, so the context is made inside that tap and kept until reload.
 let context: AudioContext | null = null;
+// Sam turned it off: ring() must not wake the context back up.
+let muted = false;
 const listeners = new Set<() => void>();
 const notify = () => {
   for (const listener of listeners) listener();
 };
 
 export function unlockSound() {
+  muted = false;
   if (!context) {
     context = new AudioContext();
     context.addEventListener('statechange', notify);
@@ -16,10 +19,17 @@ export function unlockSound() {
       (navigator as Navigator & { audioSession: { type: string } }).audioSession.type = 'playback';
   }
   void context.resume();
+  notify();
+}
+
+export function muteSound() {
+  muted = true;
+  void context?.suspend();
+  notify();
 }
 
 // Safari suspends the context on lock, calls and backgrounding, so "on" means running right now.
-export const soundOn = () => context?.state === 'running';
+export const soundOn = () => !muted && context?.state === 'running';
 
 export function onSoundChange(listener: () => void) {
   listeners.add(listener);
@@ -29,7 +39,7 @@ export function onSoundChange(listener: () => void) {
 // Two falling tones, like a doorbell. Vibration works on Android; iPhones ignore it.
 export function ring() {
   navigator.vibrate?.([300, 150, 300]);
-  if (!context) return;
+  if (!context || muted) return;
   const ctx = context;
   const play = () => {
     const start = ctx.currentTime;

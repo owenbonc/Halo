@@ -20,14 +20,21 @@ export const ABOVE_TAB_BAR = 'bottom-[calc(max(0.75rem,var(--safe-bottom))+6.25r
  * indicator. The selected tab sits on solid umber. Every tab keeps its word, never icon-only.
  * Both phones share one size; labels grow with the loved one's text size up to 20px so three fit.
  */
-export function TabBar({ tabs }: { tabs: Tab[] }) {
+export function TabBar({
+  tabs,
+  standard = false,
+}: {
+  tabs: Tab[];
+  /** The caregiver's phone: draw at the loved one's Standard size (her 93.75% root), so both bars match. */
+  standard?: boolean;
+}) {
   const pathname = usePathname();
   return (
     <nav
       aria-label="Sections"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4 pb-[max(0.75rem,var(--safe-bottom))]"
+      className={`pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4 pb-[max(0.75rem,var(--safe-bottom))] ${standard ? '[--tb:0.9375rem]' : '[--tb:1rem]'}`}
     >
-      <ul className="glass pointer-events-auto flex gap-1 rounded-full p-1.5">
+      <ul className="glass pointer-events-auto flex gap-[calc(var(--tb)*0.25)] rounded-full p-[calc(var(--tb)*0.375)]">
         {tabs.map(({ href, label, Icon, badge, match = [] }) => {
           const active = pathname === href || match.some((m) => pathname.startsWith(m));
           return (
@@ -35,12 +42,12 @@ export function TabBar({ tabs }: { tabs: Tab[] }) {
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
+                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] min-h-[calc(var(--tb)*4)] gap-[calc(var(--tb)*0.125)] whitespace-nowrap text-[length:min(calc(var(--tb)*1.125),20px)] font-bold ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
               >
                 <span className="relative">
-                  <Icon className="size-[min(1.75rem,30px)]" />
+                  <Icon className="size-[min(calc(var(--tb)*1.75),30px)]" />
                   {badge ? (
-                    <span className="absolute -top-1.5 -right-3 flex min-w-6 items-center justify-center rounded-full bg-danger px-1.5 text-sm leading-5 font-bold text-surface tabular-nums">
+                    <span className="absolute -top-1.5 -right-3 flex min-w-[calc(var(--tb)*1.5)] items-center justify-center rounded-full bg-danger px-[calc(var(--tb)*0.375)] text-[length:calc(var(--tb)*0.875)] leading-[calc(var(--tb)*1.25)] font-bold text-surface tabular-nums">
                       {badge}
                       <span className="sr-only"> new</span>
                     </span>

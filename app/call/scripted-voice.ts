@@ -9,6 +9,8 @@ const Clips = z.object({
   opening: clip(SCREENER_LINES.opening),
   followup: clip(SCREENER_LINES.followup),
   closing: clip(SCREENER_LINES.closing),
+  stillThere: clip(SCREENER_LINES.stillThere),
+  noAnswer: clip(SCREENER_LINES.noAnswer),
 });
 export type VoiceClips = z.infer<typeof Clips>;
 

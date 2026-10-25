@@ -51,7 +51,8 @@ export class Transcript {
   add(role: 'Caller' | 'Assistant', text = '') {
     if (!text) return;
     const last = this.turns.at(-1);
-    if (last?.role === role) last.text += text;
+    // The caller's words stream in as fragments of one turn; each assistant line is a turn of its own.
+    if (role === 'Caller' && last?.role === 'Caller') last.text += text;
     else this.turns.push({ role, text });
     if (this.text().length > 20_000) throw new Error('The call transcript is too long.');
   }

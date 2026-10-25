@@ -5,6 +5,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Kota is 
 
 ## Done
 
+- Fixed two ways an English live call could end with nothing sent (branch `call/turn-fixes`): a silent noise turn before the caller spoke, and the caller's transcription arriving after Gemini's reply. Silent noise turns are now ignored and listening resumes; a spoken reply plays even if the caller's words land late, and finish() still refuses a call with no caller speech. Automatic-language mode keeps the strict check. Both failures were reproduced in tests first; 100 call tests pass.
+
 - Synced main `22ff60f` on 25 Oct by fast-forward, including merged multilingual PR #22, role/route rename PR #23 and tailored English call PR #24. English now uses a checked generated follow-up with a prerecorded fallback; opening, fallback and closing use Gemini Sulafat clips instead of Kokoro. Automatic-language mode remains gated and off in production. Regenerated stale Next route types after the rename; full `IS_WEBPACK_TEST=1 scripts/verify.sh` prints READY. Local preview restarted on port 3103 without a Gemini key. This verifies code/build, not a live call; HANDOVER reports a local live call passed elsewhere, with production phone acceptance pending.
 
 - Synced the multilingual branch with main `2d8bf76` without conflicts, including merged backup PR #19 and the shared font fix. HANDOVER now confirms the production Gemini key and access code are set; no local working key or multilingual live acceptance is established.

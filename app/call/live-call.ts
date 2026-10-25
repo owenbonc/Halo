@@ -178,8 +178,18 @@ export class LiveCall {
     this.checkingNative = true;
     this.lateOutput = false;
     try {
-      if (this.transcript.text().length <= this.nativeCallerBaseline)
-        throw new CallError('No caller speech was captured. Please try again.');
+      if (this.transcript.text().length <= this.nativeCallerBaseline) {
+        if (this.voice !== 'english')
+          throw new CallError('No caller speech was captured. Please try again.');
+        // A silent noise turn: keep listening. A spoken reply means Gemini heard the caller,
+        // whose transcription can arrive late; finish() still refuses a call with no caller words.
+        if (this.nativeReply.empty) {
+          this.nativeReply.discard();
+          this.setListening(true);
+          this.activity('listening');
+          return;
+        }
+      }
       const line = await this.nextLine();
       if (this.closed || this.finishing || this.terminated) return;
       this.playClip(line.pcm, line.text, line.closing);

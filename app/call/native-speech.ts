@@ -88,10 +88,20 @@ export class NativeReply {
     return { stage, text: parsed.data, pcm };
   }
 
+  // Nothing said and nothing heard: a noise turn the call can ignore.
+  get empty() {
+    return !this.bytes && !this.text && !this.fault;
+  }
+
   skip() {
     if (this.turns >= 2) throw new CallError('The screening reply was incomplete. Try again.');
-    const { chunks } = this;
     this.turns += 1;
+    return this.discard();
+  }
+
+  // Drops the buffered turn without using up a stage.
+  discard() {
+    const { chunks } = this;
     this.text = '';
     this.chunks = [];
     this.bytes = 0;

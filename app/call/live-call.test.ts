@@ -594,10 +594,15 @@ it('drops a reply still being checked when time runs out', async () => {
   expect(call.transcript.text()).not.toContain('Could you tell me more?');
   call.dispose();
 });
-it('hangs up at once when time runs out before the caller spoke', async () => {
+it('still closes when time runs out before any caller words arrived, then rejects silence', async () => {
   const call = await connect();
   call.wrapUp();
+  expect(ended).not.toHaveBeenCalled();
+  sources[0]?.onended?.();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
   expect(ended).toHaveBeenCalledOnce();
-  expect(sources).toHaveLength(1);
-  call.dispose();
+  const result = expect(call.finish()).rejects.toThrow('No caller speech');
+  await vi.advanceTimersByTimeAsync(2000);
+  await result;
 });

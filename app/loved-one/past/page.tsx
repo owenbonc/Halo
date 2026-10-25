@@ -51,7 +51,7 @@ export default function PastCallsPage() {
               type="button"
               aria-pressed={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`min-h-12 shrink-0 whitespace-nowrap rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'glass-accent text-on-accent' : 'glass text-ink-2'}`}
+              className={`min-h-12 shrink-0 whitespace-nowrap rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'accent-outline text-on-accent' : 'glass text-ink-2'}`}
             >
               {f.label}
             </button>

@@ -1,30 +1,54 @@
-# Handover: overnight into Sunday 25 Oct
+# Handover: Sunday 25 Oct, late morning
 
 The app is called **Halo**. The GitHub repo is `owenbonc/Halo`; the Vercel URL keeps its old name.
 
-Owen is asleep and back at **09:00**. Until then:
-
-- **Keeper: Kota (kota511).** Kota merges to main and owns `lib/types.ts`, the shared routes and deploy settings, the same way Owen does (AGENTS.md).
-- **The feature freeze has passed.** Only fixes to the demo path land on main, each through a PR with `scripts/verify.sh` READY and a click-through of the real thing.
-- **UK clocks go back at 02:00 tonight.** Every time below is UK time after the change.
-
-## Sunday
+Owen is away from about 11:10. **Josh tests the call on production (next section) and, if it passes, merges PR #28** (Owen's call). Everything else on main still goes through a PR with `scripts/verify.sh` READY. The feature freeze has passed: only fixes to the demo path.
 
 | When | What |
 |---|---|
-| First thing | Kota tests the new call on production (next section) |
-| 08:00–09:30 | Three clean demo runs and the video. Owen joins at 09:00 |
-| by 10:00 | Submit. The hard deadline is 12:00 |
+| Now | Josh tests the call on production, then #28 |
+| by 12:00 | Submit. The hard deadline is 12:00 |
 | after 12:00 | Pitch |
 
-## First: test the new call on production (Kota)
+## What changed on main this morning
 
-PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask a follow-up tailored to what the caller said, checked before it's spoken, and every line is in Gemini's voice. A real call worked end to end locally against live Gemini. It hasn't yet been tried from a real phone on production.
+- **#38, review of the overnight PRs.**
+  - Calls: the closing always plays at the 60 s limit, and the timer shows 01:00 instead of 00:60.
+  - Her card: "Sam is calling you." lasts an hour after Sam taps, then reads "Sam said they'd call you about this."
+  - The caregiver's tab bar matches hers at Standard size.
+  - Alert sound turns off as well as on.
+  - Setup Back keeps focus.
+- **#37, the stone and umber UI rebuild** (Owen's, built on Josh's tile card).
+- **#27, Ish's turn fixes.** A cough or bang after the opening no longer ends the call, and a reply that arrives before the caller's words are transcribed still plays.
+- **#39, silence nudge.** If the caller is quiet for 7 s after any line, Halo says "Are you still there?". Quiet for 7 s more, it says "I can't hear you, so I'll end the call now. Goodbye." and hangs up. "Quiet" is the phone's own mic level (RMS 0.01), so a noisy room never counts as quiet and the call runs to 60 s.
 
-1. On a phone, open https://hang-up-and-check.vercel.app/call, enter the access code and tap **Start call**.
-2. Read the fake police script from `demo/scripts.md`.
-3. The call passes when the opening plays, one follow-up question plays (tailored, or the prerecorded "Could you tell me a little more…"), the closing plays, and a card reaches `/loved-one`. Whether the card is red is the analysis (D's gate below), not this change.
-4. If the call stalls, sounds wrong or no card arrives, revert it: on PR #24 press **Revert**, then merge that PR once CI is green. Production redeploys in about a minute with the previous Kokoro lines.
+None of #27 or #39 has been heard on a real phone yet. The unit tests cover them and verify is READY.
+
+## First: test the call on production (Josh)
+
+On a phone, open https://hang-up-and-check.vercel.app/call, enter the access code and tap **Start call**. Run `pnpm demo:reset` against Atlas first, so the cards land in the seeded household.
+
+1. **Normal call.** Read the police script from `demo/scripts.md`. It passes when the opening, the follow-up and the closing all play, and a card reaches `/loved-one`.
+2. **Silent call.** Say nothing. It passes when the opening plays, "Are you still there?" comes about 7 s later, the goodbye about 7 s after that, and the call ends with "No caller speech was captured" and no card.
+3. **Talking, then quiet.** Answer the opening, then go quiet after the follow-up. It passes when the nudge plays, then the goodbye, and the card still arrives, because the caller spoke.
+4. **Soft or nonstop talking.** Halo must never say "Are you still there?" while someone is mid-sentence. At 60 s the closing plays and a card arrives.
+
+**If something's wrong, revert newest first:** on the PR, press **Revert** and merge that PR once CI is green. Production redeploys in about a minute.
+- Nudges while someone is talking (4) or no nudge in a quiet room (2): revert **#39**.
+- The call dies early or hangs: revert #39, then **#27**, then **#38**, testing after each.
+
+## Then: PR #28, the Twilio phone line (Josh)
+
+Merge it if the tests above pass. Checked at 11:10:
+- It merges cleanly onto main (with #39) and all 268 tests pass. `pnpm install` picks up its `ws` dev dependency.
+- It can't break production. `pnpm phone` runs only on a laptop, and #28 adds no pages, routes or environment variables.
+- Its security checks are sound: Twilio's signature is checked, the stream needs a one-time ticket, it listens on localhost only, no secrets are committed, and caller text is scrubbed.
+
+Before using it on stage:
+- **Don't leave `pnpm phone` running during the `/call` demo.** Phone calls share the `/call` Gemini budget (20 a minute, 300 an hour), so strangers ringing the number could block the stage call.
+- **It hangs up at 45 s with no closing,** and has no silence nudge. `/call` has both.
+- **It has never run against real Twilio or a real phone.** The bridge glue (stream ticket, busy check, deliver-once wrap-up) has no tests.
+- Small things: a port already in use crashes with a raw stack trace, nothing is logged if cloudflared dies after the tunnel opens, and unclaimed websockets aren't capped.
 
 ## The demo phones changed tonight
 
@@ -77,8 +101,7 @@ PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask 
 **Known, not fixed**
 - Changing her person ("Choose someone else") shows the code on her phone instead of texting it (the screen says so), and the only check is her tapping "read it back correctly". Fine for the demo; a real build would text it and check it on the caregiver's phone.
 
-**Kota (keeper)**
-- Test #24 on production first (above).
+**Kota**
 - Your branches `security/demo-hardening` (73 files) and `claude/trusting-wozniak-csdbgf` (transcription model) have no PR. After the freeze, open a PR only for what fixes the demo.
 
 **Josh (B and D)**
@@ -101,6 +124,6 @@ PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask 
 
 ## Known risks
 
-- PR #24 changed every English demo call after the freeze (see the test above).
+- #24, #27, #38 and #39 all changed the English demo call after the freeze (see the test above).
 - Shared API routes have no access control. Use synthetic data only.
 - The database password was exposed during setup. Owen rotates it after submission.

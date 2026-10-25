@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AlertModeChoice, Choice, WhatTheySee } from '@/components/loved-one/Consent';
+import { AlertModeChoice, Choice, List, WhatTheySee } from '@/components/loved-one/Consent';
 import {
   setTextSize,
   TEXT_SIZES,
@@ -17,16 +17,22 @@ import {
   useAppliedTextSize,
 } from '@/components/loved-one/prefs';
 import { Button } from '@/components/ui/Button';
-import { saveRole } from '@/lib/role';
+import { Card } from '@/components/ui/band';
+import { Check, Cross } from '@/components/ui/icons';
+import { savedRole, saveRole } from '@/lib/role';
 import type { Settings } from '@/lib/types';
 
-// The caregiver fills in the first four steps on her phone; the last step is hers alone.
-const STEPS = ['her', 'you', 'backup', 'size', 'handover', 'consent'] as const;
+// First, whose phone this is. Her phone then runs the steps below: the caregiver fills in the first five, the last is hers alone.
+const STEPS = ['about', 'her', 'you', 'backup', 'size', 'handover', 'consent'] as const;
 type Step = (typeof STEPS)[number];
 
 export default function SetupPage() {
   const router = useRouter();
   const textSize = useAppliedTextSize();
+  // null: still asking whose phone this is.
+  const [path, setPath] = useState<'hers' | 'mine' | null>(null);
+  // A phone that already has a role came here from its Settings or Profile, so it has somewhere to go back to.
+  const [home, setHome] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [elderName, setElderName] = useState('');
   const [contactName, setContactName] = useState('');
@@ -36,18 +42,23 @@ export default function SetupPage() {
   const [failed, setFailed] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
 
-  const step: Step = STEPS[index] ?? 'her';
+  const step: Step = STEPS[index] ?? 'about';
   const next = () => setIndex(Math.min(index + 1, STEPS.length - 1));
-  // Before the first step, go back to wherever setup was opened from: the picker, Settings or Profile.
-  const back = () =>
-    index > 0 ? setIndex(index - 1) : window.history.length > 1 ? router.back() : router.push('/');
+  const back = () => (index > 0 ? setIndex(index - 1) : setPath(null));
+  const leave = () =>
+    window.history.length > 1 ? router.back() : home ? router.push(home) : undefined;
   const her = elderName.trim();
   const you = contactName.trim();
 
+  useEffect(() => {
+    const role = savedRole();
+    if (role) setHome(`/${role}`);
+  }, []);
+
   // Each step replaces the screen, so move focus to its heading for screen readers.
   useEffect(() => {
-    if (index > 0) heading.current?.focus();
-  }, [index]);
+    if (path || index > 0) heading.current?.focus();
+  }, [path, index]);
 
   const finish = async () => {
     if (!alertMode) return;
@@ -77,7 +88,117 @@ export default function SetupPage() {
 
   const shared = { heading, step: index + 1, onBack: back };
 
+  if (!path)
+    return (
+      <section className="space-y-10 pt-6">
+        <header className="space-y-3">
+          <p className="font-display text-2xl font-extrabold tracking-[-0.02em] text-accent-ink">
+            Halo
+          </p>
+          <h1
+            ref={heading}
+            tabIndex={-1}
+            className="text-4xl font-bold leading-tight focus:outline-none"
+          >
+            Whose phone is this?
+          </h1>
+          <p className="text-ink-2">This phone will remember your answer.</p>
+        </header>
+        <div className="space-y-4">
+          {(
+            [
+              ['hers', 'Someone I look after', 'Set it up on their phone, together'],
+              ['mine', 'Mine. I look out for someone', 'Get told when a call worries them'],
+            ] as const
+          ).map(([value, label, hint]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setPath(value)}
+              className="glass flex min-h-24 w-full flex-col items-start justify-center gap-1 rounded-card px-6 py-4 text-left transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
+            >
+              <span className="font-display text-3xl font-bold tracking-[-0.02em]">{label}</span>
+              <span className="font-normal text-ink-2">{hint}</span>
+            </button>
+          ))}
+        </div>
+        {home && (
+          <Button variant="secondary" onClick={leave}>
+            Back
+          </Button>
+        )}
+      </section>
+    );
+
+  if (path === 'mine')
+    return (
+      <Frame heading={heading} title="What you'll see" onBack={() => setPath(null)}>
+        <Card className="space-y-4">
+          <List
+            icon={<Check className="mt-1 size-6 text-accent-ink" />}
+            heading="You will see"
+            items={[
+              'That a call worried them, and the kind of scam it looked like',
+              'A request to call them',
+              'A one-line summary of the call, if they choose',
+            ]}
+          />
+          <List
+            icon={<Cross className="mt-1 size-6 text-ink-2" />}
+            heading="You will never see"
+            items={[
+              'What was said, word for word',
+              'Recordings of any call',
+              'Calls that showed no warning signs',
+            ]}
+          />
+        </Card>
+        <p>
+          They choose whether you're told automatically or only when they ask. Next, set up their
+          phone with them: open Halo on it and choose "Someone I look after".
+        </p>
+        <Button
+          onClick={() => {
+            saveRole('caregiver');
+            router.replace('/caregiver');
+          }}
+        >
+          Continue
+        </Button>
+      </Frame>
+    );
+
   switch (step) {
+    case 'about':
+      return (
+        <Frame {...shared} title="What Halo does on this phone">
+          <Card className="space-y-4">
+            <List
+              icon={<Check className="mt-1 size-6 text-accent-ink" />}
+              heading="Halo will"
+              items={[
+                "Ask callers who they are and why they're calling",
+                'Check their words against known scam scripts',
+                'Show a card with what it found and what to do next',
+                'Tell their person only if they agree',
+              ]}
+            />
+            <List
+              icon={<Cross className="mt-1 size-6 text-ink-2" />}
+              heading="Halo won't"
+              items={[
+                'Keep recordings: only the words of the call are kept',
+                'Show any phone number or link a caller gives',
+                "Promise a call is genuine. It can only say it didn't find warning signs",
+              ]}
+            />
+          </Card>
+          <p className="text-ink-2">
+            The caller's voice is processed by Google's Gemini to understand it.
+          </p>
+          <Button onClick={next}>Next</Button>
+        </Frame>
+      );
     case 'her':
       return (
         <NameStep
@@ -169,7 +290,8 @@ export default function SetupPage() {
 
 type FrameProps = {
   heading: RefObject<HTMLHeadingElement | null>;
-  step: number;
+  /** Her steps only: whose phone it is, and the caregiver's own page, aren't counted. */
+  step?: number;
   title: string;
   onBack?: () => void;
 };
@@ -178,9 +300,11 @@ function Frame({ heading, step, title, onBack, children }: FrameProps & { childr
   return (
     <section className="space-y-8 pb-8">
       <header className="space-y-3">
-        <p className="font-semibold text-ink-2 tabular-nums">
-          Step {step} of {STEPS.length}
-        </p>
+        {step && (
+          <p className="font-semibold text-ink-2 tabular-nums">
+            Step {step} of {STEPS.length}
+          </p>
+        )}
         <h1 ref={heading} tabIndex={-1} className="text-3xl font-bold focus:outline-none">
           {title}
         </h1>

@@ -242,15 +242,14 @@ export class LiveCall {
       }, 150);
     });
   }
-  // Time's up: say the closing line rather than cut the caller off, then hang up.
+  // Time's up: always say the closing line, since a caller talking nonstop has no transcript yet.
   wrapUp() {
     if (this.closed || this.terminated || this.finishing || this.wrapping) return;
     this.wrapping = true;
     this.nativeAbort.abort();
     clearTimeout(this.drainTimer);
     clearTimeout(this.activityTimer);
-    if (!this.transcript.hasCaller()) this.end();
-    else if (!this.speaking) this.playClip(this.clips.closing.pcm, this.clips.closing.text, true);
+    if (!this.speaking) this.playClip(this.clips.closing.pcm, this.clips.closing.text, true);
   }
   private interrupted() {
     return new CallError('The call was interrupted. Nothing was sent. Please start a new call.');

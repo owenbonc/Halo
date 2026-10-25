@@ -22,7 +22,7 @@ export const SAM_LINE: Record<SamState, (c: string) => string> = {
   escalated: (c) => `${c} hasn't replied. Call 159.`,
 };
 
-// Lavender while Sam is on it; white with a red edge when Sam hasn't replied (red text fails on lavender).
+// Solid umber while Sam is on it; white with a red edge when Sam hasn't replied (red text fails on umber).
 export const SAM_STYLE: Record<SamState, { box: string; Icon: typeof Check }> = {
   unsent: { box: 'border-line bg-surface text-ink', Icon: Phone },
   paused: { box: 'border-line bg-surface text-ink-2', Icon: Phone },

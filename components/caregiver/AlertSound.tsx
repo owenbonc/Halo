@@ -26,7 +26,7 @@ export function AlertSound() {
       {/* Quiet on purpose: the alert is the one thing on the Alerts screen that should shout. */}
       <button
         type="button"
-        className="-ml-1 inline-flex min-h-11 items-center rounded-full px-1 text-[0.9375rem] font-semibold text-accent-ink active:scale-[0.97]"
+        className="-ml-1 inline-flex min-h-11 items-center rounded-full px-1 text-[0.9375rem] font-semibold text-accent-ink underline active:scale-[0.97]"
         aria-label={sound ? 'Turn off alert sound' : 'Turn on alert sound'}
         onClick={() => (sound ? muteSound() : unlockSound())}
       >

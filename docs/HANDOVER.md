@@ -67,7 +67,7 @@ PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask 
 
 - **`/`** opens the phone's own app, or setup on a new phone. Each phone remembers its role; both Settings tabs have "Set up this phone again".
 - **Setup** (`/setup`) asks "Whose phone is this?". The caregiver's path shows what they'll see, then opens their app. Her path shows what Halo does, then the caregiver fills in her name, their own name and an optional backup; they hand the phone over and she picks her text size and chooses how her person is told. Nothing is preselected.
-- **Loved one's app** (`/loved-one`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
+- **Loved one's app** (`/loved-one`): Alerts (one call at a time like a deck: a verdict banner, then big Get Sam, What to do, Their words and Read aloud tiles), Past calls and Settings tabs, the voice note, and "I've dealt with this".
 - **Caregiver's app** (`/caregiver`): Alerts, History and Settings, with a floating "I'm calling [her name] now".
 - **The call** (`/call`): the live Gemini screener with a tailored, checked follow-up and prerecorded lines in Gemini's Sulafat voice, plus the recorded-message option.
 - **The analysis:** B's `analyse`: Gemini 4 Argon over the transcript and the matched Atlas patterns, with fixed word rules as the floor.

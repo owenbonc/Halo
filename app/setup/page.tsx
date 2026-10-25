@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
 import { Check, Cross } from '@/components/ui/icons';
+import { Logo } from '@/components/ui/Logo';
 import { savedRole, saveRole } from '@/lib/role';
 import type { Settings } from '@/lib/types';
 
@@ -95,9 +96,7 @@ export default function SetupPage() {
     return (
       <section className="space-y-10 pt-6">
         <header className="space-y-3">
-          <p className="font-display text-2xl font-extrabold tracking-[-0.02em] text-accent-ink">
-            Halo
-          </p>
+          <Logo />
           <h1
             ref={heading}
             tabIndex={-1}

@@ -6,9 +6,9 @@ import { BAND_TONE, BandBadge, Card } from '@/components/ui/band';
 import { Check, ListChecks, Phone, Quote, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
-import type { Band, CallView } from '@/lib/types';
+import type { CallView } from '@/lib/types';
 import { useLovedOne } from './LovedOneData';
-import { markDone } from './prefs';
+import { markDone, markNotDone } from './prefs';
 import { SAM_LINE, SAM_STYLE, samState } from './sam';
 
 export function when(iso: string) {
@@ -30,86 +30,29 @@ export function reassurance(call: CallView) {
   return 'We answered this call for you. You did the right thing by not answering it yourself.';
 }
 
-type Segment = { href: string; Icon: typeof Phone; label: string; primary?: boolean };
+type Tile = { href: string; Icon: typeof Phone; label: string; primary?: boolean };
 
-// Each segment's icon and words sit across the middle of the segment, nudged up or down clear of the verdict
-// circle. The bottom quarters put their words above the icon, so the wider line sits where there is room.
-const QUARTER = [
-  'flex-col rounded-tl-[100%] pb-[14%]',
-  'flex-col rounded-tr-[100%] pb-[14%]',
-  'flex-col-reverse rounded-bl-[100%] pt-[16%]',
-  'flex-col-reverse rounded-br-[100%] pt-[16%]',
-];
-const HALF = ['flex-col rounded-l-[100%_50%] pr-[44%]', 'flex-col rounded-r-[100%_50%] pl-[44%]'];
+// Warnings are a solid band with white text so they read as urgent; a green result stays a quiet tint.
+const SOLID = {
+  strong: 'border-danger bg-danger text-surface',
+  some: 'border-caution bg-caution text-surface',
+} as const;
 
 /*
- * Her buttons as a ring around the verdict: four quarters on a warning call, two halves on a green one.
- * The ring grows with her text size until it fills the screen's width. Icons and the centre word scale with
- * the ring (cqw) so they stay inside it; labels keep a floor that follows her text size, and wrap rather than
- * run past the ring's edge.
- */
-function ActionRing({
-  band,
-  segments,
-  onOpen,
-}: {
-  band: Band;
-  segments: Segment[];
-  onOpen: () => void;
-}) {
-  const quarters = segments.length === 4;
-  const { card, text, Icon } = BAND_TONE[band];
-  return (
-    <nav
-      aria-label="What you can do"
-      className="@container relative mx-auto aspect-square w-full max-w-[21rem]"
-    >
-      <div
-        className={`grid size-full gap-[1.5cqw] ${quarters ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2'}`}
-      >
-        {segments.map(({ href, Icon: SegmentIcon, label, primary }, i) => (
-          <Link
-            key={href}
-            href={href}
-            onClick={onOpen}
-            className={`flex items-center justify-center gap-[1cqw] text-center font-bold leading-tight transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${(quarters ? QUARTER : HALF)[i]} focus-visible:-outline-offset-4 shadow-none! ${primary ? 'glass-accent text-on-accent' : 'glass border border-line text-ink'}`}
-          >
-            <SegmentIcon className="size-[10cqw]" />
-            <span
-              className={`block text-balance text-[max(4.6cqw,0.9rem)] ${quarters ? 'max-w-[30cqw]' : 'max-w-[20cqw]'}`}
-            >
-              {label}
-            </span>
-          </Link>
-        ))}
-      </div>
-      {/* The full verdict sits under the ring as the card's heading, so screen readers skip this copy. */}
-      <div
-        aria-hidden="true"
-        className={`absolute inset-[29%] flex flex-col items-center justify-center gap-[0.5cqw] rounded-full border-2 text-center font-bold leading-tight shadow-[0_0_0_1.5cqw_var(--color-bg)] ${card} ${text}`}
-      >
-        <Icon className="size-[10cqw]" />
-        <span className="px-[3cqw] text-[4.2cqw]">{BAND_LABEL[band].circle}</span>
-      </div>
-    </nav>
-  );
-}
-
-/*
- * The card in front of her: the time, her buttons as a ring around the verdict, then the verdict in full,
- * the scam type and Sam's status. Nothing to read past and no scrolling at Standard text.
+ * The card in front of her: the verdict as a banner, her buttons as big tiles two by two (on a warning call, Get Sam
+ * and What to do carry their icon in a solid umber circle), then Sam's status. No scrolling at Standard text.
  */
 export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode }) {
   const { contact, paused, done, open } = useLovedOne();
-  const { analysis } = call;
-  const warning = analysis.band !== 'none';
+  const { band, family } = call.analysis;
   const sam = samState(call, paused);
-  const { box, Icon } = SAM_STYLE[sam];
+  const { box, Icon: SamIcon } = SAM_STYLE[sam];
+  const { Icon } = BAND_TONE[band];
   const base = `/loved-one/calls/${call.id}`;
   const titleId = useId();
-  const onOpen = () => open(call.id);
-  const segments: Segment[] = [
-    ...(warning
+  const time = `${when(call.createdAt)}${call.source === 'voice_note' ? ' · Your voice note' : ''}`;
+  const tiles: Tile[] = [
+    ...(band !== 'none'
       ? [
           { href: `${base}/sam`, Icon: Phone, label: `Get ${contact}`, primary: true },
           { href: `${base}/help`, Icon: ListChecks, label: 'What to do', primary: true },
@@ -124,41 +67,72 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
     <div className="space-y-2.5">
       <div
         key={call.id}
-        className="space-y-2.5 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
+        className="space-y-4 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
       >
-        <p className="text-center font-semibold text-ink-2 tabular-nums">
-          {when(call.createdAt)}
-          {call.source === 'voice_note' && ' · Your voice note'}
-        </p>
-        <ActionRing band={analysis.band} segments={segments} onOpen={onOpen} />
-        <Card tone={analysis.band} aria-labelledby={titleId} className="space-y-2 p-4!">
-          <h2 id={titleId}>
-            <BandBadge band={analysis.band} className="text-[clamp(1.25rem,6vw,1.5rem)]" />
-          </h2>
-          {warning && (
-            <p className={`font-semibold ${BAND_TONE[analysis.band].text}`}>
-              {FAMILY_LABEL[analysis.family]}
-            </p>
-          )}
-          {warning ? (
-            <p
-              aria-live="polite"
-              className={`flex items-start gap-3 rounded-chip border px-4 py-1.5 font-bold ${box}`}
-            >
-              <Icon className="mt-1 size-[1.1em]" />
-              {SAM_LINE[sam](contact)}
-            </p>
-          ) : (
+        {band === 'none' ? (
+          <Card tone={band} aria-labelledby={titleId} className="space-y-2 rounded-sheet!">
+            <p className="font-semibold text-ink-2 tabular-nums">{time}</p>
+            <h2 id={titleId}>
+              <BandBadge band={band} />
+            </h2>
             <p>{reassurance(call)}</p>
-          )}
-        </Card>
+          </Card>
+        ) : (
+          <article
+            aria-labelledby={titleId}
+            className={`space-y-1.5 rounded-sheet border p-5 ${SOLID[band]}`}
+          >
+            <p className="font-semibold tabular-nums opacity-90">{time}</p>
+            <h2
+              id={titleId}
+              className="flex items-start gap-3 text-[clamp(1.5rem,7.5vw,1.875rem)] font-bold leading-snug"
+            >
+              <Icon className="mt-0.5 size-[1.25em] shrink-0" />
+              {BAND_LABEL[band].title}
+            </h2>
+            <p className="font-semibold">{FAMILY_LABEL[family]}</p>
+          </article>
+        )}
+        <nav aria-label="What you can do" className="grid grid-cols-2 gap-3">
+          {tiles.map(({ href, Icon: TileIcon, label, primary }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => open(call.id)}
+              className="glass flex aspect-[4/3] min-w-0 flex-col items-center justify-center gap-2 rounded-card p-3 text-center break-words text-xl font-bold text-ink transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
+            >
+              {primary ? (
+                <span className="flex size-20 items-center justify-center rounded-full bg-accent text-on-accent">
+                  <TileIcon className="size-10" />
+                </span>
+              ) : (
+                <TileIcon className="size-12" />
+              )}
+              {label}
+            </Link>
+          ))}
+        </nav>
+        {band !== 'none' && (
+          <p
+            aria-live="polite"
+            className={`flex items-start gap-3 rounded-chip border px-4 py-2 font-bold ${box}`}
+          >
+            <SamIcon className="mt-1 size-[1.1em] shrink-0" />
+            {SAM_LINE[sam](contact)}
+          </p>
+        )}
       </div>
 
       {done.includes(call.id) ? (
-        <Pill tone="accent">
-          <Check />
-          You've dealt with this
-        </Pill>
+        <div className="flex flex-wrap items-center gap-3">
+          <Pill tone="accent">
+            <Check />
+            You've dealt with this
+          </Pill>
+          <Button variant="secondary" size="md" onClick={() => markNotDone(call.id)}>
+            Put it back in Alerts
+          </Button>
+        </div>
       ) : (
         <Button variant="secondary" size="md" onClick={() => markDone(call.id)}>
           <Check />
@@ -171,23 +145,45 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
 }
 
 // One row of a call list: band, scam type and when. Opens that call's full card.
-export function CallRow({ call, isNew }: { call: CallView; isNew: boolean }) {
+export function CallRow({
+  call,
+  isNew,
+  dealt,
+}: {
+  call: CallView;
+  isNew: boolean;
+  /** Past calls only: whether she has dealt with this warning call. */
+  dealt?: boolean;
+}) {
   const { analysis } = call;
   return (
     <li>
       <Link
         href={`/loved-one/calls/${call.id}`}
-        className="glass flex flex-col gap-3 rounded-card px-4 py-4 transition-[transform,background-color] duration-100 ease-out active:scale-[0.98]"
+        className="flex flex-col gap-1.5 px-4 py-4 transition-colors duration-100 ease-out active:bg-surface-hover"
       >
         <BandBadge band={analysis.band} className="text-xl" />
-        <span className="flex flex-wrap gap-2">
-          {isNew && <Pill tone="accent">New</Pill>}
-          {analysis.band !== 'none' && (
-            <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>
-          )}
-          <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
-          {call.source === 'voice_note' && <Pill>Your voice note</Pill>}
+        {analysis.band !== 'none' && (
+          <span className="font-semibold">{FAMILY_LABEL[analysis.family]}</span>
+        )}
+        <span className="text-ink-2 tabular-nums">
+          {when(call.createdAt)}
+          {call.source === 'voice_note' && ' · Your voice note'}
         </span>
+        {(isNew || (dealt !== undefined && analysis.band !== 'none')) && (
+          <span className="mt-1 flex">
+            {isNew ? (
+              <Pill tone="accent">New</Pill>
+            ) : dealt ? (
+              <Pill tone="accent">
+                <Check />
+                Dealt with
+              </Pill>
+            ) : (
+              <Pill>Not dealt with yet</Pill>
+            )}
+          </span>
+        )}
       </Link>
     </li>
   );

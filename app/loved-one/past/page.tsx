@@ -6,19 +6,30 @@ import { TopBar } from '@/components/loved-one/TopBar';
 import { Card } from '@/components/ui/band';
 import type { CallView } from '@/lib/types';
 
-const FILTERS: { id: string; label: string; keep: (c: CallView) => boolean }[] = [
+const FILTERS: {
+  id: string;
+  label: string;
+  keep: (c: CallView, done: string[]) => boolean;
+}[] = [
   { id: 'all', label: 'All', keep: () => true },
+  {
+    id: 'waiting',
+    label: 'Not dealt with',
+    keep: (c, done) => c.analysis.band !== 'none' && !done.includes(c.id),
+  },
   { id: 'strong', label: 'Strong warnings', keep: (c) => c.analysis.band === 'strong' },
   { id: 'some', label: 'Some warnings', keep: (c) => c.analysis.band === 'some' },
   { id: 'none', label: 'No warning signs', keep: (c) => c.analysis.band === 'none' },
   { id: 'voice', label: 'Voice notes', keep: (c) => c.source === 'voice_note' },
 ];
 
-// The Past calls tab: the backlog of calls she has dealt with, and green calls she has opened, newest first.
+// The Past calls tab: every call, newest first, each warning call marked dealt with or not.
 export default function PastCallsPage() {
-  const { past, calls, error } = useLovedOne();
+  const { calls, done, error } = useLovedOne();
   const [filter, setFilter] = useState('all');
-  const shown = past.filter(FILTERS.find((f) => f.id === filter)?.keep ?? (() => true));
+  const past = calls ?? [];
+  const keep = FILTERS.find((f) => f.id === filter)?.keep ?? (() => true);
+  const shown = past.filter((c) => keep(c, done));
 
   return (
     <section className="space-y-8">
@@ -31,7 +42,8 @@ export default function PastCallsPage() {
       {!calls && !error && <p role="status">Opening your calls…</p>}
 
       {past.length > 0 && (
-        <fieldset className="flex min-w-0 flex-wrap gap-2">
+        // One row that scrolls sideways, so the filters never push the calls down the screen.
+        <fieldset className="-mx-4 flex min-w-0 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           <legend className="sr-only">Show</legend>
           {FILTERS.map((f) => (
             <button
@@ -39,7 +51,7 @@ export default function PastCallsPage() {
               type="button"
               aria-pressed={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`min-h-12 rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'glass-accent text-on-accent' : 'glass text-ink-2'}`}
+              className={`min-h-12 shrink-0 whitespace-nowrap rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'glass-accent text-on-accent' : 'glass text-ink-2'}`}
             >
               {f.label}
             </button>
@@ -54,15 +66,16 @@ export default function PastCallsPage() {
           </h2>
           <p>
             {past.length === 0
-              ? "When you've dealt with a call, it moves here so you can look back at it."
+              ? 'Every call we answer for you is kept here, so you can look back at it.'
               : 'Try another filter, or All.'}
           </p>
         </Card>
       )}
 
-      <ul className="space-y-3">
+      {/* One grouped list, like the caregiver's History: a card with a hairline between calls. */}
+      <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
         {shown.map((call) => (
-          <CallRow key={call.id} call={call} isNew={false} />
+          <CallRow key={call.id} call={call} isNew={false} dealt={done.includes(call.id)} />
         ))}
       </ul>
 

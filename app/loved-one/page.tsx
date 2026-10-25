@@ -59,7 +59,7 @@ export default function AlertsPage() {
               <h2 className="text-2xl font-bold">You're all caught up</h2>
               <p>
                 When a number you don't know rings, we'll answer it and tell you here what we found.
-                Calls you've dealt with are in Past calls.
+                Every call is kept in Past calls.
               </p>
             </Card>
             <VoiceNote />

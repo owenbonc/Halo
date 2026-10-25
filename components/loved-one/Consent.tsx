@@ -102,7 +102,15 @@ export function Choice({
   );
 }
 
-function List({ icon, heading, items }: { icon: ReactNode; heading: string; items: string[] }) {
+export function List({
+  icon,
+  heading,
+  items,
+}: {
+  icon: ReactNode;
+  heading: string;
+  items: string[];
+}) {
   return (
     <div className="space-y-2">
       <h3 className="font-bold">{heading}</h3>

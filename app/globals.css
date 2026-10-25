@@ -206,9 +206,10 @@
   --sand-600: oklch(45% 0.012 250);
   --sand-700: oklch(38% 0.012 250);
   --sand-950: oklch(16% 0.01 250);
-  --lavender-50: oklch(94% 0.04 210);
-  --lavender-300: oklch(84% 0.13 205);
-  --lavender-700: oklch(44% 0.1 215);
+  --lavender-50: oklch(91% 0.006 250);
+  --lavender-300: oklch(18% 0.01 250);
+  --lavender-700: oklch(18% 0.01 250);
+  --on-accent: oklch(100% 0 0);
   --elevation-float: 0 1px 2px rgb(0 0 0 / 0.12);
   --glass: rgb(255 255 255 / 0.96);
   --glass-hover: rgb(255 255 255 / 1);
@@ -217,8 +218,8 @@
   --glass-highlight: rgb(255 255 255 / 0);
   --glass-outline: 0 0 0 1px oklch(55% 0.01 250);
   --glass-accent: var(--lavender-300);
-  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.03) c h);
-  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.06) c h);
+  --glass-accent-hover: oklch(from var(--lavender-300) calc(l + 0.06) c h);
+  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l + 0.1) c h);
   --glass-accent-edge: rgb(0 0 0 / 0);
   --radius-chip: 4px;
   --radius-card: 8px;
@@ -227,6 +228,84 @@
   --font-bricolage: var(--font-barlow);
   --desk: oklch(17% 0.01 250);
   --desk-glow: oklch(25% 0.02 250);
+}
+
+:root[data-theme="conversation"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(95.5% 0.012 320);
+  --sand-100: oklch(92.5% 0.016 320);
+  --sand-200: oklch(88% 0.02 320);
+  --sand-500: oklch(60% 0.035 320);
+  --sand-600: oklch(49% 0.04 320);
+  --sand-700: oklch(42% 0.04 320);
+  --sand-950: oklch(22% 0.03 320);
+  --lavender-50: oklch(93.5% 0.035 320);
+  --lavender-300: oklch(40% 0.12 322);
+  --lavender-700: oklch(42% 0.13 322);
+  --on-accent: oklch(99% 0.005 320);
+  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
+  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
+  --glass-accent-pressed: var(--lavender-300);
+  --glass-accent-edge: rgb(255 255 255 / 0.18);
+  --radius-chip: 14px;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --font-bricolage: var(--font-atkinson);
+  --desk: oklch(24% 0.05 322);
+  --desk-glow: oklch(34% 0.08 322);
+}
+
+/* Dark: every ramp flips, band tints become deep washes and band inks go light. */
+:root[data-theme="bold"] {
+  color-scheme: dark;
+  --sand-0: oklch(21% 0.006 250);
+  --sand-50: oklch(14% 0.005 250);
+  --sand-100: oklch(26% 0.008 250);
+  --sand-200: oklch(32% 0.01 250);
+  --sand-500: oklch(62% 0.012 250);
+  --sand-600: oklch(74% 0.01 250);
+  --sand-700: oklch(82% 0.008 250);
+  --sand-950: oklch(97% 0.004 250);
+  --lavender-50: oklch(30% 0.06 205);
+  --lavender-300: oklch(85% 0.13 200);
+  --lavender-700: oklch(85% 0.13 200);
+  --on-accent: oklch(14% 0.005 250);
+  --tomato-50: oklch(27% 0.07 28);
+  --tomato-100: oklch(32% 0.08 28);
+  --tomato-150: oklch(36% 0.09 28);
+  --tomato-200: oklch(44% 0.11 28);
+  --tomato-700: oklch(78% 0.12 28);
+  --ochre-50: oklch(28% 0.05 75);
+  --ochre-100: oklch(33% 0.055 75);
+  --ochre-150: oklch(37% 0.06 75);
+  --ochre-200: oklch(45% 0.07 75);
+  --ochre-700: oklch(84% 0.11 80);
+  --fern-50: oklch(27% 0.04 165);
+  --fern-100: oklch(32% 0.045 165);
+  --fern-150: oklch(36% 0.05 165);
+  --fern-200: oklch(44% 0.06 165);
+  --fern-700: oklch(82% 0.1 165);
+  --elevation-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --glass: rgb(255 255 255 / 0.1);
+  --glass-hover: rgb(255 255 255 / 0.16);
+  --glass-pressed: rgb(255 255 255 / 0.22);
+  --glass-fallback: oklch(26% 0.008 250);
+  --glass-edge: rgb(255 255 255 / 0.14);
+  --glass-highlight: rgb(255 255 255 / 0.12);
+  --glass-outline: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --glass-accent: var(--lavender-300);
+  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.04) c h);
+  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.08) c h);
+  --glass-accent-edge: rgb(255 255 255 / 0);
+  --material: color-mix(in oklab, var(--sand-50) 82%, transparent);
+  --material-fallback: var(--sand-50);
+  --radius-chip: 10px;
+  --radius-card: 16px;
+  --radius-sheet: 22px;
+  --font-bricolage: var(--font-gabarito);
+  --desk: oklch(10% 0 0);
+  --desk-glow: oklch(20% 0.03 200);
+  --device-rim: #3a3a3e;
 }
 
 :root[data-theme="ios"] {

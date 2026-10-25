@@ -5,8 +5,19 @@ import { Button } from '@/components/ui/Button';
 import { BAND_TONE, BandBadge, Card } from '@/components/ui/band';
 import { Check, ListChecks, Phone, Quote, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
+import { type ThemeId, useThemeTrial } from '@/components/ui/ThemeSwitcher';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { Band, CallView } from '@/lib/types';
+import {
+  BoardFace,
+  BoldFace,
+  ChatFace,
+  type Face,
+  ListFace,
+  NoteFace,
+  type Segment,
+  TileFace,
+} from './faces';
 import { useLovedOne } from './LovedOneData';
 import { markDone } from './prefs';
 import { SAM_LINE, SAM_STYLE, samState } from './sam';
@@ -30,7 +41,15 @@ export function reassurance(call: CallView) {
   return 'We answered this call for you. You did the right thing by not answering it yourself.';
 }
 
-type Segment = { href: string; Icon: typeof Phone; label: string; primary?: boolean };
+// Theme trial (temporary): the layout each direction puts in place of the ring.
+const TRIAL_FACE: Partial<Record<ThemeId, (p: { f: Face }) => ReactNode>> = {
+  liberty: NoteFace,
+  cornishware: TileFace,
+  departures: BoardFace,
+  conversation: ChatFace,
+  bold: BoldFace,
+  ios: ListFace,
+};
 
 // Each segment's icon and words sit across the middle of the segment, nudged up or down clear of the verdict
 // circle. The bottom quarters put their words above the icon, so the wider line sits where there is room.
@@ -101,6 +120,7 @@ function ActionRing({
  */
 export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode }) {
   const { contact, paused, done, open } = useLovedOne();
+  const theme = useThemeTrial();
   const { analysis } = call;
   const warning = analysis.band !== 'none';
   const sam = samState(call, paused);
@@ -119,40 +139,63 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
     { href: `${base}/read`, Icon: Speaker, label: 'Read aloud' },
   ];
 
+  const Trial = TRIAL_FACE[theme];
+  const face: Face = {
+    call,
+    time: when(call.createdAt),
+    warning,
+    segments,
+    onOpen,
+    titleId,
+    reassurance: reassurance(call),
+    status: SAM_LINE[sam](contact),
+    statusBox: box,
+    StatusIcon: Icon,
+  };
+
   // Entrances move but never fade: if a browser stops drawing frames, the card must still be readable.
   return (
     <div className="space-y-2.5">
-      <div
-        key={call.id}
-        className="space-y-2.5 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
-      >
-        <p className="text-center font-semibold text-ink-2 tabular-nums">
-          {when(call.createdAt)}
-          {call.source === 'voice_note' && ' · Your voice note'}
-        </p>
-        <ActionRing band={analysis.band} segments={segments} onOpen={onOpen} />
-        <Card tone={analysis.band} aria-labelledby={titleId} className="space-y-2 p-4!">
-          <h2 id={titleId}>
-            <BandBadge band={analysis.band} className="text-[clamp(1.25rem,6vw,1.5rem)]" />
-          </h2>
-          {warning && (
-            <p className={`font-semibold ${BAND_TONE[analysis.band].text}`}>
-              {FAMILY_LABEL[analysis.family]}
-            </p>
-          )}
-          {warning ? (
-            <p
-              aria-live="polite"
-              className={`flex items-start gap-3 rounded-chip border px-4 py-1.5 font-bold ${box}`}
-            >
-              <Icon className="mt-1 size-[1.1em]" />
-              {SAM_LINE[sam](contact)}
-            </p>
-          ) : (
-            <p>{reassurance(call)}</p>
-          )}
-        </Card>
-      </div>
+      {Trial ? (
+        <div
+          key={`${call.id}-${theme}`}
+          className="transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
+        >
+          <Trial f={face} />
+        </div>
+      ) : (
+        <div
+          key={call.id}
+          className="space-y-2.5 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
+        >
+          <p className="text-center font-semibold text-ink-2 tabular-nums">
+            {when(call.createdAt)}
+            {call.source === 'voice_note' && ' · Your voice note'}
+          </p>
+          <ActionRing band={analysis.band} segments={segments} onOpen={onOpen} />
+          <Card tone={analysis.band} aria-labelledby={titleId} className="space-y-2 p-4!">
+            <h2 id={titleId}>
+              <BandBadge band={analysis.band} className="text-[clamp(1.25rem,6vw,1.5rem)]" />
+            </h2>
+            {warning && (
+              <p className={`font-semibold ${BAND_TONE[analysis.band].text}`}>
+                {FAMILY_LABEL[analysis.family]}
+              </p>
+            )}
+            {warning ? (
+              <p
+                aria-live="polite"
+                className={`flex items-start gap-3 rounded-chip border px-4 py-1.5 font-bold ${box}`}
+              >
+                <Icon className="mt-1 size-[1.1em]" />
+                {SAM_LINE[sam](contact)}
+              </p>
+            ) : (
+              <p>{reassurance(call)}</p>
+            )}
+          </Card>
+        </div>
+      )}
 
       {done.includes(call.id) ? (
         <Pill tone="accent">

@@ -25,21 +25,21 @@
  * a distinct icon shape and words.
  */
 :root {
-  /* Sand: warm neutrals. */
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.3% 0.012 80);
-  --sand-100: oklch(93.5% 0.016 80);
-  --sand-200: oklch(89.5% 0.018 80);
-  --sand-500: oklch(63% 0.03 75);
-  --sand-600: oklch(51% 0.025 70);
-  --sand-700: oklch(45% 0.025 70);
-  --sand-950: oklch(22% 0.012 70);
+  /* Slate: cool neutrals with a trace of the navy. */
+  --slate-0: oklch(100% 0 0);
+  --slate-50: oklch(96.4% 0.006 255);
+  --slate-100: oklch(93.4% 0.01 255);
+  --slate-200: oklch(88.5% 0.014 255);
+  --slate-500: oklch(58% 0.03 258);
+  --slate-600: oklch(48% 0.035 260);
+  --slate-700: oklch(41% 0.04 260);
+  --slate-950: oklch(21% 0.04 262);
 
-  /* Lavender: the brand. Far from the three band hues, so it never reads as a warning. */
-  --lavender-50: oklch(95% 0.024 295);
-  --lavender-300: oklch(77% 0.092 295);
-  --lavender-700: oklch(45% 0.148 295);
-  --on-accent: var(--sand-950);
+  /* Navy: the brand, deep enough to carry white text. Far from the three band hues, so it never reads as a warning. */
+  --navy-50: oklch(93% 0.025 258);
+  --navy-300: oklch(31% 0.09 262);
+  --navy-700: oklch(38% 0.11 260);
+  --on-accent: var(--slate-0);
 
   /* Band hues, spread for colour-blind separation (red 28, ochre 68, teal-green 165). */
   --tomato-50: oklch(94.5% 0.026 28);
@@ -60,24 +60,24 @@
 
   --elevation-float: 0 8px 24px -8px rgb(30 26 21 / 0.18), 0 2px 6px -2px rgb(30 26 21 / 0.08);
 
-  /* Glass (from bulk): translucent white or lavender over a blur, with a bright edge and top highlight. */
+  /* Glass (from bulk): translucent white over a blur, with a bright edge and top highlight. */
   --glass: rgb(255 255 255 / 0.55);
   --glass-hover: rgb(255 255 255 / 0.68);
   --glass-pressed: rgb(255 255 255 / 0.8);
   --glass-fallback: rgb(255 255 255 / 0.92);
   --glass-edge: rgb(255 255 255 / 0.75);
   --glass-highlight: rgb(255 255 255 / 0.9);
-  /* Stronger than bulk's 50% so the primary action still reads as primary for older eyes. */
-  --glass-accent: color-mix(in oklab, var(--lavender-300) 62%, transparent);
-  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 72%, transparent);
-  --glass-accent-pressed: color-mix(in oklab, var(--lavender-300) 84%, transparent);
-  --glass-accent-edge: rgb(255 255 255 / 0.6);
+  /* Primary actions are solid navy: white text needs the full fill behind it, and solid reads as decisive. */
+  --glass-accent: var(--navy-300);
+  --glass-accent-hover: oklch(from var(--navy-300) calc(l + 0.05) c h);
+  --glass-accent-pressed: oklch(from var(--navy-300) calc(l + 0.09) c h);
+  --glass-accent-edge: rgb(255 255 255 / 0.14);
   /* A faint ink hairline keeps the button's edge visible on pale paper, where a white edge vanishes. */
   --glass-outline: 0 0 0 1px rgb(30 26 21 / 0.1);
 
   /* Material: translucent paper for bars that stay on screen while content scrolls under them. */
-  --material: color-mix(in oklab, var(--sand-50) 78%, transparent);
-  --material-fallback: color-mix(in oklab, var(--sand-50) 96%, transparent);
+  --material: color-mix(in oklab, var(--slate-50) 78%, transparent);
+  --material-fallback: color-mix(in oklab, var(--slate-50) 96%, transparent);
 
   /* Safe areas: the browser's on a phone; the iPhone 16 Pro's inside the laptop frame. */
   --safe-top: env(safe-area-inset-top, 0px);
@@ -91,32 +91,32 @@
   --device: #0d0d0f;
   --device-rim: #5d5a63;
   --device-rim-highlight: #8d8a94;
-  --desk: oklch(23% 0.03 300);
-  --desk-glow: oklch(33% 0.06 300);
+  --desk: oklch(21% 0.05 262);
+  --desk-glow: oklch(31% 0.08 258);
   --elevation-device: 0 40px 80px -24px rgb(0 0 0 / 0.55), 0 16px 32px -16px rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
   --font-sans: var(--font-atkinson), system-ui, sans-serif;
-  --font-display: var(--font-bricolage), var(--font-atkinson), system-ui, sans-serif;
+  --font-display: var(--font-gabarito), var(--font-atkinson), system-ui, sans-serif;
 
-  --color-bg: var(--sand-50);
-  --color-surface: var(--sand-0);
-  --color-surface-hover: color-mix(in oklab, var(--sand-0), var(--sand-50));
-  --color-surface-2: var(--sand-100);
-  --color-ink: var(--sand-950);
-  --color-ink-2: var(--sand-700);
-  --color-ink-3: var(--sand-600);
-  --color-line: var(--sand-200);
+  --color-bg: var(--slate-50);
+  --color-surface: var(--slate-0);
+  --color-surface-hover: color-mix(in oklab, var(--slate-0), var(--slate-50));
+  --color-surface-2: var(--slate-100);
+  --color-ink: var(--slate-950);
+  --color-ink-2: var(--slate-700);
+  --color-ink-3: var(--slate-600);
+  --color-line: var(--slate-200);
   /* Borders that carry meaning (unselected controls): 3:1 on surface. */
-  --color-line-strong: var(--sand-500);
+  --color-line-strong: var(--slate-500);
 
-  /* Accent fills carry ink text, never white. Accent-coloured text and icons use accent-ink. */
-  --color-accent: var(--lavender-300);
-  --color-accent-hover: oklch(from var(--lavender-300) calc(l - 0.03) c h);
-  --color-accent-strong: oklch(from var(--lavender-300) calc(l - 0.06) c h);
-  --color-accent-soft: var(--lavender-50);
-  --color-accent-ink: var(--lavender-700);
+  /* Accent fills carry white text (on-accent). Accent-coloured text and icons use accent-ink. */
+  --color-accent: var(--navy-300);
+  --color-accent-hover: oklch(from var(--navy-300) calc(l - 0.03) c h);
+  --color-accent-strong: oklch(from var(--navy-300) calc(l - 0.06) c h);
+  --color-accent-soft: var(--navy-50);
+  --color-accent-ink: var(--navy-700);
   --color-on-accent: var(--on-accent);
 
   --color-danger: var(--tomato-700);
@@ -128,175 +128,20 @@
 
   /* Insets: pills, panels and quotes inside a card. White on plain cards; a deeper tint of the band inside a
      warning card (set by .tone-*), so layers stay tonal instead of punching white holes in the colour. */
-  --color-inset: var(--inset, var(--sand-0));
-  --color-inset-2: var(--inset-2, var(--sand-100));
-  --color-inset-line: var(--inset-line, var(--sand-200));
+  --color-inset: var(--inset, var(--slate-0));
+  --color-inset-2: var(--inset-2, var(--slate-100));
+  --color-inset-line: var(--inset-line, var(--slate-200));
 
   /* Shadows belong to floating layers only; cards on the page use a 1px line border. */
   --shadow-float: var(--elevation-float);
 }
 
 @theme {
-  --radius-chip: 12px;
-  --radius-card: 18px;
-  --radius-sheet: 24px;
-
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-/*
- * Theme trial (temporary): Cornishware's tile layout in several colourways. Each redefines the reference palette
- * behind the same semantic names, so every screen switches at once. Collapse to one after the pick.
- */
-:root[data-theme] {
   --radius-chip: 16px;
   --radius-card: 26px;
   --radius-sheet: 32px;
-  --font-bricolage: var(--font-gabarito);
-  --on-accent: oklch(100% 0 0);
-  --glass-accent: var(--lavender-300);
-  --glass-accent-hover: oklch(from var(--lavender-300) calc(l + 0.05) c h);
-  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l + 0.09) c h);
-  --glass-accent-edge: rgb(255 255 255 / 0.14);
-  --glass-highlight: rgb(255 255 255 / 0.9);
-}
 
-/* The original pastel, kept for comparison. */
-:root[data-theme="cornishware"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(97.4% 0.009 240);
-  --sand-100: oklch(94.3% 0.016 240);
-  --sand-200: oklch(89.8% 0.022 240);
-  --sand-500: oklch(61% 0.045 245);
-  --sand-600: oklch(50% 0.05 248);
-  --sand-700: oklch(43% 0.055 250);
-  --sand-950: oklch(23% 0.04 255);
-  --lavender-50: oklch(94.5% 0.035 240);
-  --lavender-300: oklch(80% 0.095 240);
-  --lavender-700: oklch(45% 0.13 250);
-  --on-accent: oklch(23% 0.04 255);
-  --glass-accent: color-mix(in oklab, var(--lavender-300) 80%, transparent);
-  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 88%, transparent);
-  --glass-accent-pressed: var(--lavender-300);
-  --glass-accent-edge: rgb(255 255 255 / 0.6);
-  --desk: oklch(27% 0.06 245);
-  --desk-glow: oklch(40% 0.09 240);
-}
-
-/* Navy: bank-statement navy on cool white. */
-:root[data-theme="navy"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.4% 0.006 255);
-  --sand-100: oklch(93.4% 0.01 255);
-  --sand-200: oklch(88.5% 0.014 255);
-  --sand-500: oklch(58% 0.03 258);
-  --sand-600: oklch(48% 0.035 260);
-  --sand-700: oklch(41% 0.04 260);
-  --sand-950: oklch(21% 0.04 262);
-  --lavender-50: oklch(93% 0.025 258);
-  --lavender-300: oklch(31% 0.09 262);
-  --lavender-700: oklch(38% 0.11 260);
-  --desk: oklch(21% 0.05 262);
-  --desk-glow: oklch(31% 0.08 258);
-}
-
-/* Petrol: a deep blue-teal, calmer and more modern than navy. */
-:root[data-theme="petrol"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.5% 0.007 215);
-  --sand-100: oklch(93.4% 0.011 215);
-  --sand-200: oklch(88.6% 0.015 215);
-  --sand-500: oklch(58% 0.03 218);
-  --sand-600: oklch(48% 0.035 220);
-  --sand-700: oklch(41% 0.035 222);
-  --sand-950: oklch(22% 0.03 225);
-  --lavender-50: oklch(93% 0.03 215);
-  --lavender-300: oklch(37% 0.075 222);
-  --lavender-700: oklch(40% 0.085 222);
-  --desk: oklch(21% 0.04 222);
-  --desk-glow: oklch(32% 0.06 218);
-}
-
-/* Graphite: near-black and white, the most serious; colour is left to the warnings. */
-:root[data-theme="graphite"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(95.8% 0.002 260);
-  --sand-100: oklch(92.6% 0.003 260);
-  --sand-200: oklch(87.5% 0.004 260);
-  --sand-500: oklch(56% 0.006 260);
-  --sand-600: oklch(46% 0.007 260);
-  --sand-700: oklch(39% 0.008 260);
-  --sand-950: oklch(18% 0.006 260);
-  --lavender-50: oklch(92% 0.004 260);
-  --lavender-300: oklch(22% 0.008 260);
-  --lavender-700: oklch(26% 0.01 260);
-  --desk: oklch(17% 0.004 260);
-  --desk-glow: oklch(27% 0.008 260);
-}
-
-/* Royal violet: Halo's lavender, deepened until it carries weight. */
-:root[data-theme="violet"] {
-  --sand-0: oklch(100% 0 0);
-  --sand-50: oklch(96.3% 0.008 290);
-  --sand-100: oklch(93.2% 0.012 290);
-  --sand-200: oklch(88.4% 0.016 290);
-  --sand-500: oklch(58% 0.035 290);
-  --sand-600: oklch(48% 0.04 290);
-  --sand-700: oklch(41% 0.04 290);
-  --sand-950: oklch(21% 0.035 290);
-  --lavender-50: oklch(93% 0.03 290);
-  --lavender-300: oklch(37% 0.13 290);
-  --lavender-700: oklch(42% 0.14 290);
-  --desk: oklch(21% 0.05 290);
-  --desk-glow: oklch(31% 0.08 290);
-}
-
-/* Midnight: dark navy with a bright blue; band tints become deep washes and band inks go light. */
-:root[data-theme="midnight"] {
-  color-scheme: dark;
-  --sand-0: oklch(23.5% 0.025 262);
-  --sand-50: oklch(17% 0.022 262);
-  --sand-100: oklch(28% 0.028 262);
-  --sand-200: oklch(33% 0.03 262);
-  --sand-500: oklch(60% 0.03 258);
-  --sand-600: oklch(73% 0.025 255);
-  --sand-700: oklch(82% 0.02 255);
-  --sand-950: oklch(97% 0.006 255);
-  --lavender-50: oklch(31% 0.06 255);
-  --lavender-300: oklch(74% 0.12 245);
-  --lavender-700: oklch(80% 0.11 245);
-  --on-accent: oklch(17% 0.022 262);
-  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.04) c h);
-  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.08) c h);
-  --tomato-50: oklch(27% 0.07 28);
-  --tomato-100: oklch(32% 0.08 28);
-  --tomato-150: oklch(36% 0.09 28);
-  --tomato-200: oklch(44% 0.11 28);
-  --tomato-700: oklch(78% 0.12 28);
-  --ochre-50: oklch(28% 0.05 75);
-  --ochre-100: oklch(33% 0.055 75);
-  --ochre-150: oklch(37% 0.06 75);
-  --ochre-200: oklch(45% 0.07 75);
-  --ochre-700: oklch(84% 0.11 80);
-  --fern-50: oklch(27% 0.04 165);
-  --fern-100: oklch(32% 0.045 165);
-  --fern-150: oklch(36% 0.05 165);
-  --fern-200: oklch(44% 0.06 165);
-  --fern-700: oklch(82% 0.1 165);
-  --elevation-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
-  --glass: rgb(255 255 255 / 0.08);
-  --glass-hover: rgb(255 255 255 / 0.14);
-  --glass-pressed: rgb(255 255 255 / 0.2);
-  --glass-fallback: oklch(28% 0.028 262);
-  --glass-edge: rgb(255 255 255 / 0.12);
-  --glass-highlight: rgb(255 255 255 / 0.1);
-  --glass-outline: 0 0 0 1px rgb(255 255 255 / 0.06);
-  --glass-accent-edge: rgb(255 255 255 / 0);
-  --material: color-mix(in oklab, var(--sand-50) 82%, transparent);
-  --material-fallback: var(--sand-50);
-  --desk: oklch(11% 0.01 262);
-  --desk-glow: oklch(21% 0.04 255);
-  --device-rim: #3a3a3e;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .tone-strong {
@@ -411,7 +256,7 @@
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    background-color: var(--sand-50);
+    background-color: var(--slate-50);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -443,18 +288,18 @@
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    background-color: var(--sand-0);
+    background-color: var(--slate-0);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    box-shadow: inset 0 0 0 1px var(--sand-500);
+    box-shadow: inset 0 0 0 1px var(--slate-500);
 
     &:active:not(:disabled) {
-      background-color: var(--sand-100);
+      background-color: var(--slate-100);
     }
   }
 }
 
-/* Lavender glass for primary actions. Solid lavender when blur is missing or unwanted. */
+/* Navy for primary actions, with glass's edge and highlight. Plain solid navy when blur is missing or unwanted. */
 @utility glass-accent {
   background-color: var(--glass-accent);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -476,17 +321,17 @@
   }
 
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    background-color: var(--lavender-300);
+    background-color: var(--navy-300);
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    background-color: var(--lavender-300);
+    background-color: var(--navy-300);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    box-shadow: inset 0 0 0 1px var(--lavender-700);
+    box-shadow: inset 0 0 0 1px var(--navy-700);
 
     &:active:not(:disabled) {
-      background-color: oklch(from var(--lavender-300) calc(l - 0.06) c h);
+      background-color: oklch(from var(--navy-300) calc(l - 0.06) c h);
     }
   }
 }
@@ -498,7 +343,7 @@
 .device-screen {
   position: relative;
   min-height: 100dvh;
-  background: var(--sand-50);
+  background: var(--slate-50);
 }
 
 @variant frame {

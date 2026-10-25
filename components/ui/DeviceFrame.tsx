@@ -1,7 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { type ReactNode, Suspense, useLayoutEffect, useSyncExternalStore } from 'react';
-import { ThemeSwitcher } from './ThemeSwitcher';
 
 const SCROLL_ROOT = 'data-scroll-root';
 
@@ -29,7 +28,6 @@ export function DeviceFrame({ children }: { children: ReactNode }) {
           />
         </div>
       </div>
-      <ThemeSwitcher />
     </div>
   );
 }

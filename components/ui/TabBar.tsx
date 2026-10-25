@@ -34,7 +34,7 @@ export const ABOVE_TAB_BAR = {
 
 /*
  * A floating clear-glass capsule of tabs (after bulk's floating controls), in thumb reach above the home
- * indicator. The selected tab sits on lavender glass. Every tab keeps its word, never icon-only.
+ * indicator. The selected tab sits on solid navy. Every tab keeps its word, never icon-only.
  */
 export function TabBar({ tabs, size = 'lg' }: { tabs: Tab[]; size?: keyof typeof SIZE }) {
   const pathname = usePathname();

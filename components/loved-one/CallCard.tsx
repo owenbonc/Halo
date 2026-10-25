@@ -70,7 +70,7 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
         className="space-y-4 transition-transform duration-300 ease-out starting:translate-y-3 motion-reduce:transition-none"
       >
         {band === 'none' ? (
-          <Card tone={band} aria-labelledby={titleId} className="space-y-2 rounded-sheet! p-5!">
+          <Card tone={band} aria-labelledby={titleId} className="space-y-2 rounded-sheet!">
             <p className="font-semibold text-ink-2 tabular-nums">{time}</p>
             <h2 id={titleId}>
               <BandBadge band={band} />
@@ -99,7 +99,7 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
               key={href}
               href={href}
               onClick={() => open(call.id)}
-              className="glass flex aspect-square flex-col items-center justify-center gap-3 rounded-card p-3 text-center text-xl font-bold text-ink transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
+              className="glass flex aspect-[4/3] min-w-0 flex-col items-center justify-center gap-2 rounded-card p-3 text-center break-words text-xl font-bold text-ink transition-[transform,background-color] duration-100 ease-out active:scale-[0.97]"
             >
               {primary ? (
                 <span className="flex size-20 items-center justify-center rounded-full bg-accent text-on-accent">

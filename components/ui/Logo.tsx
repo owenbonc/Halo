@@ -1,4 +1,4 @@
-// The original Halo wordmark: Bricolage Grotesque, extra bold, in its first lavender. Branding only, so hidden from screen readers.
+// Branding only, so hidden from screen readers.
 export function Logo() {
   return (
     <span

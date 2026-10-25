@@ -4,7 +4,7 @@ How Halo looks. Owner: slice C (Owen), who decides design for every screen. Chan
 
 ## Rules for every screen
 
-- Use only the semantic colour names below and the components in `components/ui/`. No raw Tailwind colours (`stone-*`, `red-*`, `green-*`, `amber-*`, `white`, `black`), no hex in components.
+- Use only the semantic colour names below and the components in `components/ui/`. No raw colours from Tailwind's default palette (`bg-stone-100`, `red-*`, `green-*`, `amber-*`, `white`, `black`), no hex in components.
 - Red, amber and green mean warning bands only, always with their icon and words (`BandBadge`). Two uses fill with the band itself (`bg-danger text-surface`, `bg-caution text-surface`): the loved one's warning banner, so a warning reads as urgent, and an "End call" button, because red hang-up is the phone convention.
 - The loved one's app: body text at least 20px (`text-xl`, the default), tap targets at least 48px. The caregiver's app is a standard iPhone app (see Two densities). Contrast at least WCAG AA everywhere. No percentages, never the word "safe".
 - Phone numbers only from `lib/guidance.ts`.
@@ -35,7 +35,7 @@ Built with the color-expert method: an OKLCH reference palette (stone, umber, to
 ## Type
 
 - Headings: Gabarito (`font-display`, set on `h1`–`h3`), a sturdy rounded sans; tracking -0.02em, line-height 1.15.
-- The Halo wordmark (`components/ui/Logo`) is the original: Bricolage Grotesque extra bold in lavender (`font-logo`, `text-logo`). It sits at the right of every top bar and on the first setup screen.
+- The Halo wordmark (`components/ui/Logo`): Bricolage Grotesque extra bold in lavender (`font-logo`, `text-logo`). It sits at the right of every top bar and on the first setup screen.
 - Body: Atkinson Hyperlegible Next, 20px, line-height 1.5. Numbers that line up (times, codes, timers): `tabular-nums`.
 - Emphasise with weight before size.
 
@@ -65,7 +65,7 @@ Built with the color-expert method: an OKLCH reference palette (stone, umber, to
 
 - The loved one's Alerts tab fits one call on screen without scrolling at Standard text, like the top card of a deck (`CallFace`). Top to bottom: the verdict banner, her buttons as tiles, then Sam's status line; everything else sits one tap away.
 - The verdict banner (`rounded-sheet`) holds the time, the band's icon and full title, and the scam type. On a warning it is the band itself, solid red or amber with white text, so it reads as urgent. A green call stays a calm tint with `BandBadge`, its caveat and the reassurance line.
-- The tiles are big squares two by two, each a large icon over a short label. Warning calls get four: all four are white `glass`; **Get Sam** and **What to do** on top carry their icon in a solid umber circle, so they lead without a big dark fill, and **Their words** and **Read aloud** below have a plain icon. Green calls get two, Their words and Read aloud. Below the tiles, Sam's status, a quiet "I've dealt with this", then **Next call** and **Other calls**.
+- The tiles are big 4:3 tiles, two by two, each a large icon over a short label. Warning calls get four: all four are white `glass`; **Get Sam** and **What to do** on top carry their icon in a solid umber circle, so they lead without a big dark fill, and **Their words** and **Read aloud** below have a plain icon. Green calls get two, Their words and Read aloud. Below the tiles, Sam's status, a quiet "I've dealt with this", then **Next call** and **Other calls**.
 - Each button opens its own screen at `/loved-one/calls/[id]/{sam,help,said,read}`, titled with the same words as its button, with a glass **Back** pill at the top (`TopBar back`). "Their words" leads on to the whole call (`/transcript`), with every number and link removed on the server.
 - Sam's status is solid umber with white text while Sam is on it, and white with a red edge when Sam hasn't replied (red text fails on umber). The caregiver's "I'm calling her now" floats above the tab bar (`ABOVE_TAB_BAR`).
 - Top bars (`TopBar`) are sticky `material`. Leave room at the end of each page so the last item scrolls clear of the tab bar.

@@ -101,7 +101,7 @@
   --font-display: var(--font-gabarito), var(--font-atkinson), system-ui, sans-serif;
   --font-logo: var(--font-bricolage), system-ui, sans-serif;
 
-  /* The original Halo wordmark keeps its first lavender: the one touch of colour that isn't a warning. */
+  /* The Halo wordmark's lavender: the one touch of colour that isn't a warning. */
   --color-logo: oklch(45% 0.148 295);
 
   --color-bg: var(--stone-50);
@@ -117,7 +117,6 @@
 
   /* Accent fills carry white text (on-accent). Accent-coloured text and icons use accent-ink. */
   --color-accent: var(--umber-300);
-  --color-accent-hover: oklch(from var(--umber-300) calc(l - 0.03) c h);
   --color-accent-strong: oklch(from var(--umber-300) calc(l - 0.06) c h);
   --color-accent-soft: var(--umber-50);
   --color-accent-ink: var(--umber-700);
@@ -303,11 +302,9 @@
   }
 }
 
-/* Umber for primary actions, with glass's edge and highlight. Plain solid umber when blur is missing or unwanted. */
+/* Solid umber for primary actions, with glass's edge and highlight; a plain edge when the user asks for more contrast. */
 @utility glass-accent {
   background-color: var(--glass-accent);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
     inset 0 0 0 1px var(--glass-accent-edge),
@@ -324,14 +321,7 @@
     background-color: var(--glass-accent-pressed);
   }
 
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    background-color: var(--umber-300);
-  }
-
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    background-color: var(--umber-300);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     box-shadow: inset 0 0 0 1px var(--umber-700);
 
     &:active:not(:disabled) {

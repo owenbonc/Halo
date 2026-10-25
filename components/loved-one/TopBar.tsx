@@ -6,8 +6,7 @@ import { Logo } from '@/components/ui/Logo';
 const BACK =
   'glass inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full px-5 font-semibold text-ink transition-transform duration-100 ease-out active:scale-[0.97]';
 
-// Both phones' top bar: the title with the Halo wordmark on the right, as translucent material the page scrolls under.
-// It owns the status-bar gap, so it cancels the page's own top padding.
+// Owns the status-bar gap, so it cancels the page's own top padding.
 export function TopBar({
   title,
   count,

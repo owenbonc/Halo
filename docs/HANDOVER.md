@@ -1,87 +1,103 @@
-# Handover: Owen is away on Saturday 24 Oct
+# Handover: overnight into Sunday 25 Oct
 
 The app is called **Halo**. The GitHub repo is `owenbonc/Halo`; the Vercel URL keeps its old name.
 
-Owen is at another hackathon all Saturday and replies to messages slowly, if at all. Until he's back:
+Owen is asleep and back at **09:00**. Until then:
 
-- **Keeper: A (ish24cho).** A merges to main and owns `lib/types.ts`, the shared routes and deploy settings, the same way Owen did (AGENTS.md).
-- **Slice C and design are open to the team.** Anyone may change the loved one's screens, the setup flow or `DESIGN.md`, including a redesign. Owen's hand-drawn wireframes were never shared, so there is no redesign brief: it's your call. Keep the semantic tokens and `components/ui/`, update `DESIGN.md` when you change a rule, and keep all seven demo-script steps working.
+- **Keeper: Kota (kota511).** Kota merges to main and owns `lib/types.ts`, the shared routes and deploy settings, the same way Owen does (AGENTS.md).
+- **The feature freeze has passed.** Only fixes to the demo path land on main, each through a PR with `scripts/verify.sh` READY and a click-through of the real thing.
+- **UK clocks go back at 02:00 tonight.** Every time below is UK time after the change.
+
+## Sunday
+
+| When | What |
+|---|---|
+| First thing | Kota tests the new call on production (next section) |
+| 08:00–09:30 | Three clean demo runs and the video. Owen joins at 09:00 |
+| by 10:00 | Submit. The hard deadline is 12:00 |
+| after 12:00 | Pitch |
+
+## First: test the new call on production (Kota)
+
+PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask a follow-up tailored to what the caller said, checked before it's spoken, and every line is in Gemini's voice. A real call worked end to end locally against live Gemini. It hasn't yet been tried from a real phone on production.
+
+1. On a phone, open https://hang-up-and-check.vercel.app/call, enter the access code and tap **Start call**.
+2. Read the fake police script from `demo/scripts.md`.
+3. The call passes when the opening plays, one follow-up question plays (tailored, or the prerecorded "Could you tell me a little more…"), the closing plays, and a card reaches `/loved-one`. Whether the card is red is the analysis (D's gate below), not this change.
+4. If the call stalls, sounds wrong or no card arrives, revert it: on PR #24 press **Revert**, then merge that PR once CI is green. Production redeploys in about a minute with the previous Kokoro lines.
+
+## The demo phones changed tonight
+
+- **New routes:** `/loved-one` (her phone) and `/caregiver` (Sam's). `/grandma` and `/caretaker` are gone (404). Update the bookmarks.
+- **Each phone forgets its role once.** On Sam's phone, tap "I look out for someone". On her phone, open `/loved-one` or run setup again.
+- Run `pnpm demo:reset` against Atlas before every run. It restores the seeded household: Grandma, with Sam as her person, Alex as backup, and automatic alerts for serious calls.
+- Update your clone: `git remote set-url origin https://github.com/owenbonc/Halo.git` (the old URL redirects).
+
+## Not yet proven on production
+
+- A clean courier call through Argon and Atlas Vector Search. The only call on production so far (Sat 21:42) came back "I couldn't make out enough of the call to check it." with no matched pattern.
+- That's D's gate (Josh, by 11:30): one courier call on production, and Atlas shows a non-empty `analysis.matchedPatternIds`. If it doesn't, README's Real list and the pitch's DeepMind paragraph must say so.
 
 ## The live app
 
 **https://hang-up-and-check.vercel.app**
 
-- Every push to `main` deploys production automatically, in about a minute. Other branches get preview links. Previews have no environment variables, so their data routes fail; that's expected.
-- `main` must always be demoable: `scripts/verify.sh` prints READY before every push to main, and you click through the real thing.
-- Run `git config core.hooksPath .githooks` once in your checkout. The hook scans for keys and env files before every push, so a pasted secret never reaches GitHub. CI scans too, but only after it's pushed.
-- CI's `smoke` job checks the live site about a minute after each push to main. A red ❌ on `smoke` means production is broken even though the code passed: tell Owen, since only he can see the Vercel logs.
-- The Vercel project sits on Owen's personal Hobby account. Only Owen can open its dashboard, read its logs or change its environment variables. If something breaks in production and the cause isn't obvious, reproduce it locally first.
+- Every push to `main` deploys production automatically, in about a minute. Other branches get preview links. Previews have no environment variables, so their data routes and calls fail; that's expected.
+- Run `git config core.hooksPath .githooks` once in your checkout. The hook scans for keys and env files before every push.
+- CI's `smoke` job checks the live site about a minute after each push to main. A red ❌ on `smoke` means production is broken: tell Kota, and revert the last merge if the cause isn't obvious.
+- The Vercel project is on Owen's personal Hobby account. Only Owen can read its logs or change its environment variables, so until 09:00, reproduce problems locally.
 
 | Environment variable | Production |
 |---|---|
 | `MONGODB_URI` | Set (Atlas) |
 | `GEMINI_API_KEY` | Set (Secret) |
-| `CALL_DEMO_ACCESS_CODE` | Set (Secret) |
+| `CALL_DEMO_ACCESS_CODE` | Set (Secret); the caller has it |
 | `MONGODB_DB`, `ESCALATE_AFTER_MIN`, `DEMO_FALLBACK` | Not needed: the code defaults to `hangup`, 3 minutes and off |
-
-### Owen's checklist (Saturday morning, before he leaves)
-
-- [x] Add `GEMINI_API_KEY` and `CALL_DEMO_ACCESS_CODE` to Vercel production (as Secrets), then push or redeploy.
-- [ ] Send the access code privately to whoever plays the caller.
-- [ ] Invite the team to the Atlas project (Project → Access Manager → Invite).
-- [x] Invite D as a GitHub collaborator. **D: accept the invite email** (or go to github.com/owenbonc/Halo/invitations); until then you can't push.
-
-If a box is still empty when you read this, ask Owen in the group chat.
+| `HALO_MULTILINGUAL_PILOT`, `HALO_LOCAL_TRANSCRIPTION` | Unset: automatic-language calls and the local Whisper backup stay off |
 
 ## The database
 
-- MongoDB Atlas cluster `cluster0.lhbq6vr`, B's seeded cluster, with database `hangup`. Production switched to it on Sat 24 Oct; Owen's old `cluster0.revh6w` is no longer used.
-- Production's connection string lives only in Vercel. Make **your own** database user (Database & Network Access) and put your own connection string in your local `.env`. Never share one in the repo, an issue or a chat with an AI.
+- MongoDB Atlas cluster `cluster0.lhbq6vr`, database `hangup`. The team is invited to the Atlas project.
+- Production's connection string lives only in Vercel. Use **your own** database user in your local `.env`. Never share a connection string in the repo, an issue or a chat with an AI.
 - Network Access allows `0.0.0.0/0`, because Vercel's servers have no fixed IPs. Removing it takes production's data routes down.
-- The 30 patterns and both search indexes (`patterns_semantic`, `patterns_phrases`) are seeded and READY. Run `pnpm demo:reset` against this cluster before every demo run.
+- The 30 patterns and both search indexes (`patterns_semantic`, `patterns_phrases`) are seeded and READY.
 - Demo step 7 shows Atlas on screen, so whoever presents needs to be signed in to Atlas.
 
 ## What's on main
 
 - **Role picker** (`/`): "Set up a phone for someone" or "I look out for someone". Each phone remembers its role.
-- **Setup** (`/setup`): the caregiver fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told.
+- **Setup** (`/setup`): the caregiver fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told. Nothing is preselected.
 - **Loved one's app** (`/loved-one`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
-- **Caregiver's app** (`/caregiver`): Alerts, History and Profile, with a floating "I'm calling her now". It was built by C at Owen's request; D builds on it.
-- **The call** (`/call`): A's live Gemini screener with a tailored, checked follow-up and prerecorded lines in Gemini's Sulafat voice, including the `recordedFixture` contract.
-- **Not merged yet:** B's brain (`slice/b-brain`). `analyse` on main is still the stub.
+- **Caregiver's app** (`/caregiver`): Alerts, History and Profile, with a floating "I'm calling her now".
+- **The call** (`/call`): the live Gemini screener with a tailored, checked follow-up and prerecorded lines in Gemini's Sulafat voice, plus the recorded-message option.
+- **The analysis:** B's `analyse`: Gemini 4 Argon over the transcript and the matched Atlas patterns, with fixed word rules as the floor.
 
 ## Open work
 
-**Keeper (A)**
-- Review and merge B's brain once it's a PR; verify the combined app.
-- A's P1s from `docs/status/A-call.md`: access control on shared routes, submission recovery, session expiry.
-- Small keeper fix: add a dialable number to `GUIDANCE.call_159`.
-- Owen's decisions on Kota's review (PR #15): recorded messages are transcribed for real, and the preset police-call sample is served only under `DEMO_FALLBACK=1` (the call page says so); `CALL_RECORDED_TRANSCRIPTION_READY` is gone. Sam sees the summary when she was on automatic alerts at the time the alert went out, tap or automatic, so `AlertRecord` now stores `alertMode`. Run `pnpm demo:reset` after merging: older alerts lack the field.
+**Kota (keeper)**
+- Test #24 on production first (above).
+- Your branches `security/demo-hardening` (73 files) and `claude/trusting-wozniak-csdbgf` (transcription model) have no PR. After the freeze, open a PR only for what fixes the demo.
 
-**A**
-- Move `/call` onto `DESIGN.md` tokens: it still uses raw Tailwind colours.
+**Josh (B and D)**
+- README, pitch and video; D's gate by 11:30; `demo/screenshot.png` from a deployed run; the team names.
+- `demo/scripts.md`: the screener's second line may now be a tailored question. The caller reads their next line either way.
+- Your slice paths moved to `app/caregiver/**` and `components/caregiver/**`; update "Owns:" in `docs/status/D-caretaker.md`.
 
-**B**
-- Run the live Gemini eval once a working key is in place.
-
-**D**
-- README, pitch and video. Keep the stage dialogue in line with B's `demo-*` test cases.
+**A (ish24cho)**
+- Record PR #24 in `docs/status/A-call.md`: it changes your slice's call flow.
 
 **Anyone**
-- Update the Notion spec's "One app, two roles" bullet to match `SPEC.md`. Notion is the source of truth.
-- Test on real phones: the mic, the voice note, read-aloud, `/call` over HTTPS, and two phones for the alert.
+- Test on real phones: the mic, the voice note, read-aloud, `/call` over HTTPS, two phones for the alert, and the Alerts screen at Larger and Largest text.
 
 ## Settled decisions (don't reopen without Owen)
 
+- **The roles are Loved one and Caregiver.** The seeded loved one is called Grandma; setup asks for her real name.
 - **No allowlist of "official" numbers.** Her saved contacts already ring through on her phone. Trusting bank, police or council numbers would let through exactly the spoofed calls the app exists to catch.
-- **The consent choice is hers.** It's made after the hand-over screen in setup, and in Settings.
+- **The consent choice is hers.** It's made after the hand-over screen in setup, and in Settings, and setup doesn't preselect it.
 - **Sam never sees transcripts or quoted phrases.** Phone numbers shown anywhere come only from `lib/guidance.ts`.
 
 ## Known risks
 
+- PR #24 changed every English demo call after the freeze (see the test above).
 - Shared API routes have no access control. Use synthetic data only.
 - The database password was exposed during setup. Owen rotates it after submission.
-
-## Timeline (London)
-
-Checkpoints Sat 13:00, 18:00 and 22:30. Feature freeze Sat 23:00. Three clean demo runs and the video Sun 08:00–09:30. Submit Sun 10:00; the deadline is 12:00.

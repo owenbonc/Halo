@@ -11,6 +11,10 @@ import { AccessCodeError, CallError, callRequest } from './request';
 import { loadVoice, type VoiceClips } from './scripted-voice';
 import { submitCall } from './submit-call';
 
+// Recorded messages stay under the local Whisper backup's 60 s cap.
+const LIVE_LIMIT_S = 60;
+const RECORDED_LIMIT_S = 45;
+
 type Phase = 'idle' | 'connecting' | 'prompting' | 'listening' | 'sending' | 'done' | 'error';
 type Attempt = {
   cancelled: boolean;
@@ -117,13 +121,22 @@ export default function CallScreen({
     if (attempt.cancelled || attempt.ending) return;
     setPhase('listening');
     const began = Date.now();
+    const limit = attempt.call instanceof LiveCall ? LIVE_LIMIT_S : RECORDED_LIMIT_S;
     attempt.timer = setInterval(
-      () => setSeconds(Math.min(45, Math.floor((Date.now() - began) / 1000))),
+      () => setSeconds(Math.min(limit, Math.floor((Date.now() - began) / 1000))),
       250,
     );
     attempt.limit = setTimeout(() => {
-      void finish(attempt);
-    }, 45_000);
+      if (!(attempt.call instanceof LiveCall)) {
+        void finish(attempt);
+        return;
+      }
+      attempt.call.wrapUp();
+      // Backstop in case the closing never reports it finished playing (clips are at most 12 s).
+      attempt.limit = setTimeout(() => {
+        void finish(attempt);
+      }, 13_000);
+    }, limit * 1000);
   };
   const microphone = async (attempt: Attempt) => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -499,7 +512,8 @@ export default function CallScreen({
         </p>
       )}
       <p className="text-base text-ink-2">
-        Use a made-up caller and story. Calls last up to 45 seconds.{' '}
+        Use a made-up caller and story. Live calls last up to {LIVE_LIMIT_S} seconds, recorded
+        messages {RECORDED_LIMIT_S}.{' '}
         {localTranscription && mode === 'recorded'
           ? 'Recorded messages use the private transcription service described above.'
           : 'Audio is processed by Google.'}{' '}

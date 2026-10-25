@@ -557,3 +557,47 @@ it('preserves the first failure when late messages arrive', async () => {
   expect(ended).toHaveBeenCalledOnce();
   expect(sources).toHaveLength(1);
 });
+it('says the closing when time runs out while listening, then hangs up', async () => {
+  const call = await connect();
+  await nativeListening();
+  call.wrapUp();
+  expect(sources).toHaveLength(2);
+  expect(ended).not.toHaveBeenCalled();
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.closing.text}`);
+  call.dispose();
+});
+it('lets the current line finish before the time-up closing', async () => {
+  const call = await connect();
+  await exchange('Could you tell me more?');
+  expect(sources).toHaveLength(2);
+  call.wrapUp();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(sources).toHaveLength(3);
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  call.dispose();
+});
+it('drops a reply still being checked when time runs out', async () => {
+  let approve = () => {};
+  const check = vi.fn(() => new Promise<void>((resolve) => (approve = resolve)));
+  const call = await connect('english', check);
+  await exchange('Could you tell me more?');
+  call.wrapUp();
+  approve();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).not.toContain('Could you tell me more?');
+  call.dispose();
+});
+it('hangs up at once when time runs out before the caller spoke', async () => {
+  const call = await connect();
+  call.wrapUp();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(sources).toHaveLength(1);
+  call.dispose();
+});

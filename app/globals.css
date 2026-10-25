@@ -39,6 +39,7 @@
   --lavender-50: oklch(95% 0.024 295);
   --lavender-300: oklch(77% 0.092 295);
   --lavender-700: oklch(45% 0.148 295);
+  --on-accent: var(--sand-950);
 
   /* Band hues, spread for colour-blind separation (red 28, ochre 68, teal-green 165). */
   --tomato-50: oklch(94.5% 0.026 28);
@@ -116,7 +117,7 @@
   --color-accent-strong: oklch(from var(--lavender-300) calc(l - 0.06) c h);
   --color-accent-soft: var(--lavender-50);
   --color-accent-ink: var(--lavender-700);
-  --color-on-accent: var(--sand-950);
+  --color-on-accent: var(--on-accent);
 
   --color-danger: var(--tomato-700);
   --color-danger-soft: var(--tomato-50);
@@ -139,8 +140,119 @@
   --radius-chip: 12px;
   --radius-card: 18px;
   --radius-sheet: 24px;
+  --radius-control: 9999px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/*
+ * Theme trial (temporary): each candidate redefines the reference palette, radii and fonts behind the same
+ * semantic names, so every screen switches at once. Picked by components/ui/ThemeSwitcher; collapse to one after the pick.
+ */
+:root[data-theme="liberty"] {
+  --sand-0: oklch(99.5% 0.004 255);
+  --sand-50: oklch(95.2% 0.016 255);
+  --sand-100: oklch(92.2% 0.02 255);
+  --sand-200: oklch(87.5% 0.024 255);
+  --sand-500: oklch(60% 0.04 260);
+  --sand-600: oklch(49% 0.045 262);
+  --sand-700: oklch(42% 0.05 264);
+  --sand-950: oklch(22% 0.045 266);
+  --lavender-50: oklch(93.5% 0.03 262);
+  --lavender-300: oklch(36% 0.12 266);
+  --lavender-700: oklch(42% 0.14 265);
+  --on-accent: oklch(98.5% 0.008 255);
+  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
+  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
+  --glass-accent-pressed: var(--lavender-300);
+  --glass-accent-edge: rgb(255 255 255 / 0.18);
+  --radius-chip: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+  --font-bricolage: var(--font-young-serif);
+  --desk: oklch(23% 0.05 266);
+  --desk-glow: oklch(34% 0.08 266);
+}
+
+:root[data-theme="cornishware"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(97.4% 0.009 240);
+  --sand-100: oklch(94.3% 0.016 240);
+  --sand-200: oklch(89.8% 0.022 240);
+  --sand-500: oklch(61% 0.045 245);
+  --sand-600: oklch(50% 0.05 248);
+  --sand-700: oklch(43% 0.055 250);
+  --sand-950: oklch(23% 0.04 255);
+  --lavender-50: oklch(94.5% 0.035 240);
+  --lavender-300: oklch(80% 0.095 240);
+  --lavender-700: oklch(45% 0.13 250);
+  --glass-highlight: rgb(255 255 255 / 1);
+  --glass-accent: color-mix(in oklab, var(--lavender-300) 80%, transparent);
+  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 88%, transparent);
+  --radius-chip: 16px;
+  --radius-card: 26px;
+  --radius-sheet: 32px;
+  --font-bricolage: var(--font-gabarito);
+  --desk: oklch(27% 0.06 245);
+  --desk-glow: oklch(40% 0.09 240);
+}
+
+:root[data-theme="departures"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(94.6% 0.004 250);
+  --sand-100: oklch(91% 0.006 250);
+  --sand-200: oklch(85% 0.008 250);
+  --sand-500: oklch(55% 0.01 250);
+  --sand-600: oklch(45% 0.012 250);
+  --sand-700: oklch(38% 0.012 250);
+  --sand-950: oklch(16% 0.01 250);
+  --lavender-50: oklch(94% 0.04 210);
+  --lavender-300: oklch(84% 0.13 205);
+  --lavender-700: oklch(44% 0.1 215);
+  --elevation-float: 0 1px 2px rgb(0 0 0 / 0.12);
+  --glass: rgb(255 255 255 / 0.96);
+  --glass-hover: rgb(255 255 255 / 1);
+  --glass-pressed: oklch(91% 0.006 250);
+  --glass-edge: rgb(255 255 255 / 0);
+  --glass-highlight: rgb(255 255 255 / 0);
+  --glass-outline: 0 0 0 1px oklch(55% 0.01 250);
+  --glass-accent: var(--lavender-300);
+  --glass-accent-hover: oklch(from var(--lavender-300) calc(l - 0.03) c h);
+  --glass-accent-pressed: oklch(from var(--lavender-300) calc(l - 0.06) c h);
+  --glass-accent-edge: rgb(0 0 0 / 0);
+  --radius-chip: 4px;
+  --radius-card: 8px;
+  --radius-sheet: 12px;
+  --radius-control: 8px;
+  --font-bricolage: var(--font-barlow);
+  --desk: oklch(17% 0.01 250);
+  --desk-glow: oklch(25% 0.02 250);
+}
+
+:root[data-theme="ios"] {
+  --sand-0: oklch(100% 0 0);
+  --sand-50: oklch(96.2% 0.005 286);
+  --sand-100: oklch(93% 0.006 286);
+  --sand-200: oklch(88.5% 0.006 286);
+  --sand-500: oklch(62% 0.01 286);
+  --sand-600: oklch(50% 0.012 286);
+  --sand-700: oklch(42% 0.012 286);
+  --sand-950: oklch(18% 0 0);
+  --lavender-50: oklch(94% 0.03 258);
+  --lavender-300: oklch(54% 0.2 258);
+  --lavender-700: oklch(50% 0.2 258);
+  --on-accent: oklch(100% 0 0);
+  --glass-accent: color-mix(in oklab, var(--lavender-300) 94%, transparent);
+  --glass-accent-hover: color-mix(in oklab, var(--lavender-300) 97%, transparent);
+  --glass-accent-pressed: var(--lavender-300);
+  --glass-accent-edge: rgb(255 255 255 / 0.2);
+  --radius-chip: 10px;
+  --radius-card: 12px;
+  --radius-sheet: 16px;
+  --font-atkinson: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui;
+  --font-bricolage: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui;
+  --desk: oklch(22% 0.005 286);
+  --desk-glow: oklch(32% 0.01 286);
 }
 
 .tone-strong {

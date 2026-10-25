@@ -54,16 +54,19 @@ describe('buildDeck', () => {
     expect(allOpened.current?.id).toBe('strong-old');
   });
 
-  it('moves dealt-with calls and opened green calls to Past', () => {
+  it('takes dealt-with calls and opened green calls out of the deck', () => {
     const deck = buildDeck(calls, { ...fresh, done: ['strong-old'], opened: ['green'] });
     expect(ids(deck.pending)).toEqual(['strong-new', 'some']);
-    expect(ids(deck.past)).toEqual(['green', 'strong-old']);
+  });
+
+  it('puts a call back in the deck when she undoes "dealt with"', () => {
+    const deck = buildDeck(calls, { ...fresh, opened: ['strong-old'] });
+    expect(ids(deck.others)).toContain('strong-old');
   });
 
   it('keeps an opened green call in front until she moves on', () => {
     const deck = buildDeck(calls, { ...fresh, opened: ['green'], held: 'green' });
     expect(deck.current?.id).toBe('green');
-    expect(ids(deck.past)).toEqual([]);
   });
 });
 

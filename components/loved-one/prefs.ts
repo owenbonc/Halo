@@ -57,6 +57,10 @@ function idList(key: string) {
       const current = snapshot();
       if (!current.includes(id)) write(key, JSON.stringify([...current, id].slice(-200)));
     },
+    remove: (id: string) => {
+      const current = snapshot();
+      if (current.includes(id)) write(key, JSON.stringify(current.filter((each) => each !== id)));
+    },
   };
 }
 const noIds: string[] = [];
@@ -67,6 +71,7 @@ const opened = idList(OPENED_KEY);
 /** Ids of calls she tapped "I've dealt with this" on, on this phone. */
 export const useDone = done.use;
 export const markDone = done.add;
+export const markNotDone = done.remove;
 /** Ids of calls she has tapped any button on, on this phone. */
 export const useOpened = opened.use;
 export const markOpened = opened.add;

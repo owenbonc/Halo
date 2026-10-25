@@ -5,6 +5,7 @@ Owns: `app/page.tsx` (role picker), `app/loved-one/**`, `components/loved-one/**
 
 ## Done
 
+- **Stone look (Owen's call, 25 Oct, branch `ui/stone`):** Josh's tile card (`ui/themes`) ported onto main in warm neutral Stone with an umber brand instead of navy, replacing sand/lavender, Bricolage headings and the action ring described below. Headings are Gabarito. The loved one's Alerts card is a solid verdict banner over four big 4:3 tiles; Get Sam and What to do carry their icon in a solid umber circle. The original lavender Halo wordmark sits at the right of every top bar and on the first setup screen. Still fits one call above the tab bar at Standard text.
 - **Shared look, ready for D.** The design rules come from Owen's bulk project (not its layout), with a lavender brand accent. The palette was built with the color-expert method.
   - **Tokens:** the reference palette in `app/globals.css` is OKLCH (sand, lavender, tomato, ochre, fern). Use only these semantic names:
     - Surfaces: `bg`, `surface`, `surface-hover`, `surface-2`.

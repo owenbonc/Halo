@@ -599,3 +599,52 @@ it('automatic voice still stops when a reply has no caller speech behind it', as
   await vi.advanceTimersByTimeAsync(2000);
   await result;
 });
+it('says the closing when time runs out while listening, then hangs up', async () => {
+  const call = await connect();
+  await nativeListening();
+  call.wrapUp();
+  expect(sources).toHaveLength(2);
+  expect(ended).not.toHaveBeenCalled();
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.closing.text}`);
+  call.dispose();
+});
+it('lets the current line finish before the time-up closing', async () => {
+  const call = await connect();
+  await exchange('Could you tell me more?');
+  expect(sources).toHaveLength(2);
+  call.wrapUp();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(sources).toHaveLength(3);
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  call.dispose();
+});
+it('drops a reply still being checked when time runs out', async () => {
+  let approve = () => {};
+  const check = vi.fn(() => new Promise<void>((resolve) => (approve = resolve)));
+  const call = await connect('english', check);
+  await exchange('Could you tell me more?');
+  call.wrapUp();
+  approve();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).not.toContain('Could you tell me more?');
+  call.dispose();
+});
+it('still closes when time runs out before any caller words arrived, then rejects silence', async () => {
+  const call = await connect();
+  call.wrapUp();
+  expect(ended).not.toHaveBeenCalled();
+  sources[0]?.onended?.();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  const result = expect(call.finish()).rejects.toThrow('No caller speech');
+  await vi.advanceTimersByTimeAsync(2000);
+  await result;
+});

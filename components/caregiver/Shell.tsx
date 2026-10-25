@@ -1,16 +1,16 @@
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useContext, useEffect, useRef } from 'react';
-import { Bell, Clock, User } from '@/components/ui/icons';
+import { Bell, Clock, Gear } from '@/components/ui/icons';
 import { TabBar } from '@/components/ui/TabBar';
 import type { SamAlert } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
 import { ring } from './alert-signal';
 import { arrivals } from './arrivals';
 
-type Alerts = { data: SamAlert[] | null; error: string | null };
+type Alerts = { data: SamAlert[] | null; error: string | null; refresh: () => void };
 
-const AlertsContext = createContext<Alerts>({ data: null, error: null });
+const AlertsContext = createContext<Alerts>({ data: null, error: null, refresh: () => {} });
 
 // One poll for the whole caregiver app, so the tab badge and the screens always agree.
 export const useAlerts = () => useContext(AlertsContext);
@@ -34,25 +34,15 @@ export function CaregiverShell({ children }: { children: ReactNode }) {
   return (
     <AlertsContext value={alerts}>
       {/* The bottom padding lets the last item scroll clear of the floating tab bar. */}
-      <div className="pb-20 text-[1.0625rem]">{children}</div>
+      <div className="pb-24 text-[1.0625rem]">{children}</div>
       <TabBar
-        size="md"
         tabs={[
           { href: '/caregiver', label: 'Alerts', Icon: Bell, badge: waiting },
           { href: '/caregiver/history', label: 'History', Icon: Clock },
-          { href: '/caregiver/profile', label: 'Profile', Icon: User },
+          { href: '/caregiver/settings', label: 'Settings', Icon: Gear },
         ]}
       />
     </AlertsContext>
-  );
-}
-
-// An iOS large title on sticky material, so content scrolls under it instead of under the status bar.
-export function LargeTitle({ children }: { children: ReactNode }) {
-  return (
-    <header className="material sticky top-0 z-10 -mx-4 -mt-[max(2rem,var(--safe-top))] mb-4 px-4 pt-[max(1rem,var(--safe-top))] pb-2">
-      <h1 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">{children}</h1>
-    </header>
   );
 }
 

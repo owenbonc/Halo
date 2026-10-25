@@ -49,7 +49,7 @@ export default function SettingsPage() {
   const contact = settings.contact.name;
 
   return (
-    <section className="space-y-10">
+    <section className="space-y-6">
       <TopBar title="Settings" />
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p
@@ -57,7 +57,7 @@ export default function SettingsPage() {
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 ${ABOVE_TAB_BAR.lg} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger-soft text-danger' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 ${ABOVE_TAB_BAR} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger-soft text-danger' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}
@@ -106,10 +106,10 @@ export default function SettingsPage() {
       </fieldset>
 
       <Link
-        href="/?switch"
+        href="/setup"
         className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink-2"
       >
-        Switch role
+        Set up this phone again
       </Link>
       {/* Room to scroll clear of the tab bar. */}
       <div aria-hidden="true" className="h-24" />

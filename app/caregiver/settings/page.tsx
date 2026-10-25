@@ -1,26 +1,27 @@
 'use client';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { LargeTitle } from '@/components/caregiver/Shell';
+import { AlertSound } from '@/components/caregiver/AlertSound';
+import { TopBar } from '@/components/loved-one/TopBar';
 import { Card } from '@/components/ui/band';
 import { Check, Cross } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
 import type { Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
 
-const MODE: Record<Settings['alertMode'], string> = {
-  auto_strong: 'Automatically when it’s serious',
-  ask_first: 'Only when she asks',
+const MODE: Record<Settings['alertMode'], (name: string) => string> = {
+  auto_strong: () => 'Automatically when it’s serious',
+  ask_first: (name) => `Only when ${name} asks`,
 };
 
-export default function ProfilePage() {
-  // The loved one controls consent, so this page only reads; the poll picks up her changes.
+export default function SettingsPage() {
+  // The loved one controls consent, so only the alert sound is Sam's to set; the poll picks up her changes.
   const settings = usePoll<Settings>('/api/settings', 10_000);
   const s = settings.data;
 
   return (
     <section className="space-y-6">
-      <LargeTitle>Profile</LargeTitle>
+      <TopBar title="Settings" />
       {!s ? (
         settings.error ? (
           <p role="alert" className="text-[0.9375rem] font-semibold text-danger">
@@ -28,7 +29,7 @@ export default function ProfilePage() {
           </p>
         ) : (
           <p role="status" className="text-[0.9375rem] text-ink-2">
-            Loading your profile…
+            Loading your settings…
           </p>
         )
       ) : (
@@ -46,15 +47,20 @@ export default function ProfilePage() {
             )}
           </Card>
 
+          <Card className="space-y-1">
+            <h2 className="text-[1.0625rem] font-bold">Alert sound</h2>
+            <AlertSound />
+          </Card>
+
           <Card className="space-y-3">
             <div>
               <p className="text-[0.8125rem] text-ink-2">How {s.elderName} tells you</p>
-              <p className="font-semibold">{MODE[s.alertMode]}</p>
+              <p className="font-semibold">{MODE[s.alertMode](s.elderName)}</p>
             </div>
             {s.paused && (
               <p className="rounded-chip border border-line-strong bg-surface-2 px-3 py-2 text-[0.9375rem] font-semibold">
-                {s.elderName} has paused messages to you. You won’t be told about any call until she
-                turns them back on.
+                {s.elderName} has paused messages to you. You won’t be told about any call until
+                {s.elderName} turns them back on.
               </p>
             )}
           </Card>
@@ -79,17 +85,15 @@ export default function ProfilePage() {
                 'Calls that showed no warning signs',
               ]}
             />
-            <p className="text-[0.8125rem] text-ink-2">
-              {s.elderName} chooses these in her settings.
-            </p>
+            <p className="text-[0.8125rem] text-ink-2">{s.elderName} chooses these in Settings.</p>
           </Card>
         </>
       )}
       <Link
-        href="/?switch"
+        href="/setup"
         className="glass inline-flex min-h-11 items-center rounded-full px-4 text-[0.9375rem] font-semibold text-ink-2 transition-transform duration-100 ease-out active:scale-[0.97]"
       >
-        Switch role
+        Set up this phone again
       </Link>
     </section>
   );

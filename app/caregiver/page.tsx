@@ -108,7 +108,7 @@ export default function AlertsPage() {
             {open.summary && <p>{open.summary}</p>}
             {open.status === 'escalated' && (
               <p className="rounded-chip border border-inset-line bg-inset px-3 py-2 text-[0.9375rem] font-semibold">
-                {open.elderName} has been told you haven’t replied yet.
+                You haven’t contacted {open.elderName} yet.
               </p>
             )}
           </Card>

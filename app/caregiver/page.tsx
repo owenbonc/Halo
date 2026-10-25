@@ -96,7 +96,7 @@ export default function AlertsPage() {
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
             <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
-              {open.elderName} got a call that looks like a scam. Please call her.
+              {open.elderName} got a call that looks like a scam. Please call them.
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               <Pill tone={open.band} size="sm">
@@ -120,7 +120,7 @@ export default function AlertsPage() {
               You told {called.elderName} you’re calling.
             </h2>
             <p className="text-[0.9375rem] text-ink-2">
-              Her phone now says you’re calling her. Alert from {when(called.createdAt)}.
+              Their phone now says you’re calling. Alert from {when(called.createdAt)}.
             </p>
           </Card>
         ) : (
@@ -128,7 +128,7 @@ export default function AlertsPage() {
             <Card className="space-y-1">
               <h2 className="text-[1.0625rem] font-bold">No alerts right now</h2>
               <p className="text-[0.9375rem] text-ink-2">
-                If a call to her looks like a scam, you’ll see it here straight away.
+                If a call looks like a scam, you’ll see it here straight away.
               </p>
             </Card>
           )
@@ -148,7 +148,7 @@ export default function AlertsPage() {
               <AlertRow key={a.id} alert={a} />
             ))}
           </ul>
-          <p className="mt-2 px-1 text-[0.9375rem] text-ink-2">One call to her covers these too.</p>
+          <p className="mt-2 px-1 text-[0.9375rem] text-ink-2">One call covers these too.</p>
         </section>
       )}
 
@@ -176,7 +176,7 @@ export default function AlertsPage() {
             }
           >
             <Phone className="size-5" />
-            {sending ? 'Sending…' : 'I’m calling her now'}
+            {sending ? 'Sending…' : `I’m calling ${open.elderName} now`}
           </Button>
         </div>
       )}

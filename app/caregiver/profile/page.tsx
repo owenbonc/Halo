@@ -10,7 +10,7 @@ import { usePoll } from '@/lib/use-poll';
 
 const MODE: Record<Settings['alertMode'], string> = {
   auto_strong: 'Automatically when it’s serious',
-  ask_first: 'Only when she asks',
+  ask_first: 'Only when they ask',
 };
 
 export default function ProfilePage() {
@@ -53,8 +53,8 @@ export default function ProfilePage() {
             </div>
             {s.paused && (
               <p className="rounded-chip border border-line-strong bg-surface-2 px-3 py-2 text-[0.9375rem] font-semibold">
-                {s.elderName} has paused messages to you. You won’t be told about any call until she
-                turns them back on.
+                {s.elderName} has paused messages to you. You won’t be told about any call until
+                they turn them back on.
               </p>
             )}
           </Card>
@@ -80,7 +80,7 @@ export default function ProfilePage() {
               ]}
             />
             <p className="text-[0.8125rem] text-ink-2">
-              {s.elderName} chooses these in her settings.
+              {s.elderName} chooses these in their settings.
             </p>
           </Card>
         </>

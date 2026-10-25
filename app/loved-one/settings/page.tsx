@@ -106,10 +106,10 @@ export default function SettingsPage() {
       </fieldset>
 
       <Link
-        href="/?switch"
+        href="/setup"
         className="glass inline-flex min-h-12 items-center rounded-full px-5 font-semibold text-ink-2"
       >
-        Switch role
+        Set up this phone again
       </Link>
       {/* Room to scroll clear of the tab bar. */}
       <div aria-hidden="true" className="h-24" />

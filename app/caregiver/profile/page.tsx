@@ -84,10 +84,10 @@ export default function ProfilePage() {
         </>
       )}
       <Link
-        href="/?switch"
+        href="/setup"
         className="glass inline-flex min-h-11 items-center rounded-full px-4 text-[0.9375rem] font-semibold text-ink-2 transition-transform duration-100 ease-out active:scale-[0.97]"
       >
-        Switch role
+        Set up this phone again
       </Link>
     </section>
   );

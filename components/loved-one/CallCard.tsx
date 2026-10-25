@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { BAND_TONE, BandBadge, Card } from '@/components/ui/band';
 import { Check, ListChecks, Phone, Quote, Speaker } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
-import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
+import { FAMILY_LABEL } from '@/lib/labels';
 import type { Band, CallView } from '@/lib/types';
 import { useLovedOne } from './LovedOneData';
 import { markDone, markNotDone } from './prefs';
@@ -83,13 +83,12 @@ function ActionRing({
           </Link>
         ))}
       </div>
-      {/* The full verdict sits under the ring as the card's heading, so screen readers skip this copy. */}
+      {/* Only the band's icon: the verdict in words is the card's heading just below, said once. */}
       <div
         aria-hidden="true"
-        className={`absolute inset-[29%] flex flex-col items-center justify-center gap-[0.5cqw] rounded-full border-2 text-center font-bold leading-tight shadow-[0_0_0_1.5cqw_var(--color-bg)] ${card} ${text}`}
+        className={`absolute inset-[29%] flex items-center justify-center rounded-full border-2 shadow-[0_0_0_1.5cqw_var(--color-bg)] ${card} ${text}`}
       >
-        <Icon className="size-[10cqw]" />
-        <span className="px-[3cqw] text-[4.2cqw]">{BAND_LABEL[band].circle}</span>
+        <Icon className="size-[16cqw]" />
       </div>
     </nav>
   );
@@ -191,27 +190,30 @@ export function CallRow({
     <li>
       <Link
         href={`/loved-one/calls/${call.id}`}
-        className="glass flex flex-col gap-3 rounded-card px-4 py-4 transition-[transform,background-color] duration-100 ease-out active:scale-[0.98]"
+        className="flex flex-col gap-1.5 px-4 py-4 transition-colors duration-100 ease-out active:bg-surface-hover"
       >
         <BandBadge band={analysis.band} className="text-xl" />
-        <span className="flex flex-wrap gap-2">
-          {isNew && <Pill tone="accent">New</Pill>}
-          {analysis.band !== 'none' && (
-            <Pill tone={analysis.band}>{FAMILY_LABEL[analysis.family]}</Pill>
-          )}
-          <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
-          {call.source === 'voice_note' && <Pill>Your voice note</Pill>}
-          {dealt !== undefined &&
-            analysis.band !== 'none' &&
-            (dealt ? (
+        {analysis.band !== 'none' && (
+          <span className="font-semibold">{FAMILY_LABEL[analysis.family]}</span>
+        )}
+        <span className="text-ink-2 tabular-nums">
+          {when(call.createdAt)}
+          {call.source === 'voice_note' && ' · Your voice note'}
+        </span>
+        {(isNew || (dealt !== undefined && analysis.band !== 'none')) && (
+          <span className="mt-1 flex">
+            {isNew ? (
+              <Pill tone="accent">New</Pill>
+            ) : dealt ? (
               <Pill tone="accent">
                 <Check />
                 Dealt with
               </Pill>
             ) : (
               <Pill>Not dealt with yet</Pill>
-            ))}
-        </span>
+            )}
+          </span>
+        )}
       </Link>
     </li>
   );

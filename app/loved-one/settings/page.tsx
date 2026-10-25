@@ -49,7 +49,7 @@ export default function SettingsPage() {
   const contact = settings.contact.name;
 
   return (
-    <section className="space-y-10">
+    <section className="space-y-6">
       <TopBar title="Settings" />
       {/* Pinned to the bottom so the confirmation shows next to whichever control was tapped. */}
       <p

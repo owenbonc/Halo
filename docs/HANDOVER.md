@@ -68,7 +68,7 @@ PR #24 merged at 01:26, after the freeze, on Owen's call. English calls now ask 
 - **Role picker** (`/`): "Set up a phone for someone" or "I look out for someone". Each phone remembers its role.
 - **Setup** (`/setup`): the caregiver fills it in on her phone (her name, their own name, an optional backup and her text size). Then they hand the phone over and she chooses how her person is told. Nothing is preselected.
 - **Loved one's app** (`/loved-one`): Alerts (one call at a time like a deck, with a ring of big Get Sam, What to do, Their words and Read aloud buttons around the verdict), Past calls and Settings tabs, the voice note, and "I've dealt with this".
-- **Caregiver's app** (`/caregiver`): Alerts, History and Profile, with a floating "I'm calling her now".
+- **Caregiver's app** (`/caregiver`): Alerts, History and Settings, with a floating "I'm calling her now".
 - **The call** (`/call`): the live Gemini screener with a tailored, checked follow-up and prerecorded lines in Gemini's Sulafat voice, plus the recorded-message option.
 - **The analysis:** B's `analyse`: Gemini 4 Argon over the transcript and the matched Atlas patterns, with fixed word rules as the floor.
 

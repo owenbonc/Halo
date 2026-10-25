@@ -31,7 +31,7 @@ export default function SetupPage() {
   const textSize = useAppliedTextSize();
   // null: still asking whose phone this is.
   const [path, setPath] = useState<'hers' | 'mine' | null>(null);
-  // A phone that already has a role came here from its Settings or Profile, so it has somewhere to go back to.
+  // A phone that already has a role came here from its Settings, so it has somewhere to go back to.
   const [home, setHome] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [elderName, setElderName] = useState('');

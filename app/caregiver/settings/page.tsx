@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { LargeTitle } from '@/components/caregiver/Shell';
+import { AlertSound } from '@/components/caregiver/AlertSound';
+import { TopBar } from '@/components/loved-one/TopBar';
 import { Card } from '@/components/ui/band';
 import { Check, Cross } from '@/components/ui/icons';
 import { Pill } from '@/components/ui/Pill';
@@ -13,14 +14,14 @@ const MODE: Record<Settings['alertMode'], (name: string) => string> = {
   ask_first: (name) => `Only when ${name} asks`,
 };
 
-export default function ProfilePage() {
-  // The loved one controls consent, so this page only reads; the poll picks up her changes.
+export default function SettingsPage() {
+  // The loved one controls consent, so only the alert sound is Sam's to set; the poll picks up her changes.
   const settings = usePoll<Settings>('/api/settings', 10_000);
   const s = settings.data;
 
   return (
     <section className="space-y-6">
-      <LargeTitle>Profile</LargeTitle>
+      <TopBar title="Settings" />
       {!s ? (
         settings.error ? (
           <p role="alert" className="text-[0.9375rem] font-semibold text-danger">
@@ -28,7 +29,7 @@ export default function ProfilePage() {
           </p>
         ) : (
           <p role="status" className="text-[0.9375rem] text-ink-2">
-            Loading your profile…
+            Loading your settings…
           </p>
         )
       ) : (
@@ -44,6 +45,11 @@ export default function ProfilePage() {
             ) : (
               <Pill size="sm">Phone not checked yet</Pill>
             )}
+          </Card>
+
+          <Card className="space-y-1">
+            <h2 className="text-[1.0625rem] font-bold">Alert sound</h2>
+            <AlertSound />
           </Card>
 
           <Card className="space-y-3">

@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 export function usePoll<T>(url: string, ms = 2000) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Bumped by refresh(), which restarts the poll with an immediate fetch.
+  const [round, setRound] = useState(0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: round only exists to re-run this effect.
   useEffect(() => {
     let live = true;
     const tick = async () => {
@@ -26,6 +29,6 @@ export function usePoll<T>(url: string, ms = 2000) {
       live = false;
       clearInterval(timer);
     };
-  }, [url, ms]);
-  return { data, error };
+  }, [url, ms, round]);
+  return { data, error, refresh: () => setRound((r) => r + 1) };
 }

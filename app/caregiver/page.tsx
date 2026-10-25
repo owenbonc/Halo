@@ -1,37 +1,25 @@
 'use client';
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 import { AlertRow } from '@/components/caregiver/AlertRow';
-import { onSoundChange, soundOn, unlockSound } from '@/components/caregiver/alert-signal';
+import { AlertSound } from '@/components/caregiver/AlertSound';
 import { BandLine } from '@/components/caregiver/BandLine';
-import { LargeTitle, PollStatus, useAlerts } from '@/components/caregiver/Shell';
+import { PollStatus, useAlerts } from '@/components/caregiver/Shell';
 import { when } from '@/components/loved-one/CallCard';
+import { TopBar } from '@/components/loved-one/TopBar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
-import { Check, Phone, Speaker } from '@/components/ui/icons';
+import { Check, Phone } from '@/components/ui/icons';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import { FAMILY_LABEL } from '@/lib/labels';
 
 const HOUR = 60 * 60_000;
 const ENTER = 'transition-transform duration-200 ease-out motion-reduce:transition-none';
 
-// The context's own changes, plus coming back to the tab, when Safari may have suspended it.
-function subscribeSound(notify: () => void) {
-  const off = onSoundChange(notify);
-  document.addEventListener('visibilitychange', notify);
-  return () => {
-    off();
-    document.removeEventListener('visibilitychange', notify);
-  };
-}
-
 export default function AlertsPage() {
   const alerts = useAlerts();
   // Acknowledged here: shown as done straight away, before the next poll confirms it.
   const [done, setDone] = useState<ReadonlySet<string>>(new Set());
   const [ack, setAck] = useState<{ id: string; failed: boolean } | null>(null);
-  // Follows the shared audio context, which Safari can suspend, so the button returns when sound stops.
-  const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
-  const soundStatus = useRef<HTMLDivElement>(null);
 
   // Newest first: the top one is the card, the rest are listed under it.
   const waiting = alerts.data?.filter((a) => a.status !== 'acknowledged' && !done.has(a.id)) ?? [];
@@ -58,35 +46,16 @@ export default function AlertsPage() {
     );
     const ok = sent.filter((each) => each !== null);
     setDone((prev) => new Set([...prev, ...ok]));
+    // The tab badge counts from the poll, so fetch now rather than leave it stale until the next tick.
+    alerts.refresh();
     setAck(ok.length === ids.length ? null : { id, failed: true });
   };
 
   return (
-    <section className={open ? 'pb-14' : undefined}>
-      <LargeTitle>Alerts</LargeTitle>
+    <section className={`space-y-4 ${open ? 'pb-20' : ''}`}>
+      <TopBar title="Alerts" />
       <PollStatus alerts={alerts} loading="Checking for alerts…" />
-      {/* One live region for both states, focused on tap, since the tapped button unmounts. */}
-      <div ref={soundStatus} role="status" tabIndex={-1} className="mb-4 outline-none">
-        {sound ? (
-          <p className="flex items-center gap-2 text-[0.9375rem] text-ink-2">
-            <Speaker className="size-5" />
-            Alert sound is on while this app is open.
-          </p>
-        ) : (
-          // Quiet on purpose: the alert is the one thing on this screen that should shout.
-          <button
-            type="button"
-            className="-ml-1 inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-[0.9375rem] font-semibold text-accent-ink active:scale-[0.97]"
-            onClick={() => {
-              soundStatus.current?.focus();
-              unlockSound();
-            }}
-          >
-            <Speaker className="size-5" />
-            Turn on alert sound
-          </button>
-        )}
-      </div>
+      <AlertSound />
       <div aria-live="polite">
         {open ? (
           <Card
@@ -136,7 +105,7 @@ export default function AlertsPage() {
       </div>
 
       {open && earlier.length > 0 && (
-        <section aria-labelledby="earlier-alerts" className="mt-6">
+        <section aria-labelledby="earlier-alerts" className="pt-2">
           <h2
             id="earlier-alerts"
             className="mb-2 px-1 font-sans text-[0.8125rem] font-semibold tracking-normal text-ink-2"
@@ -155,7 +124,7 @@ export default function AlertsPage() {
       {open && (
         // Floats above the tab bar so the one action that matters stays in thumb reach.
         <div
-          className={`fixed inset-x-0 z-20 mx-auto max-w-md space-y-2 px-4 ${ABOVE_TAB_BAR.md} ${ENTER} starting:translate-y-4`}
+          className={`fixed inset-x-0 z-20 mx-auto max-w-md space-y-2 px-4 ${ABOVE_TAB_BAR} ${ENTER} starting:translate-y-4`}
         >
           {ack?.id === open.id && ack.failed && (
             <p

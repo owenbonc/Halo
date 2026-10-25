@@ -57,7 +57,7 @@ export default function SettingsPage() {
         className={
           save === 'idle'
             ? 'sr-only'
-            : `fixed inset-x-4 ${ABOVE_TAB_BAR.lg} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger-soft text-danger' : 'bg-ink text-bg'}`
+            : `fixed inset-x-4 ${ABOVE_TAB_BAR} z-40 mx-auto max-w-md rounded-full px-6 py-4 text-center font-semibold shadow-float ${save === 'failed' ? 'bg-danger-soft text-danger' : 'bg-ink text-bg'}`
         }
       >
         {save === 'saving' && 'Saving…'}

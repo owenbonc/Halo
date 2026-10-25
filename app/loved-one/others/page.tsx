@@ -26,7 +26,7 @@ export default function OtherCallsPage() {
           <p>Every call is kept in Past calls.</p>
         </Card>
       )}
-      <ul className="space-y-3">
+      <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
         {others.map((call) => (
           <CallRow key={call.id} call={call} isNew={!opened.includes(call.id)} />
         ))}

@@ -42,7 +42,8 @@ export default function PastCallsPage() {
       {!calls && !error && <p role="status">Opening your calls…</p>}
 
       {past.length > 0 && (
-        <fieldset className="flex min-w-0 flex-wrap gap-2">
+        // One row that scrolls sideways, so the filters never push the calls down the screen.
+        <fieldset className="-mx-4 flex min-w-0 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           <legend className="sr-only">Show</legend>
           {FILTERS.map((f) => (
             <button
@@ -50,7 +51,7 @@ export default function PastCallsPage() {
               type="button"
               aria-pressed={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`min-h-12 rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'glass-accent text-on-accent' : 'glass text-ink-2'}`}
+              className={`min-h-12 shrink-0 whitespace-nowrap rounded-full px-4 font-semibold transition-[transform,background-color] duration-100 ease-out active:scale-[0.97] ${filter === f.id ? 'glass-accent text-on-accent' : 'glass text-ink-2'}`}
             >
               {f.label}
             </button>
@@ -71,7 +72,8 @@ export default function PastCallsPage() {
         </Card>
       )}
 
-      <ul className="space-y-3">
+      {/* One grouped list, like the caregiver's History: a card with a hairline between calls. */}
+      <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
         {shown.map((call) => (
           <CallRow key={call.id} call={call} isNew={false} dealt={done.includes(call.id)} />
         ))}

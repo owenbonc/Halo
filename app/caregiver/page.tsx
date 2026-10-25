@@ -8,7 +8,6 @@ import { when } from '@/components/loved-one/CallCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/band';
 import { Check, Phone, Speaker } from '@/components/ui/icons';
-import { Pill } from '@/components/ui/Pill';
 import { ABOVE_TAB_BAR } from '@/components/ui/TabBar';
 import { FAMILY_LABEL } from '@/lib/labels';
 
@@ -74,9 +73,10 @@ export default function AlertsPage() {
             Alert sound is on while this app is open.
           </p>
         ) : (
-          <Button
-            size="md"
-            variant="secondary"
+          // Quiet on purpose: the alert is the one thing on this screen that should shout.
+          <button
+            type="button"
+            className="-ml-1 inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-[0.9375rem] font-semibold text-accent-ink active:scale-[0.97]"
             onClick={() => {
               soundStatus.current?.focus();
               unlockSound();
@@ -84,7 +84,7 @@ export default function AlertsPage() {
           >
             <Speaker className="size-5" />
             Turn on alert sound
-          </Button>
+          </button>
         )}
       </div>
       <div aria-live="polite">
@@ -92,24 +92,23 @@ export default function AlertsPage() {
           <Card
             key={open.id}
             tone={open.band}
-            className={`space-y-4 py-8 ${ENTER} starting:translate-y-3`}
+            className={`space-y-3 ${ENTER} starting:translate-y-3`}
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
-            <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
+            <h2 className="text-[1.625rem] leading-tight font-bold tracking-[-0.02em]">
               {open.elderName} got a call that looks like a scam. Please call {open.elderName}.
             </h2>
-            <div className="flex flex-wrap items-center gap-2">
-              <Pill tone={open.band} size="sm">
-                {FAMILY_LABEL[open.family]}
-              </Pill>
-              <Pill size="sm" className="tabular-nums">
-                {when(open.createdAt)}
-              </Pill>
-            </div>
+            <p className="text-[0.9375rem]">
+              <span className="font-semibold">{FAMILY_LABEL[open.family]}</span>
+              <span className="text-ink-2 tabular-nums">
+                {' · '}
+                <span className="whitespace-nowrap">{when(open.createdAt)}</span>
+              </span>
+            </p>
             {open.summary && <p>{open.summary}</p>}
             {open.status === 'escalated' && (
               <p className="rounded-chip border border-inset-line bg-inset px-3 py-2 text-[0.9375rem] font-semibold">
-                {open.elderName} has been told you haven’t replied yet.
+                You haven’t contacted {open.elderName} yet.
               </p>
             )}
           </Card>

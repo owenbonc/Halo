@@ -1,12 +1,9 @@
 import type { Band, ScamFamily } from './types';
 
-export const BAND_LABEL: Record<Band, { title: string; circle: string }> = {
-  strong: { title: 'Strong warning signs', circle: 'Strong warning' },
-  some: { title: 'Some warning signs', circle: 'Some warning' },
-  none: {
-    title: 'No common warning signs found. This is not a guarantee.',
-    circle: 'Nothing found',
-  },
+export const BAND_LABEL: Record<Band, { title: string }> = {
+  strong: { title: 'Strong warning signs' },
+  some: { title: 'Some warning signs' },
+  none: { title: 'No common warning signs found. This is not a guarantee.' },
 };
 
 export const FAMILY_LABEL: Record<ScamFamily, string> = {

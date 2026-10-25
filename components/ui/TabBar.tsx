@@ -12,33 +12,16 @@ export type Tab = {
   match?: string[];
 };
 
-const SIZE = {
-  // Grows with the loved one's text size up to 20px, then stops, so three labels always fit on one line.
-  lg: {
-    tab: 'min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold',
-    icon: 'size-[min(1.75rem,30px)]',
-    badge: 'min-w-6 text-sm',
-  },
-  md: {
-    tab: 'min-h-12 gap-0 text-[0.6875rem] font-semibold',
-    icon: 'size-6',
-    badge: 'min-w-5 text-xs',
-  },
-};
-
-// Floating layers that sit above the tab bar use these bottom offsets (bar height plus its gap).
-export const ABOVE_TAB_BAR = {
-  lg: 'bottom-[calc(max(0.75rem,var(--safe-bottom))+5.5rem)]',
-  md: 'bottom-[calc(max(0.75rem,var(--safe-bottom))+4.5rem)]',
-};
+// Floating layers that sit above the tab bar use this bottom offset (bar height plus its gap).
+export const ABOVE_TAB_BAR = 'bottom-[calc(max(0.75rem,var(--safe-bottom))+6.25rem)]';
 
 /*
  * A floating clear-glass capsule of tabs (after bulk's floating controls), in thumb reach above the home
  * indicator. The selected tab sits on lavender glass. Every tab keeps its word, never icon-only.
+ * Both phones share one size; labels grow with the loved one's text size up to 20px so three fit.
  */
-export function TabBar({ tabs, size = 'lg' }: { tabs: Tab[]; size?: keyof typeof SIZE }) {
+export function TabBar({ tabs }: { tabs: Tab[] }) {
   const pathname = usePathname();
-  const s = SIZE[size];
   return (
     <nav
       aria-label="Sections"
@@ -52,14 +35,12 @@ export function TabBar({ tabs, size = 'lg' }: { tabs: Tab[]; size?: keyof typeof
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] ${s.tab} ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
+                className={`flex flex-col items-center justify-center rounded-full px-1 leading-tight transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] min-h-16 gap-0.5 whitespace-nowrap text-[min(1.125rem,20px)] font-bold ${active ? 'glass-accent text-on-accent' : 'text-ink-2'}`}
               >
                 <span className="relative">
-                  <Icon className={s.icon} />
+                  <Icon className="size-[min(1.75rem,30px)]" />
                   {badge ? (
-                    <span
-                      className={`absolute -top-1.5 -right-3 flex items-center justify-center rounded-full bg-danger px-1.5 leading-5 font-bold text-surface tabular-nums ${s.badge}`}
-                    >
+                    <span className="absolute -top-1.5 -right-3 flex min-w-6 items-center justify-center rounded-full bg-danger px-1.5 text-sm leading-5 font-bold text-surface tabular-nums">
                       {badge}
                       <span className="sr-only"> new</span>
                     </span>

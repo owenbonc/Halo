@@ -1,6 +1,7 @@
 'use client';
 import { AlertRow } from '@/components/caregiver/AlertRow';
-import { LargeTitle, PollStatus, useAlerts } from '@/components/caregiver/Shell';
+import { PollStatus, useAlerts } from '@/components/caregiver/Shell';
+import { TopBar } from '@/components/loved-one/TopBar';
 import { Card } from '@/components/ui/band';
 
 export default function HistoryPage() {
@@ -8,8 +9,8 @@ export default function HistoryPage() {
   const all = alerts.data ?? [];
 
   return (
-    <section>
-      <LargeTitle>History</LargeTitle>
+    <section className="space-y-4">
+      <TopBar title="History" count={all.length} />
       <PollStatus alerts={alerts} loading="Loading your alerts…" />
       {alerts.data &&
         (all.length === 0 ? (
@@ -20,20 +21,12 @@ export default function HistoryPage() {
             </p>
           </Card>
         ) : (
-          <section aria-labelledby="all-alerts">
-            <h2
-              id="all-alerts"
-              className="mb-2 px-1 font-sans text-[0.8125rem] font-semibold tracking-normal text-ink-2"
-            >
-              Alerts · <span className="tabular-nums">{all.length}</span>
-            </h2>
-            {/* One grouped list, like an iOS inset list: the Card look with a hairline between rows. */}
-            <ul className="divide-y divide-line rounded-card border border-line bg-surface">
-              {all.map((a) => (
-                <AlertRow key={a.id} alert={a} />
-              ))}
-            </ul>
-          </section>
+          // One grouped list, like an iOS inset list: the Card look with a hairline between rows.
+          <ul className="divide-y divide-line rounded-card border border-line bg-surface">
+            {all.map((a) => (
+              <AlertRow key={a.id} alert={a} />
+            ))}
+          </ul>
         ))}
     </section>
   );

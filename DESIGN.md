@@ -28,8 +28,8 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 
 ## Two densities
 
-- **Loved one** (`/loved-one/**`): big. 20px body, `Button` size `lg` (56px), `TabBar` size `lg`. She picks Standard, Large, Larger or Largest text at setup or in Settings; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caregiver's 17px) on her phone, so everything in rem grows together. Tab labels stop growing at 20px so three always fit.
-- **Caregiver** (`/caregiver/**`): a normal iPhone app. 34px large title, 17px body, 15px secondary, 13px meta, `Button` size `md` (48px), `TabBar` size `md`. Clean like bulk: white cards with hairlines, section headers with a count ("History · 4").
+- **Loved one** (`/loved-one/**`): big. 20px body, `Button` size `lg` (56px). She picks Standard, Large, Larger or Largest text at setup or in Settings; it scales the root font size (93.75% / 100% / 112.5% / 125%, so Standard's body is 18.75px, just above the caregiver's 17px) on her phone, so everything in rem grows together. - **Caregiver** (`/caregiver/**`): a normal iPhone app. 17px body, 15px secondary, 13px meta, `Button` size `md` (48px). Clean like bulk: white cards with hairlines.
+- **Shared by both:** the same `TabBar` and the same `TopBar` title (a count goes after the title: "Past calls · 5", "History · 4"), so the two phones look like one app. Tab labels grow with her text size and stop at 20px so three always fit.
 - Sizes are always rem, never px, so the loved one's text size reaches everything.
 
 ## Type
@@ -58,7 +58,7 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 - Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
 - Loved one: **Alerts** (`/loved-one`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/loved-one/past`, every call, each warning call marked dealt with or not, with filters), **Settings** (`/loved-one/settings`, her name, her person, consent, text size, set up this phone again; mostly used by the caregiver).
 - The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" takes a call out of the deck, and "Put it back in Alerts" returns it; a green call leaves the deck as soon as she opens it. Past calls lists every call either way.
-- Caregiver: **Alerts**, **History**, **Profile** (read-only: the loved one controls consent).
+- Caregiver: **Alerts**, **History**, **Settings** (`/caregiver/settings`: the alert sound, which is the caregiver's to set, then what the loved one chose, read-only because she controls consent, and set up this phone again).
 
 ## One card, big buttons
 

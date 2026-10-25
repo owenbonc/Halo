@@ -55,8 +55,8 @@ Built with the color-expert method: an OKLCH reference palette (sand, lavender, 
 ## Tabs
 
 - Both apps use the floating glass `TabBar` (components/ui) above the home indicator: icon plus word on every tab, the selected tab on lavender glass, a red count badge for what needs attention.
-- Loved one: **Alerts** (`/loved-one`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/loved-one/past`, the calls she has dealt with, with filters), **Settings** (`/loved-one/settings`, her name, her person, consent, text size, switch role; mostly used by the caregiver).
-- The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" moves a call to Past calls, and a green call moves there as soon as she opens it.
+- Loved one: **Alerts** (`/loved-one`, a deck of calls she hasn't opened, one card at a time), **Past calls** (`/loved-one/past`, every call, each warning call marked dealt with or not, with filters), **Settings** (`/loved-one/settings`, her name, her person, consent, text size, switch role; mostly used by the caregiver).
+- The Alerts badge counts calls she hasn't opened. Opening means tapping any button on a card. The deck runs strongest band first, newest first within a band; once every call has been opened it refills with those not dealt with. "I've dealt with this" takes a call out of the deck, and "Put it back in Alerts" returns it; a green call leaves the deck as soon as she opens it. Past calls lists every call either way.
 - Caregiver: **Alerts**, **History**, **Profile** (read-only: the loved one controls consent).
 
 ## One card, big buttons

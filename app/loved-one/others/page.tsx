@@ -23,7 +23,7 @@ export default function OtherCallsPage() {
       {calls && others.length === 0 && (
         <Card className="space-y-2">
           <h2 className="text-2xl font-bold">No worrying calls waiting</h2>
-          <p>Calls you've dealt with are in Past calls.</p>
+          <p>Every call is kept in Past calls.</p>
         </Card>
       )}
       <ul className="space-y-3">

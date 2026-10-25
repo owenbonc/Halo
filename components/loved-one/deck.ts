@@ -25,8 +25,6 @@ export type Deck = {
   unopened: number;
   /** Every warning call not dealt with: the "Other calls" list. */
   others: CallView[];
-  /** Calls dealt with, and green calls she has opened, newest first. */
-  past: CallView[];
 };
 
 /*
@@ -49,7 +47,6 @@ export function buildDeck(calls: CallView[], { done, opened, passed, held }: Dec
     current,
     unopened: pending.filter((c) => !opened.includes(c.id)).length,
     others: pending.filter((c) => c.analysis.band !== 'none'),
-    past: calls.filter(gone),
   };
 }
 

@@ -8,7 +8,7 @@ import { Pill } from '@/components/ui/Pill';
 import { BAND_LABEL, FAMILY_LABEL } from '@/lib/labels';
 import type { Band, CallView } from '@/lib/types';
 import { useLovedOne } from './LovedOneData';
-import { markDone } from './prefs';
+import { markDone, markNotDone } from './prefs';
 import { SAM_LINE, SAM_STYLE, samState } from './sam';
 
 export function when(iso: string) {
@@ -155,10 +155,15 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
       </div>
 
       {done.includes(call.id) ? (
-        <Pill tone="accent">
-          <Check />
-          You've dealt with this
-        </Pill>
+        <div className="flex flex-wrap items-center gap-3">
+          <Pill tone="accent">
+            <Check />
+            You've dealt with this
+          </Pill>
+          <Button variant="secondary" size="md" onClick={() => markNotDone(call.id)}>
+            Put it back in Alerts
+          </Button>
+        </div>
       ) : (
         <Button variant="secondary" size="md" onClick={() => markDone(call.id)}>
           <Check />
@@ -171,7 +176,16 @@ export function CallFace({ call, footer }: { call: CallView; footer?: ReactNode 
 }
 
 // One row of a call list: band, scam type and when. Opens that call's full card.
-export function CallRow({ call, isNew }: { call: CallView; isNew: boolean }) {
+export function CallRow({
+  call,
+  isNew,
+  dealt,
+}: {
+  call: CallView;
+  isNew: boolean;
+  /** Past calls only: whether she has dealt with this warning call. */
+  dealt?: boolean;
+}) {
   const { analysis } = call;
   return (
     <li>
@@ -187,6 +201,16 @@ export function CallRow({ call, isNew }: { call: CallView; isNew: boolean }) {
           )}
           <Pill className="tabular-nums">{when(call.createdAt)}</Pill>
           {call.source === 'voice_note' && <Pill>Your voice note</Pill>}
+          {dealt !== undefined &&
+            analysis.band !== 'none' &&
+            (dealt ? (
+              <Pill tone="accent">
+                <Check />
+                Dealt with
+              </Pill>
+            ) : (
+              <Pill>Not dealt with yet</Pill>
+            ))}
         </span>
       </Link>
     </li>

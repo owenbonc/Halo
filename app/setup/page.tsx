@@ -22,8 +22,8 @@ import { Check, Cross } from '@/components/ui/icons';
 import { savedRole, saveRole } from '@/lib/role';
 import type { Settings } from '@/lib/types';
 
-// First, whose phone this is. Her phone then runs the steps below: the caregiver fills in the first five, the last is hers alone.
-const STEPS = ['about', 'her', 'you', 'backup', 'size', 'handover', 'consent'] as const;
+// First, whose phone this is. Her phone then runs the steps below: the caregiver does the first five, the last two are hers.
+const STEPS = ['about', 'her', 'you', 'backup', 'handover', 'size', 'consent'] as const;
 type Step = (typeof STEPS)[number];
 
 export default function SetupPage() {
@@ -155,7 +155,8 @@ export default function SetupPage() {
         </Card>
         <p>
           They choose whether you're told automatically or only when they ask. Next, set up their
-          phone with them: open Halo on it and choose "Someone I look after".
+          phone with them: open Halo on it and choose "Someone I look after". You add your name
+          there, so it matches on both phones.
         </p>
         <Button
           onClick={() => {
@@ -238,7 +239,8 @@ export default function SetupPage() {
       );
     case 'size':
       return (
-        <Frame {...shared} title={`Which text size suits ${her}?`}>
+        <Frame {...shared} title={`Hello ${her}`}>
+          <p>First, pick the text size that's easiest for you to read.</p>
           <fieldset className="min-w-0 space-y-3">
             <legend className="sr-only">Text size</legend>
             {(Object.keys(TEXT_SIZES) as TextSize[]).map((size) => (
@@ -260,14 +262,15 @@ export default function SetupPage() {
       return (
         <Frame {...shared} title={`Now hand the phone to ${her}`}>
           <p>
-            The last choice is {her}'s to make: when {you} hears about a worrying call.
+            The last two choices are {her}'s to make: the text size, and when {you} hears about a
+            worrying call.
           </p>
           <Button onClick={next}>I'm {her}. Carry on</Button>
         </Frame>
       );
     case 'consent':
       return (
-        <Frame {...shared} title={`Hello ${her}`}>
+        <Frame {...shared} title="One last choice">
           <p>
             We answer numbers you don't know and tell you what we found. You decide what {you}{' '}
             hears.

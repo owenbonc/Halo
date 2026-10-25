@@ -11,7 +11,7 @@ afterEach(() => vi.unstubAllGlobals());
 it('loads bounded bundled clips that match the exact screening script', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(clips)));
   const loaded = await loadVoice(new AbortController().signal);
-  for (const id of ['opening', 'followup', 'closing'] as const) {
+  for (const id of Object.keys(SCREENER_LINES) as (keyof typeof SCREENER_LINES)[]) {
     expect(loaded[id].text).toBe(SCREENER_LINES[id]);
     const samples = decodePcm(loaded[id].pcm);
     expect(samples.length).toBeGreaterThan(24_000);

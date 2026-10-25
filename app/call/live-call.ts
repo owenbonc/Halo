@@ -5,6 +5,11 @@ import { LiveMessage, pcm16, Transcript } from './protocol';
 import { CallError } from './request';
 import type { VoiceClips } from './scripted-voice';
 
+// How long an English caller can stay quiet after a line before Halo asks if they're still there, then says goodbye.
+const SILENCE_MS = 7_000;
+// shortcut: a fixed loudness gate on the echo-cancelled mic; a noisy room never counts as quiet, so the call falls back to the time limit.
+const SPEECH_RMS = 0.01;
+
 export class LiveCall {
   readonly transcript = new Transcript();
   private socket?: WebSocket;
@@ -29,6 +34,9 @@ export class LiveCall {
   private drainTimer?: ReturnType<typeof setTimeout>;
   private lateOutput = false;
   private wrapping = false;
+  private silenceTimer?: ReturnType<typeof setTimeout>;
+  private heardAt = 0;
+  private nudged = false;
   usage: { totalTokenCount?: number; promptTokenCount?: number; responseTokenCount?: number } = {};
 
   constructor(
@@ -86,6 +94,7 @@ export class LiveCall {
             const content = message.serverContent;
             if (content) {
               this.transcript.add('Caller', content.inputTranscription?.text);
+              if (content.inputTranscription?.text?.trim()) this.heard();
               if (!this.finishing && !this.terminated && !this.wrapping) {
                 const hasOutput =
                   !!content.outputTranscription || !!content.modelTurn?.parts.length;
@@ -149,6 +158,9 @@ export class LiveCall {
         this.end(this.interrupted());
         return;
       }
+      let energy = 0;
+      for (const sample of data.samples) energy += sample * sample;
+      if (Math.sqrt(energy / data.samples.length) > SPEECH_RMS) this.heard();
       this.send({
         realtimeInput: {
           audio: {
@@ -173,6 +185,28 @@ export class LiveCall {
     this.listening = enabled;
     this.generation += 1;
     this.capture?.port.postMessage({ enabled, generation: this.generation });
+    clearTimeout(this.silenceTimer);
+    if (enabled && this.voice === 'english') {
+      this.heardAt = Date.now();
+      this.silenceTimer = setTimeout(() => this.checkSilence(), SILENCE_MS);
+    }
+  }
+  private heard() {
+    this.heardAt = Date.now();
+    this.nudged = false;
+  }
+  // Quiet since the last line: ask once if they're still there; quiet again, say goodbye and hang up.
+  private checkSilence() {
+    if (!this.listening || this.closed || this.finishing || this.terminated || this.wrapping)
+      return;
+    const quiet = Date.now() - this.heardAt;
+    if (quiet < SILENCE_MS) {
+      this.silenceTimer = setTimeout(() => this.checkSilence(), SILENCE_MS - quiet);
+      return;
+    }
+    const line = this.nudged ? this.clips.noAnswer : this.clips.stillThere;
+    this.playClip(line.pcm, line.text, this.nudged);
+    this.nudged = true;
   }
   private async playNativeReply() {
     if (this.checkingNative || this.closed || this.finishing || this.terminated || this.wrapping)

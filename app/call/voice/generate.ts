@@ -1,5 +1,5 @@
 // Regenerates clips.json in the live call's Gemini voice; see README.md.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { TRANSCRIBE_MODEL } from '@/lib/gemini';
 import { SCREENER_LINES } from '@/lib/screener-prompt';
@@ -28,8 +28,13 @@ function pcmFrom(data: string, mimeType: string) {
   throw new Error(`No audio data in ${mimeType}`);
 }
 
-const clips: Record<string, { text: string; pcmHex: string }> = {};
+const file = new URL('./clips.json', import.meta.url);
+const clips: Record<string, { text: string; pcmHex: string }> = JSON.parse(
+  readFileSync(file, 'utf8'),
+);
 for (const [id, text] of Object.entries(SCREENER_LINES)) {
+  // Synthesis varies between runs, so a clip already made for this exact line is kept; delete it to remake it.
+  if (clips[id]?.text === text) continue;
   const speech = await ai.models.generateContent({
     model: TTS_MODEL,
     // The model reads any style words aloud and refuses a system instruction, so it gets the line alone.
@@ -81,4 +86,4 @@ for (const [id, text] of Object.entries(SCREENER_LINES)) {
     writeFileSync(`${preview}/${id}.wav`, Buffer.concat([header, out]));
   }
 }
-writeFileSync(new URL('./clips.json', import.meta.url), `${JSON.stringify(clips, null, 2)}\n`);
+writeFileSync(file, `${JSON.stringify(clips, null, 2)}\n`);

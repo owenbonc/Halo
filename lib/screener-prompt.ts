@@ -2,10 +2,15 @@ export const SCREENER_OPENING =
   "Hello, you've reached a call assistant. Who's calling, and what's it about?";
 export const SCREENER_CLOSING = "Thank you, I'll pass that on.";
 export const SCREENER_FOLLOWUP = "Could you tell me a little more about why you're calling?";
+// Played when the caller goes quiet in an English call: a nudge, then a goodbye.
+export const SCREENER_STILL_THERE = 'Are you still there?';
+export const SCREENER_NO_ANSWER = "I can't hear you, so I'll end the call now. Goodbye.";
 export const SCREENER_LINES = {
   opening: SCREENER_OPENING,
   followup: SCREENER_FOLLOWUP,
   closing: SCREENER_CLOSING,
+  stillThere: SCREENER_STILL_THERE,
+  noAnswer: SCREENER_NO_ANSWER,
 };
 
 export const MULTILINGUAL_INSTRUCTIONS = `Screen a simulated call. The app plays the English opening asking who is calling and why; do not generate an opening.

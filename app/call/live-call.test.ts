@@ -8,6 +8,8 @@ const clips = {
   opening: { text: SCREENER_LINES.opening, pcm: 'AAABAA==' },
   followup: { text: SCREENER_LINES.followup, pcm: 'AAABAA==' },
   closing: { text: SCREENER_LINES.closing, pcm: 'AAABAA==' },
+  stillThere: { text: SCREENER_LINES.stillThere, pcm: 'AAABAA==' },
+  noAnswer: { text: SCREENER_LINES.noAnswer, pcm: 'AAABAA==' },
 };
 const sources: { onended?: () => void; stop: ReturnType<typeof vi.fn> }[] = [];
 let capturePort: { postMessage: ReturnType<typeof vi.fn>; onmessage?: (event: unknown) => void };
@@ -666,4 +668,44 @@ it('automatic voice says the closing when time runs out during a check, without 
   const result = call.finish();
   await vi.advanceTimersByTimeAsync(2000);
   await expect(result).resolves.toContain(`Assistant: ${clips.closing.text}`);
+});
+it('asks a silent caller if they are still there, then says goodbye and hangs up', async () => {
+  const call = await connect();
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150 + 6_999);
+  expect(sources).toHaveLength(1);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150 + 7_000);
+  expect(sources).toHaveLength(3);
+  expect(ended).not.toHaveBeenCalled();
+  sources[2]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.stillThere.text}`);
+  expect(call.transcript.text()).toContain(`Assistant: ${clips.noAnswer.text}`);
+  const result = expect(call.finish()).rejects.toThrow('No caller speech');
+  await vi.advanceTimersByTimeAsync(2000);
+  await result;
+});
+it('never asks a caller who is still talking', async () => {
+  const call = await connect();
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(150);
+  const generation = capturePort.postMessage.mock.calls.at(-1)?.[0].generation;
+  for (let second = 0; second < 12; second += 1) {
+    capturePort.onmessage?.({ data: { generation, samples: new Float32Array(2048).fill(0.2) } });
+    await vi.advanceTimersByTimeAsync(1_000);
+  }
+  expect(sources).toHaveLength(1);
+  await vi.advanceTimersByTimeAsync(7_000);
+  expect(sources).toHaveLength(2);
+  call.dispose();
+});
+it('automatic voice never plays the English silence lines', async () => {
+  const call = await connect('automatic');
+  sources[0]?.onended?.();
+  await vi.advanceTimersByTimeAsync(30_000);
+  expect(sources).toHaveLength(1);
+  call.dispose();
 });

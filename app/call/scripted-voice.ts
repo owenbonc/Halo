@@ -5,7 +5,7 @@ import { CallError, callRequest } from './request';
 
 const clip = (text: string) =>
   z.object({ text: z.literal(text), pcm: z.string().min(4).max(1_000_000) });
-const Clips = z.object({
+export const Clips = z.object({
   opening: clip(SCREENER_LINES.opening),
   followup: clip(SCREENER_LINES.followup),
   closing: clip(SCREENER_LINES.closing),

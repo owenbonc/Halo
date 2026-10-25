@@ -16,7 +16,8 @@
     "test": "vitest run",
     "db:local": "tsx scripts/db-local.ts",
     "demo:reset": "tsx --env-file-if-exists=.env scripts/demo-reset.ts",
-    "seed:patterns": "tsx --env-file-if-exists=.env scripts/seed-patterns.ts"
+    "seed:patterns": "tsx --env-file-if-exists=.env scripts/seed-patterns.ts",
+    "phone": "tsx --env-file-if-exists=.env app/call/phone/bridge.ts"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
@@ -32,10 +33,12 @@
     "@types/node": "^24",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
     "mongodb-memory-server": "^11.3.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "ws": "8.22.0"
   }
 }

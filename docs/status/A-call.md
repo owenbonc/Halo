@@ -5,6 +5,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Kota is 
 
 ## Done
 
+- Phone line (branch `call/phone-line`, not for main before the demo): `pnpm phone` answers a Twilio number from this laptop through a cloudflared tunnel and screens the call with the same Halo routes as `/call` (call session, reply check, analysis, card and alert), Gemini Live and the Sulafat lines. The terminal prints each pipeline stage for the audience, with numbers removed from caller and model words; caller ID is never read. On the phone line, English closes as soon as Gemini starts its second reply, saving about 3 seconds. Exercised four times against a local production build with real Gemini and a simulated Twilio streaming synthetic `say` speech as 8 kHz µ-law, the last one through a real public tunnel over wss. Each call ended with a strong courier card and an automatic alert, with tailored follow-ups both approved and refused by the check; a forged webhook got 403. Gemini transcribed the bridge's phone-quality audio word for word, rating it 5/5 for clarity. Not yet exercised: a real Twilio number and a call from a real phone. Setup: `app/call/phone/README.md`.
+
 - Fixed two ways an English live call could end with nothing sent (branch `call/turn-fixes`): a silent noise turn before the caller spoke, and the caller's transcription arriving after Gemini's reply. Silent noise turns are now ignored and listening resumes; a spoken reply plays even if the caller's words land late, and finish() still refuses a call with no caller speech. Automatic-language mode keeps the strict check. Both failures were reproduced in tests first; 100 call tests pass.
 
 - Synced main `22ff60f` on 25 Oct by fast-forward, including merged multilingual PR #22, role/route rename PR #23 and tailored English call PR #24. English now uses a checked generated follow-up with a prerecorded fallback; opening, fallback and closing use Gemini Sulafat clips instead of Kokoro. Automatic-language mode remains gated and off in production. Regenerated stale Next route types after the rename; full `IS_WEBPACK_TEST=1 scripts/verify.sh` prints READY. Local preview restarted on port 3103 without a Gemini key. This verifies code/build, not a live call; HANDOVER reports a local live call passed elsewhere, with production phone acceptance pending.
@@ -94,6 +96,8 @@ Owns: `app/call/**`, `app/api/live-token/**`, `lib/screener-prompt.ts`. Kota is 
 - The saved event API key was previously pasted into chat; rotation remains recommended before a public deployment. No credential value appears in tracked files.
 
 ## Contract change requests
+
+- Keeper: the phone line adds `ws` and `@types/ws` as devDependencies and a `phone` script to `package.json`; no app route, type or production setting changes. Spec owner: a real phone line goes beyond the spec's simulated call. Decide whether the pitch shows it, and update the spec if it stays.
 
 - No new shared type requested for the multilingual pilot. Spec owner: user has explicitly expanded the English-only scope to automatic supported-language screening; update the canonical spec before release. B: validate non-English analysis/retrieval, translated destinations and fallback behavior before claiming multilingual scam detection. The English-only Whisper backup is unchanged.
 

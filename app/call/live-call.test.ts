@@ -606,3 +606,22 @@ it('still closes when time runs out before any caller words arrived, then reject
   await vi.advanceTimersByTimeAsync(2000);
   await result;
 });
+it('automatic voice says the closing when time runs out during a check, without failing the call', async () => {
+  const check = vi.fn(
+    (_turn: NativeTurn, signal: AbortSignal) =>
+      new Promise<void>((_, reject) => {
+        signal.addEventListener('abort', () => reject(new Error('aborted')));
+      }),
+  );
+  const call = await connect('automatic', check);
+  await exchange('Can you explain?');
+  call.wrapUp();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(ended).not.toHaveBeenCalled();
+  expect(sources).toHaveLength(2);
+  sources[1]?.onended?.();
+  expect(ended).toHaveBeenCalledOnce();
+  const result = call.finish();
+  await vi.advanceTimersByTimeAsync(2000);
+  await expect(result).resolves.toContain(`Assistant: ${clips.closing.text}`);
+});

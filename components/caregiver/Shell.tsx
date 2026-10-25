@@ -36,6 +36,7 @@ export function CaregiverShell({ children }: { children: ReactNode }) {
       {/* The bottom padding lets the last item scroll clear of the floating tab bar. */}
       <div className="pb-24 text-[1.0625rem]">{children}</div>
       <TabBar
+        standard
         tabs={[
           { href: '/caregiver', label: 'Alerts', Icon: Bell, badge: waiting },
           { href: '/caregiver/history', label: 'History', Icon: Clock },

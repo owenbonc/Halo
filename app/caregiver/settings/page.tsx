@@ -59,7 +59,7 @@ export default function SettingsPage() {
             </div>
             {s.paused && (
               <p className="rounded-chip border border-line-strong bg-surface-2 px-3 py-2 text-[0.9375rem] font-semibold">
-                {s.elderName} has paused messages to you. You won’t be told about any call until
+                {s.elderName} has paused messages to you. You won’t be told about any call until{' '}
                 {s.elderName} turns them back on.
               </p>
             )}

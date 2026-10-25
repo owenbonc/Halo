@@ -186,7 +186,8 @@ export class LiveCall {
       if (this.closed || this.finishing || this.terminated || this.wrapping) return;
       this.playClip(line.pcm, line.text, line.closing);
     } catch (error) {
-      if (!this.closed && !this.finishing && !this.terminated)
+      // A check aborted by wrapUp() isn't a failure: the closing line is already on its way.
+      if (!this.closed && !this.finishing && !this.terminated && !this.wrapping)
         this.end(
           error instanceof CallError
             ? error

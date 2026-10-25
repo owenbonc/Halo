@@ -132,10 +132,10 @@ export default function CallScreen({
         return;
       }
       attempt.call.wrapUp();
-      // Backstop in case the closing never reports it finished playing (clips are at most 12 s).
+      // Backstop in case the closing never reports it finished: a line already playing, then the closing, each at most 12 s.
       attempt.limit = setTimeout(() => {
         void finish(attempt);
-      }, 13_000);
+      }, 25_000);
     }, limit * 1000);
   };
   const microphone = async (attempt: Attempt) => {
@@ -433,7 +433,8 @@ export default function CallScreen({
       )}
       {phase === 'listening' && (
         <p role="timer" className="text-4xl tabular-nums" aria-label={`${seconds} seconds elapsed`}>
-          00:{String(seconds).padStart(2, '0')}
+          {String(Math.floor(seconds / 60)).padStart(2, '0')}:
+          {String(seconds % 60).padStart(2, '0')}
         </p>
       )}
       {phase === 'listening' && actualMode === 'live' && (

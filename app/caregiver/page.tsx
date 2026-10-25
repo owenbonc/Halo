@@ -48,7 +48,9 @@ export default function AlertsPage() {
     setDone((prev) => new Set([...prev, ...ok]));
     // The tab badge counts from the poll, so fetch now rather than leave it stale until the next tick.
     alerts.refresh();
-    setAck(ok.length === ids.length ? null : { id, failed: true });
+    // Pin the failure to an alert still waiting, so the retry message shows on the card that's left.
+    const failed = ids.find((each) => !ok.includes(each));
+    setAck(failed ? { id: failed, failed: true } : null);
   };
 
   return (

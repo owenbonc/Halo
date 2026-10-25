@@ -29,7 +29,7 @@ export function scrub(text: string, mark = ' '): string {
 
 export const REMOVED = '[number removed]';
 
-/** The transcript Mum may read: line by line, so "Caller:" and "Assistant:" turns stay apart. */
+/** The transcript the loved one may read: line by line, so "Caller:" and "Assistant:" turns stay apart. */
 export function scrubTranscript(transcript: string): string {
   return transcript
     .split('\n')

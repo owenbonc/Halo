@@ -47,7 +47,7 @@ const pattern = (id: string, family: Pattern['family']): Pattern => ({
 });
 
 const COURIER = [
-  "Assistant: Hello, you've reached Grandma's call assistant. Who's calling?",
+  "Assistant: Hello, you've reached a call assistant. Who's calling?",
   'Caller: This is Detective Harris from the police. She needs to withdraw her savings today.',
   "Caller: A courier will collect it this afternoon. She mustn't tell her family.",
 ].join('\n');

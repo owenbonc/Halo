@@ -1,13 +1,13 @@
 'use client';
 
-export type Role = 'grandma' | 'caretaker';
+export type Role = 'loved-one' | 'caregiver';
 const KEY = 'hang-up-and-check.role';
 
 // localStorage can throw in private browsing; the picker still works without it.
 export function savedRole(): Role | null {
   try {
     const value = localStorage.getItem(KEY);
-    return value === 'grandma' || value === 'caretaker' ? value : null;
+    return value === 'loved-one' || value === 'caregiver' ? value : null;
   } catch {
     return null;
   }

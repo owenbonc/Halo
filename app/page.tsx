@@ -4,14 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { savedRole, saveRole } from '@/lib/role';
 
-// Her phone gets its role at the end of setup, so only the caretaker's choice is saved here.
+// Her phone gets its role at the end of setup, so only the caregiver's choice is saved here.
 const CHOICES = [
   { href: '/setup', label: 'Set up a phone for someone', hint: 'Do this on their phone, together' },
   {
-    href: '/caretaker',
+    href: '/caregiver',
     label: 'I look out for someone',
     hint: 'Get told when a call worries them',
-    role: 'caretaker' as const,
+    role: 'caregiver' as const,
   },
 ];
 

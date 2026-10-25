@@ -6,7 +6,7 @@ const TONE = {
   neutral: 'border-inset-line bg-inset text-ink-2',
   accent: 'border-accent-ink/30 bg-accent-soft text-accent-ink',
 };
-// md: Grandma's size. sm: iPhone density, for the caretaker.
+// md: the loved one's size. sm: iPhone density, for the caregiver.
 const SIZE = {
   md: 'min-h-10 items-center gap-2 rounded-[1.25rem] border px-4 py-1',
   sm: 'min-h-7 items-center gap-1.5 rounded-[0.875rem] border px-2.5 py-0.5 text-[0.8125rem]',

@@ -20,9 +20,9 @@ describe('uploadSizeError', () => {
 describe('allowVoiceNote', () => {
   it('allows five notes a minute per client, then refuses until the minute passes', () => {
     const start = 1_000_000;
-    for (let i = 0; i < 5; i++) expect(allowVoiceNote('grandma', start + i)).toBe(true);
-    expect(allowVoiceNote('grandma', start + 10)).toBe(false);
+    for (let i = 0; i < 5; i++) expect(allowVoiceNote('loved-one', start + i)).toBe(true);
+    expect(allowVoiceNote('loved-one', start + 10)).toBe(false);
     expect(allowVoiceNote('someone-else', start + 10)).toBe(true);
-    expect(allowVoiceNote('grandma', start + 60_001)).toBe(true);
+    expect(allowVoiceNote('loved-one', start + 60_001)).toBe(true);
   });
 });

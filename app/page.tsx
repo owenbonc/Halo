@@ -18,8 +18,8 @@ const CHOICES = [
 export default function RolePicker() {
   const router = useRouter();
 
+  // The picker is for a phone's first open; after that each app offers setup again from its own settings.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has('switch')) return;
     const role = savedRole();
     if (role) router.replace(`/${role}`);
   }, [router]);

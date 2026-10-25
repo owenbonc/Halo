@@ -38,7 +38,9 @@ export default function SetupPage() {
 
   const step: Step = STEPS[index] ?? 'her';
   const next = () => setIndex(Math.min(index + 1, STEPS.length - 1));
-  const back = () => (index > 0 ? setIndex(index - 1) : router.push('/?switch'));
+  // Before the first step, go back to wherever setup was opened from: the picker, Settings or Profile.
+  const back = () =>
+    index > 0 ? setIndex(index - 1) : window.history.length > 1 ? router.back() : router.push('/');
   const her = elderName.trim();
   const you = contactName.trim();
 

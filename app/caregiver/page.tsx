@@ -48,7 +48,7 @@ export default function AlertsPage() {
       : null;
   const sending = !!open && ack?.id === open.id && !ack.failed;
 
-  // One call to her covers every alert still waiting, so they're all acknowledged together.
+  // One call covers every alert still waiting, so they're all acknowledged together.
   const call = async (id: string, ids: string[]) => {
     setAck({ id, failed: false });
     const sent = await Promise.all(
@@ -96,7 +96,7 @@ export default function AlertsPage() {
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
             <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
-              {open.elderName} got a call that looks like a scam. Please call them.
+              {open.elderName} got a call that looks like a scam. Please call {open.elderName}.
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               <Pill tone={open.band} size="sm">
@@ -120,7 +120,8 @@ export default function AlertsPage() {
               You told {called.elderName} you’re calling.
             </h2>
             <p className="text-[0.9375rem] text-ink-2">
-              Their phone now says you’re calling. Alert from {when(called.createdAt)}.
+              {called.elderName}’s phone now says you’re calling. Alert from{' '}
+              {when(called.createdAt)}.
             </p>
           </Card>
         ) : (

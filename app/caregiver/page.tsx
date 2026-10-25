@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState, useSyncExternalStore } from 'react';
+import { AlertRow } from '@/components/caregiver/AlertRow';
 import { onSoundChange, soundOn, unlockSound } from '@/components/caregiver/alert-signal';
 import { BandLine } from '@/components/caregiver/BandLine';
 import { LargeTitle, PollStatus, useAlerts } from '@/components/caregiver/Shell';
@@ -27,31 +28,38 @@ function subscribeSound(notify: () => void) {
 export default function AlertsPage() {
   const alerts = useAlerts();
   // Acknowledged here: shown as done straight away, before the next poll confirms it.
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState<ReadonlySet<string>>(new Set());
   const [ack, setAck] = useState<{ id: string; failed: boolean } | null>(null);
   // Follows the shared audio context, which Safari can suspend, so the button returns when sound stops.
   const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
   const soundStatus = useRef<HTMLDivElement>(null);
 
-  const open = alerts.data?.find((a) => a.status !== 'acknowledged' && a.id !== done);
+  // Newest first: the top one is the card, the rest are listed under it.
+  const waiting = alerts.data?.filter((a) => a.status !== 'acknowledged' && !done.has(a.id)) ?? [];
+  const [open, ...earlier] = waiting;
   const latest = alerts.data?.[0];
   // The confirmation stays for an hour; after that the screen is calm again.
   const called =
     !open &&
     latest &&
-    (latest.id === done ||
+    (done.has(latest.id) ||
       (latest.status === 'acknowledged' && Date.now() - Date.parse(latest.createdAt) < HOUR))
       ? latest
       : null;
   const sending = !!open && ack?.id === open.id && !ack.failed;
 
-  const call = async (id: string) => {
+  // One call covers every alert still waiting, so they're all acknowledged together.
+  const call = async (id: string, ids: string[]) => {
     setAck({ id, failed: false });
-    const res = await fetch(`/api/alerts/${id}/ack`, { method: 'POST' }).catch(() => null);
-    if (res?.ok) {
-      setDone(id);
-      setAck(null);
-    } else setAck({ id, failed: true });
+    const sent = await Promise.all(
+      ids.map(async (each) => {
+        const res = await fetch(`/api/alerts/${each}/ack`, { method: 'POST' }).catch(() => null);
+        return res?.ok ? each : null;
+      }),
+    );
+    const ok = sent.filter((each) => each !== null);
+    setDone((prev) => new Set([...prev, ...ok]));
+    setAck(ok.length === ids.length ? null : { id, failed: true });
   };
 
   return (
@@ -88,7 +96,7 @@ export default function AlertsPage() {
           >
             <BandLine band={open.band} className="text-[0.9375rem]" />
             <h2 className="text-[2.125rem] leading-tight font-bold tracking-[-0.02em]">
-              {open.elderName} got a call that looks like a scam. Please call her.
+              {open.elderName} got a call that looks like a scam. Please call {open.elderName}.
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               <Pill tone={open.band} size="sm">
@@ -112,7 +120,8 @@ export default function AlertsPage() {
               You told {called.elderName} you’re calling.
             </h2>
             <p className="text-[0.9375rem] text-ink-2">
-              Her phone now says you’re calling her. Alert from {when(called.createdAt)}.
+              {called.elderName}’s phone now says you’re calling. Alert from{' '}
+              {when(called.createdAt)}.
             </p>
           </Card>
         ) : (
@@ -120,12 +129,29 @@ export default function AlertsPage() {
             <Card className="space-y-1">
               <h2 className="text-[1.0625rem] font-bold">No alerts right now</h2>
               <p className="text-[0.9375rem] text-ink-2">
-                If a call to her looks like a scam, you’ll see it here straight away.
+                If a call looks like a scam, you’ll see it here straight away.
               </p>
             </Card>
           )
         )}
       </div>
+
+      {open && earlier.length > 0 && (
+        <section aria-labelledby="earlier-alerts" className="mt-6">
+          <h2
+            id="earlier-alerts"
+            className="mb-2 px-1 font-sans text-[0.8125rem] font-semibold tracking-normal text-ink-2"
+          >
+            Earlier alerts · <span className="tabular-nums">{earlier.length}</span>
+          </h2>
+          <ul className="divide-y divide-line rounded-card border border-line bg-surface">
+            {earlier.map((a) => (
+              <AlertRow key={a.id} alert={a} />
+            ))}
+          </ul>
+          <p className="mt-2 px-1 text-[0.9375rem] text-ink-2">One call covers these too.</p>
+        </section>
+      )}
 
       {open && (
         // Floats above the tab bar so the one action that matters stays in thumb reach.
@@ -140,9 +166,18 @@ export default function AlertsPage() {
               That didn’t send. Check your connection and try again.
             </p>
           )}
-          <Button size="md" disabled={sending} onClick={() => call(open.id)}>
+          <Button
+            size="md"
+            disabled={sending}
+            onClick={() =>
+              call(
+                open.id,
+                waiting.map((a) => a.id),
+              )
+            }
+          >
             <Phone className="size-5" />
-            {sending ? 'Sending…' : 'I’m calling her now'}
+            {sending ? 'Sending…' : `I’m calling ${open.elderName} now`}
           </Button>
         </div>
       )}

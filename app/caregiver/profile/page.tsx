@@ -8,9 +8,9 @@ import { Pill } from '@/components/ui/Pill';
 import type { Settings } from '@/lib/types';
 import { usePoll } from '@/lib/use-poll';
 
-const MODE: Record<Settings['alertMode'], string> = {
-  auto_strong: 'Automatically when it’s serious',
-  ask_first: 'Only when she asks',
+const MODE: Record<Settings['alertMode'], (name: string) => string> = {
+  auto_strong: () => 'Automatically when it’s serious',
+  ask_first: (name) => `Only when ${name} asks`,
 };
 
 export default function ProfilePage() {
@@ -49,12 +49,12 @@ export default function ProfilePage() {
           <Card className="space-y-3">
             <div>
               <p className="text-[0.8125rem] text-ink-2">How {s.elderName} tells you</p>
-              <p className="font-semibold">{MODE[s.alertMode]}</p>
+              <p className="font-semibold">{MODE[s.alertMode](s.elderName)}</p>
             </div>
             {s.paused && (
               <p className="rounded-chip border border-line-strong bg-surface-2 px-3 py-2 text-[0.9375rem] font-semibold">
-                {s.elderName} has paused messages to you. You won’t be told about any call until she
-                turns them back on.
+                {s.elderName} has paused messages to you. You won’t be told about any call until
+                {s.elderName} turns them back on.
               </p>
             )}
           </Card>
@@ -79,9 +79,7 @@ export default function ProfilePage() {
                 'Calls that showed no warning signs',
               ]}
             />
-            <p className="text-[0.8125rem] text-ink-2">
-              {s.elderName} chooses these in her settings.
-            </p>
+            <p className="text-[0.8125rem] text-ink-2">{s.elderName} chooses these in Settings.</p>
           </Card>
         </>
       )}
